@@ -19,30 +19,7 @@ The extracted lab studies how computation may be represented, moved, combined, r
 
 - `sources/LINUXPDF.md` — source-grounded note on `ading2210/linuxpdf`, where PDF JavaScript hosts an asm.js-compiled TinyEMU RISC-V emulator which boots Linux. The upstream code is GPL-3.0 and is cited here rather than vendored.
 
-## Flowing compute research
-
-The first standalone research branch asks whether bounded setup computation can construct a persistent software structure that later harvests, redirects, composes, or activates continuing machine/environment resources so useful computational output accumulates beyond the original construction cost.
-
-Current surfaces:
-
-- `research/FLOWING_COMPUTE_HYPOTHESIS.md` — hypothesis, accounting boundaries, candidate mechanisms, and disproof cases;
-- `tools/flowing-compute-accounting.js` — dependency-free deterministic accounting surface;
-- `tools/flowing-compute-selftest.js` — refusal and break-even checks;
-- `examples/flowing-compute-amortization.example.json` — synthetic fixture;
-- `evidence/FLOWING_COMPUTE_ACCOUNTING_SELFTEST.md` — bounded 20/20 self-test receipt.
-
-The accounting deliberately separates:
-
-- setup/construction cost;
-- continuing maintenance cost;
-- continuing external/host compute input;
-- reclaimed/idle capacity as a subset of real external input;
-- useful output under a declared comparable unit;
-- equivalent repeat-from-zero baseline cost.
-
-A system may amortize its setup cost or beat a repeated baseline without producing compute from nothing.
-
-## New research question
+## Flowing Compute hypothesis
 
 A current hypothesis to investigate is whether software can use a bounded setup computation to create a persistent computational structure that later harvests, redirects, composes, or activates continuing machine/environment resources, such that cumulative useful computational flow exceeds the computation spent constructing that structure.
 
@@ -56,8 +33,25 @@ This is **not** a claim of free energy or compute from nothing. The research dis
 
 LinuxPDF is relevant because it demonstrates that computational structure can be stored in a surprising carrier while execution is supplied later by a separate compatible runtime.
 
+## First measured AXM result
+
+The first real runtime probe used FrameState code already present inside the uploaded `AXM_Connected_Monolith_v0.4.30-WALMI-NATIVE-WIRING` body.
+
+A deterministic 18-frame 3D relay-mesh render was executed in two modes:
+
+- **cold/rebuild:** reconstruct media/cache/mesh state for every frame;
+- **flowing/persistent:** initialize once and retain the reusable state across all frames.
+
+All output frame hashes matched exactly.
+
+Two independent seven-trial runs measured approximately **16.50%** and **16.01%** median CPU reduction for the persistent path, corresponding to about **1.198×** and **1.191×** equivalent useful-yield multipliers.
+
+A procedural-cube control with little reusable external state measured only about **0.65%** median CPU reduction, providing an initial indication that the larger mesh result is tied to real reusable state rather than a generic loop artifact.
+
+See `evidence/MONOLITH_FRAMESTATE_FLOWING_COMPUTE_2026-09-15.md` for the bounded evidence and truth limits.
+
 ## Current truth boundary
 
-The donor snapshot is provenance, not a claim that it already runs standalone in this repository. Some copied files still reference collaboration-platform modules such as deterministic research and hardware-research components. Standalone rewiring, real workload benchmarks, and governance repair come **after** source preservation.
+The donor snapshot is provenance, not a claim that it already runs standalone in this repository. Some copied files still reference collaboration-platform modules such as deterministic research and hardware-research components.
 
-The Flowing Compute accounting test currently proves only that the experimental accounting model behaves as declared on a synthetic fixture. It does not prove the world-level hypothesis.
+The flowing-compute measurements are runtime evidence for one host and two FrameState workload shapes, not a claim of general scaling or physical over-unity. Standalone rewiring, broader benchmarks, mechanism isolation, and governance repair remain future work.
