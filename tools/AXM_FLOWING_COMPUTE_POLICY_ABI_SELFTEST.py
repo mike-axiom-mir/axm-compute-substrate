@@ -22,12 +22,14 @@ with tempfile.TemporaryDirectory() as td:
                 "profile_id": "linear-profile",
                 "profile_path": "calibration/linear.json",
                 "evaluator_kind": "linear_cpu_models_v1",
+                "domain": {"kind":"range_v1","features":{"affected":{"min":0,"max":50}}},
             },
             {
                 "contract_id": "c.fraction",
                 "profile_id": "fraction-profile",
                 "profile_path": "calibration/fraction.json",
                 "evaluator_kind": "retained_work_fraction_v1",
+                "domain": {"kind":"allowed_totals_v1","total_feature":"total_work_units","allowed_totals":[48]},
             },
         ],
     }
@@ -64,6 +66,12 @@ with tempfile.TemporaryDirectory() as td:
     assert decide(root / "calibration/REGISTRY.json", contract_id="c.fraction", features={"affected_work_units": 48, "total_work_units": 48})["decision"] == "global"
 
     try:
+        decide(root / "calibration/REGISTRY.json", contract_id="c.linear", features={"affected": 51})
+        raise AssertionError("out-of-domain feature should HOLD")
+    except ValueError as exc:
+        assert "HOLD" in str(exc)
+
+    try:
         decide(root / "calibration/REGISTRY.json", contract_id="unknown", features={})
         raise AssertionError("unknown contract should HOLD")
     except ValueError as exc:
@@ -75,4 +83,4 @@ with tempfile.TemporaryDirectory() as td:
     except ValueError:
         pass
 
-print("Policy ABI self-test passed 7 checks.")
+print("Policy ABI self-test passed 8 checks.")
