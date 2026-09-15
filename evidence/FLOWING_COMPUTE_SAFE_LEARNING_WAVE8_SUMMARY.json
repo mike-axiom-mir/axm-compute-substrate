@@ -1,0 +1,15 @@
+{
+  "schema": "axm.flowing-compute-safe-learning-wave8/v0.1",
+  "accepted_observations": 55,
+  "rejected_observations": 2,
+  "ledger_entries": 57,
+  "parent_holdout": {"decisions": 11, "correct": 11, "accuracy": 1.0, "mean_regret_percent": 0.0, "max_regret_percent": 0.0},
+  "candidate_holdout": {"decisions": 11, "correct": 10, "accuracy": 0.9090909090909091, "mean_regret_percent": 0.16210584043131404, "max_regret_percent": 1.7831642447444545},
+  "promotion_status": "REJECTED_PROMOTION",
+  "promotion_reason": "candidate regressed on fresh holdout; retain current generation",
+  "current_generation_sha256": "a2e867b2dd37b8751a640d567acd4f3e84de33668630570e0193eefac5acb8ca",
+  "candidate_generation_sha256": "93906cfa2ca7084260b38b215af322b3fed7876d11d057d4c86f8aaf1efa1ee3",
+  "rejection_controls": {"equivalence_failure": ["equivalence_not_verified"], "contract_mismatch": ["contract_mismatch"]},
+  "tamper_control": "PASS: ledger hash mismatch detected",
+  "rollback_preserved": true
+}
