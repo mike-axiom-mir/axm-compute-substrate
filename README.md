@@ -19,6 +19,29 @@ The extracted lab studies how computation may be represented, moved, combined, r
 
 - `sources/LINUXPDF.md` — source-grounded note on `ading2210/linuxpdf`, where PDF JavaScript hosts an asm.js-compiled TinyEMU RISC-V emulator which boots Linux. The upstream code is GPL-3.0 and is cited here rather than vendored.
 
+## Flowing compute research
+
+The first standalone research branch asks whether bounded setup computation can construct a persistent software structure that later harvests, redirects, composes, or activates continuing machine/environment resources so useful computational output accumulates beyond the original construction cost.
+
+Current surfaces:
+
+- `research/FLOWING_COMPUTE_HYPOTHESIS.md` — hypothesis, accounting boundaries, candidate mechanisms, and disproof cases;
+- `tools/flowing-compute-accounting.js` — dependency-free deterministic accounting surface;
+- `tools/flowing-compute-selftest.js` — refusal and break-even checks;
+- `examples/flowing-compute-amortization.example.json` — synthetic fixture;
+- `evidence/FLOWING_COMPUTE_ACCOUNTING_SELFTEST.md` — bounded 20/20 self-test receipt.
+
+The accounting deliberately separates:
+
+- setup/construction cost;
+- continuing maintenance cost;
+- continuing external/host compute input;
+- reclaimed/idle capacity as a subset of real external input;
+- useful output under a declared comparable unit;
+- equivalent repeat-from-zero baseline cost.
+
+A system may amortize its setup cost or beat a repeated baseline without producing compute from nothing.
+
 ## New research question
 
 A current hypothesis to investigate is whether software can use a bounded setup computation to create a persistent computational structure that later harvests, redirects, composes, or activates continuing machine/environment resources, such that cumulative useful computational flow exceeds the computation spent constructing that structure.
@@ -35,4 +58,6 @@ LinuxPDF is relevant because it demonstrates that computational structure can be
 
 ## Current truth boundary
 
-The donor snapshot is provenance, not a claim that it already runs standalone in this repository. Some copied files still reference collaboration-platform modules such as deterministic research and hardware-research components. Standalone rewiring, new experiments, benchmarks, and governance repair come **after** source preservation.
+The donor snapshot is provenance, not a claim that it already runs standalone in this repository. Some copied files still reference collaboration-platform modules such as deterministic research and hardware-research components. Standalone rewiring, real workload benchmarks, and governance repair come **after** source preservation.
+
+The Flowing Compute accounting test currently proves only that the experimental accounting model behaves as declared on a synthetic fixture. It does not prove the world-level hypothesis.
