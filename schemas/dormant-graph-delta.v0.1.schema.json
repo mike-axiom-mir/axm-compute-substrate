@@ -1,0 +1,8 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://axiom-mir.example/schemas/dormant-graph-delta.v0.1.schema.json",
+  "title":"AXM Dormant Execution Graph Semantic Delta v0.1",
+  "type":"object",
+  "required":["schema","from_source_sha256","to_source_sha256","topology_change","changes","delta_sha256"],
+  "properties":{"schema":{"const":"axm.execution-graph.semantic-delta/v0.1"},"from_source_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},"to_source_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},"topology_change":{"const":false},"changes":{"type":"array","items":{"type":"object","required":["edge_id","before_edge_sha256","after_edge","after_edge_sha256"]}},"delta_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"}}
+}
