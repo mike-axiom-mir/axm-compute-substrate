@@ -95,7 +95,8 @@ def make_delta(*, old_state:dict[str,Any], new_source_path:str|Path, changed_edg
     new_sha=file_sha(new_source_path)
     changes=[]
     for edge in changed_edges:
-        eid=edge['id']; before=old_state['edge_hashes'].get(eid)
+        eid=edge['id']
+        before=old_state['edge_hashes'].get(eid)
         if not before: raise ValueError('delta edge is not retained: '+eid)
         changes.append({'edge_id':eid,'before_edge_sha256':before,'after_edge':edge,'after_edge_sha256':h(edge)})
     value={'schema':DELTA_SCHEMA,'from_source_sha256':old_state['source_sha256'],'to_source_sha256':new_sha,'topology_change':False,'changes':changes}
@@ -109,11 +110,20 @@ def validate_delta(delta:dict[str,Any])->None:
     if delta.get('topology_change') is not False: raise ValueError('HOLD: topology change requires rebuild')
 
 def _runtime(state):
-    comps=state['component_members']; comp_edge_ids={int(k):list(v) for k,v in state['component_edges'].items()}; edge_hashes=dict(state['edge_hashes']); edge_topology_hashes=dict(state['edge_topology_hashes']); local={int(k):v for k,v in state['local_hashes'].items()}; sig={int(k):v for k,v in state['signatures'].items()}; pred={int(k):set(v) for k,v in state['predecessors'].items()}; succ={int(k):set(v) for k,v in state['successors'].items()}; topo=list(state['topological_order']); edge_to_comp={eid:c for c,eids in comp_edge_ids.items() for eid in eids}
+    comps=state['component_members']
+    comp_edge_ids={int(k):list(v) for k,v in state['component_edges'].items()}
+    edge_hashes=dict(state['edge_hashes'])
+    edge_topology_hashes=dict(state['edge_topology_hashes'])
+    local={int(k):v for k,v in state['local_hashes'].items()}
+    sig={int(k):v for k,v in state['signatures'].items()}
+    pred={int(k):set(v) for k,v in state['predecessors'].items()}
+    succ={int(k):set(v) for k,v in state['successors'].items()}
+    topo=list(state['topological_order'])
+    edge_to_comp={eid:c for c,eids in comp_edge_ids.items() for eid in eids}
     return comps,comp_edge_ids,edge_hashes,edge_topology_hashes,local,sig,pred,succ,topo,edge_to_comp
 
-def prepare_transition(*, old_state:dict[str,Any], delta:dict[str,Any], current_source_path:str|Path, rehash_current_source:bool=True)->dict[str,Any]:
-    validate_state(old_state); validate_delta(delta)
+def _prepare_transition_core(*, old_state:dict[str,Any], delta:dict[str,Any], current_source_path:str|Path, rehash_current_source:bool=True)->dict[str,Any]:
+    validate_delta(delta)
     if old_state['source_sha256']!=delta['from_source_sha256']: raise ValueError('delta does not start from dormant state generation')
     if rehash_current_source and file_sha(current_source_path)!=delta['to_source_sha256']: raise ValueError('current source content does not match delta target generation')
     comps,comp_edge_ids,edge_hashes,edge_topology_hashes,local,sig,pred,succ,topo,edge_to_comp=_runtime(old_state)
@@ -125,7 +135,8 @@ def prepare_transition(*, old_state:dict[str,Any], delta:dict[str,Any], current_
         if h(after)!=change['after_edge_sha256']: raise ValueError('delta after-edge integrity mismatch')
         if after.get('id')!=eid or after.get('wiring_status')!='wired_candidate': raise ValueError('HOLD: edge identity/wiring change requires rebuild')
         if h([after.get('from'),after.get('to'),after.get('wiring_status')]) != edge_topology_hashes[eid]: raise ValueError('HOLD: edge topology changed')
-        c=edge_to_comp[eid]; edge_hashes[eid]=change['after_edge_sha256']; changed_components.add(c)
+        c=edge_to_comp[eid]
+        edge_hashes[eid]=change['after_edge_sha256']; changed_components.add(c)
     for c in changed_components: local[c]=_local_hash(c,comp_edge_ids,edge_hashes)
     affected=set(changed_components); stack=list(changed_components)
     while stack:
@@ -134,22 +145,41 @@ def prepare_transition(*, old_state:dict[str,Any], delta:dict[str,Any], current_
             if d not in affected: affected.add(d); stack.append(d)
     return {'old_state':old_state,'delta':delta,'comps':comps,'comp_edge_ids':comp_edge_ids,'edge_hashes':edge_hashes,'edge_topology_hashes':edge_topology_hashes,'local':local,'sig':sig,'pred':pred,'succ':succ,'topo':topo,'changed_components':changed_components,'affected':affected,'rehash_current_source':rehash_current_source}
 
+def prepare_transition(*, old_state:dict[str,Any], delta:dict[str,Any], current_source_path:str|Path, rehash_current_source:bool=True)->dict[str,Any]:
+    validate_state(old_state)
+    return _prepare_transition_core(old_state=old_state,delta=delta,current_source_path=current_source_path,rehash_current_source=rehash_current_source)
+
+def prepare_transition_validated(*, validated_handle, delta:dict[str,Any], current_source_path:str|Path, rehash_current_source:bool=True)->dict[str,Any]:
+    from AXM_FLOWING_COMPUTE_VALIDATED_STATE import ValidatedStateHandle
+    if not isinstance(validated_handle,ValidatedStateHandle): raise ValueError('validated_handle must be a registered ValidatedStateHandle')
+    old_state=validated_handle.consume()
+    return _prepare_transition_core(old_state=old_state,delta=delta,current_source_path=current_source_path,rehash_current_source=rehash_current_source)
+
 def propagate_transition(prepared:dict[str,Any], mode:str)->dict[str,Any]:
     if mode not in ('incremental','global'): raise ValueError('mode must be incremental or global')
-    comps=prepared['comps']; local=prepared['local']; sig=dict(prepared['sig']); pred=prepared['pred']; topo=prepared['topo']; affected=prepared['affected']; recompute=set(topo) if mode=='global' else set(affected)
+    comps=prepared['comps']; local=prepared['local']; sig=dict(prepared['sig']); pred=prepared['pred']; topo=prepared['topo']; affected=prepared['affected']
+    recompute=set(topo) if mode=='global' else set(affected)
     for c in topo:
         if c in recompute: sig[c]=_signature(c,comps,pred,local,sig)
     return {'mode':mode,'signatures':sig,'recompute':recompute}
 
 def finalize_transition(prepared:dict[str,Any], propagated:dict[str,Any])->tuple[dict[str,Any],dict[str,Any]]:
     old_state=prepared['old_state']; delta=prepared['delta']; comps=prepared['comps']; comp_edge_ids=prepared['comp_edge_ids']; edge_hashes=prepared['edge_hashes']; edge_topology_hashes=prepared['edge_topology_hashes']; local=prepared['local']; sig=propagated['signatures']; pred=prepared['pred']; succ=prepared['succ']; topo=prepared['topo']; changed_components=prepared['changed_components']; affected=prepared['affected']; recompute=propagated['recompute']; mode=propagated['mode']
-    new_state={'schema':STATE_SCHEMA,'source_sha256':delta['to_source_sha256'],'component_members':comps,'component_edges':{str(k):sorted(v) for k,v in comp_edge_ids.items()},'edge_hashes':edge_hashes,'edge_topology_hashes':edge_topology_hashes,'local_hashes':{str(k):v for k,v in local.items()},'signatures':{str(k):v for k,v in sig.items()},'predecessors':{str(k):sorted(v) for k,v in pred.items()},'successors':{str(k):sorted(v) for k,v in succ.items()},'topological_order':topo,'counts':dict(old_state['counts'])}
+    new_state={
+      'schema':STATE_SCHEMA,'source_sha256':delta['to_source_sha256'],'component_members':comps,
+      'component_edges':{str(k):sorted(v) for k,v in comp_edge_ids.items()},'edge_hashes':edge_hashes,
+      'edge_topology_hashes':edge_topology_hashes,
+      'local_hashes':{str(k):v for k,v in local.items()},'signatures':{str(k):v for k,v in sig.items()},
+      'predecessors':{str(k):sorted(v) for k,v in pred.items()},'successors':{str(k):sorted(v) for k,v in succ.items()},
+      'topological_order':topo,'counts':dict(old_state['counts'])}
     new_state['state_sha256']=h(new_state)
     receipt={'schema':TRANSITION_SCHEMA,'from_source_sha256':delta['from_source_sha256'],'to_source_sha256':delta['to_source_sha256'],'delta_sha256':delta['delta_sha256'],'mode':mode,'rehash_current_source':prepared['rehash_current_source'],'changed_components':len(changed_components),'affected_components':len(affected),'total_components':len(comps),'recomputed_components':len(recompute),'result_state_sha256':new_state['state_sha256'],'equivalence_required':True}
-    receipt['receipt_sha256']=h(receipt); return new_state,receipt
+    receipt['receipt_sha256']=h(receipt)
+    return new_state,receipt
 
 def finish_transition(prepared:dict[str,Any], mode:str)->tuple[dict[str,Any],dict[str,Any]]:
     return finalize_transition(prepared,propagate_transition(prepared,mode))
 
 def transition(*, old_state:dict[str,Any], delta:dict[str,Any], current_source_path:str|Path, mode:str, rehash_current_source:bool=True)->tuple[dict[str,Any],dict[str,Any]]:
-    return finish_transition(prepare_transition(old_state=old_state,delta=delta,current_source_path=current_source_path,rehash_current_source=rehash_current_source),mode)
+    prepared=prepare_transition(old_state=old_state,delta=delta,current_source_path=current_source_path,rehash_current_source=rehash_current_source)
+    return finish_transition(prepared,mode)
