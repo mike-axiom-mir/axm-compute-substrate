@@ -7,6 +7,7 @@ from typing import Any
 REGISTRY_SCHEMA = "axm.flowing-compute-policy-registry/v0.2"
 PROFILE_SCHEMA = "axm.flowing-compute-policy-profile/v0.1"
 SUPPORTED_EVALUATORS = {"linear_cpu_models_v1", "retained_work_fraction_v1"}
+SUPPORTED_DOMAINS = {"nearest_observed_surface_v1", "range_v1", "allowed_totals_v1", "unbounded_structural_v1"}
 
 
 def _read_json(path: str | Path) -> dict[str, Any]:
@@ -32,7 +33,7 @@ def load_registry(path: str | Path) -> dict[str, Any]:
     return value
 
 
-def resolve_registration(registry: dict[str, Any], contract_id: str) -> dict[str, Any]:
+def resolve_registration(registry: dict[str,Any], contract_id: str) -> dict[str,Any]:
     matches = [item for item in registry.get("profiles", []) if item.get("contract_id") == contract_id]
     if len(matches) != 1:
         raise ValueError("HOLD: no unique exact policy registration for contract_id=" + contract_id)
@@ -53,6 +54,50 @@ def load_bound_profile(registry_path: str | Path, contract_id: str) -> tuple[dic
     if declared_contract is not None and declared_contract != contract_id:
         raise ValueError("policy profile contract mismatch")
     return registration, profile
+
+
+def _check_domain(registration: dict[str, Any], features: dict[str, float]) -> dict[str, Any]:
+    domain = registration.get("domain") or {"kind": "unbounded_structural_v1"}
+    kind = domain.get("kind")
+    if kind not in SUPPORTED_DOMAINS:
+        raise ValueError("HOLD: unsupported policy domain kind=" + str(kind))
+    if kind == "unbounded_structural_v1":
+        return {"kind": kind, "inside": True}
+    if kind == "range_v1":
+        for name, bounds in (domain.get("features") or {}).items():
+            value = float(features[name])
+            lo = float(bounds["min"])
+            hi = float(bounds["max"])
+            if value < lo or value > hi:
+                raise ValueError(f"HOLD: feature {name}={value} outside measured range [{lo},{hi}]")
+        return {"kind": kind, "inside": True}
+    if kind == "allowed_totals_v1":
+        total_name = str(domain.get("total_feature") or "total_work_units")
+        total = float(features[total_name])
+        allowed = [float(x) for x in domain.get("allowed_totals", [])]
+        if total not in allowed:
+            raise ValueError(f"HOLD: {total_name}={total} not in measured totals {allowed}")
+        return {"kind": kind, "inside": True}
+    if kind == "nearest_observed_surface_v1":
+        feature_order = list(domain.get("feature_order") or [])
+        points = list(domain.get("points") or [])
+        max_delta = domain.get("max_abs_delta") or {}
+        if not feature_order or not points:
+            raise ValueError("HOLD: observed-surface domain lacks points")
+        nearest = None
+        nearest_score = None
+        for point in points:
+            deltas = {name: abs(float(features[name]) - float(point[name])) for name in feature_order}
+            score = sum(deltas[name] / max(float(max_delta.get(name, 0.0)), 1e-12) for name in feature_order)
+            if nearest_score is None or score < nearest_score:
+                nearest_score = score
+                nearest = {"point": point, "deltas": deltas}
+        assert nearest is not None
+        outside = [name for name in feature_order if nearest["deltas"][name] > float(max_delta.get(name, 0.0))]
+        if outside:
+            raise ValueError("HOLD: feature combination outside measured surface; nearest=" + json.dumps(nearest, sort_keys=True))
+        return {"kind": kind, "inside": True, "nearest_observation": nearest}
+    raise ValueError("HOLD: unsupported policy domain")
 
 
 def _validate_feature_shape(required: list[str], features: dict[str, float]) -> None:
@@ -118,6 +163,7 @@ def _decide_retained_fraction(profile: dict[str, Any], features: dict[str, float
 
 def decide(registry_path: str | Path, *, contract_id: str, features: dict[str, float]) -> dict[str, Any]:
     registration, profile = load_bound_profile(registry_path, contract_id)
+    domain_evidence = _check_domain(registration, features)
     evaluator_kind = registration["evaluator_kind"]
     if evaluator_kind == "linear_cpu_models_v1":
         body = _decide_linear(profile, features)
@@ -130,6 +176,7 @@ def decide(registry_path: str | Path, *, contract_id: str, features: dict[str, f
         "profile_id": profile.get("profile_id"),
         "evaluator_kind": evaluator_kind,
         "features": features,
+        "domain_evidence": domain_evidence,
         **body,
         "truth": {
             "exact_contract_binding": True,
