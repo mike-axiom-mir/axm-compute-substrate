@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://axiom-mir.example/schemas/dormant-state-envelope.v0.1.schema.json",
+  "title": "AXM Flowing Compute Dormant State Envelope v0.1",
+  "type": "object",
+  "required": ["schema","semantic_contract","producer","source","state_payload","state_payload_sha256","state_payload_bytes","truth","envelope_sha256"],
+  "properties": {
+    "schema": {"const":"axm.flowing-compute-dormant-state/v0.1"},
+    "semantic_contract": {"type":"string","minLength":1},
+    "producer": {"type":"string","minLength":1},
+    "source": {
+      "type":"object",
+      "required":["path_hint","sha256","generation_token"],
+      "properties": {
+        "path_hint":{"type":"string"},
+        "sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+        "generation_token":{
+          "type":"object",
+          "required":["bytes","mtime_ns"],
+          "properties":{"bytes":{"type":"integer","minimum":0},"mtime_ns":{"type":"integer","minimum":0}}
+        }
+      }
+    },
+    "state_payload_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+    "state_payload_bytes":{"type":"integer","minimum":0},
+    "truth":{"type":"object"},
+    "envelope_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"}
+  }
+}
