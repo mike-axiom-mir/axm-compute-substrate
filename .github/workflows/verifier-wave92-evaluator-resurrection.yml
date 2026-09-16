@@ -1,0 +1,23 @@
+name: verifier-wave92-evaluator-resurrection
+
+on:
+  pull_request:
+    paths:
+      - 'verification/wave92_removed_evaluator_resurrection_repro.py'
+      - 'tools/AXM_FLOWING_COMPUTE_PREDECESSOR_AUTHORIZED_REGISTRY_TRANSITION.py'
+      - '.github/workflows/verifier-wave92-evaluator-resurrection.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reproduce Wave 92 historical evaluator resurrection
+        run: python verification/wave92_removed_evaluator_resurrection_repro.py
