@@ -38,6 +38,22 @@
     "total": 32
   },
   "next_gate": "Put the external anchor on a physically independent monotonic service/device (or two independent remote witnesses), then attack credentialed remote rewrite, witness partition, conflicting remote histories, and recovery with one witness unavailable. Separately migrate the remaining HMAC state-attestation layer to public verification only if transition and rollback semantics survive.",
+  "repeat_validation": {
+    "normal_controls": "32/32",
+    "normal_run": {
+      "checkpoint_create_median_cpu_us": 12532.475,
+      "label": "SYNTHETIC single-host process-CPU checkpoint construction/public verification; not monolith compute-efficiency or energy evidence",
+      "public_verify_median_cpu_us": 6513.104,
+      "rounds": 5
+    },
+    "optimized_controls": "32/32",
+    "optimized_python_run": {
+      "checkpoint_create_median_cpu_us": 12737.653,
+      "label": "SYNTHETIC single-host process-CPU checkpoint construction/public verification; not monolith compute-efficiency or energy evidence",
+      "public_verify_median_cpu_us": 6013.84,
+      "rounds": 5
+    }
+  },
   "schema": "axm.flowing_compute.wave96.report/v1",
   "segments": {
     "cp1": {"att_state": 1, "attestations": 0, "history": 1, "key_state": 1, "keys": 4},
@@ -54,9 +70,9 @@
     "wave95_tool_blob": "5e38d8ad23dc9c659d774127beb95a745b08a151"
   },
   "synthetic_benchmark": {
-    "checkpoint_create_median_cpu_us": 13719.917,
+    "checkpoint_create_median_cpu_us": 12532.475,
     "label": "SYNTHETIC single-host process-CPU checkpoint construction/public verification; not monolith compute-efficiency or energy evidence",
-    "public_verify_median_cpu_us": 6783.323,
+    "public_verify_median_cpu_us": 6513.104,
     "rounds": 5
   },
   "truth_boundary": [
