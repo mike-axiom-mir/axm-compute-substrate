@@ -1,0 +1,83 @@
+{
+  "benchmark": {
+    "includes_artifact_reread": false,
+    "iterations": 2000,
+    "median_cpu_us": 143.8945,
+    "note": "This is pointer/receipt/freshness bookkeeping only; Wave 79 measured the real byte audit separately.",
+    "operation": "make audited Wave80 pointer + validate full predecessor/receipt chain"
+  },
+  "carry_followup": {
+    "committed_receipt_count": 0,
+    "mode": "carried_immutable_proof",
+    "pointer_sha256": "99876d8d36348b3403cb162152adbd75d2d82c4dbe645c6b1151c1b14cbe694d",
+    "previous_pointer_sha256": "1b93525216e04d20e4b5556f8ada44aeefcbb8168b33c9d01c723dfcc6117c58",
+    "resulting_audit_age_generations": 1,
+    "sequence": 2
+  },
+  "controls": {
+    "age_zero_audited_without_receipt_ref_rejected": {
+      "detail": "audit receipt map does not exactly match audited contracts",
+      "status": "PASS"
+    },
+    "atomic_pointer_move_commits_next_generation": {
+      "detail": "persisted_sequence=2",
+      "status": "PASS"
+    },
+    "carried_contract_with_receipt_ref_rejected": {
+      "detail": "audit receipt map does not exactly match audited contracts",
+      "status": "PASS"
+    },
+    "crash_before_pointer_move_preserves_prior_generation": {
+      "detail": "persisted_sequence=1",
+      "status": "PASS"
+    },
+    "receipt_id_tamper_rejected_by_chain": {
+      "detail": "audit receipt body unavailable for axm.execution-fabric.capability-index/v0.1",
+      "status": "PASS"
+    },
+    "receipt_predecessor_tamper_rejected_by_chain": {
+      "detail": "audit receipt reference names the wrong predecessor state",
+      "status": "PASS"
+    },
+    "rollback_or_skipped_predecessor_rejected": {
+      "detail": "pointer sequence does not follow predecessor",
+      "status": "PASS"
+    },
+    "stale_prior_generation_receipt_ref_rejected": {
+      "detail": "audit receipt reference is stale for this generation",
+      "status": "PASS"
+    }
+  },
+  "positive_case": {
+    "committed_receipt_ref": {
+      "predecessor_state_sha256": "58959e3053fe81c2686894296e542859a3a6d86a5591dfddde19110786bc7a01",
+      "receipt_sha256": "fb65ba5ad5cc0f4c33a851957ccc42a4142c64a3d0815abb1a4f0886dbf4ecf2",
+      "sequence": 1
+    },
+    "mode": "audited_reuse",
+    "pointer_sha256": "1b93525216e04d20e4b5556f8ada44aeefcbb8168b33c9d01c723dfcc6117c58",
+    "previous_pointer_sha256": "97ba881dd417916e2e02e23b9f026bee1e1093896e7a809e09fb019ea2b0e3ad",
+    "resulting_audit_age_generations": 0,
+    "sequence": 1
+  },
+  "real_evidence_reused": {
+    "artifact_bytes": 11255808,
+    "artifact_sha256": "e676fafb2f825d946c10480ccd2184ab69daf9464ae77cf5703dfe59562644da",
+    "contract_id": "axm.execution-fabric.capability-index/v0.1",
+    "note": "Wave 80 binds/revalidates the prior Wave 79 real audit receipt; it does not reread the artifact bytes.",
+    "predecessor_freshness_state_sha256": "58959e3053fe81c2686894296e542859a3a6d86a5591dfddde19110786bc7a01",
+    "proof_sha256": "0e90715689e43290371acc3d1608b58d179cd4c6e7bfc288b9bd41b718f353a2",
+    "wave79_receipt_sequence": 1,
+    "wave79_receipt_sha256": "fb65ba5ad5cc0f4c33a851957ccc42a4142c64a3d0815abb1a4f0886dbf4ecf2"
+  },
+  "schema": "axm.flowing-compute-audit-bound-generation-wave80/v0.1",
+  "truth": {
+    "controlled_generation_sha_values_are_test_commit_identities_not_canonical_monolith_generation_hashes": true,
+    "cpu_time_is_not_joules": true,
+    "no_audit_cadence_is_invented": true,
+    "no_auto_merge": true,
+    "receipt_sha256_is_integrity_not_actor_authentication": true,
+    "wave79_receipt_came_from_real_full_artifact_read": true,
+    "wave80_did_not_repeat_the_artifact_byte_audit": true
+  }
+}
