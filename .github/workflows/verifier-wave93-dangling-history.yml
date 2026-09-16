@@ -1,0 +1,23 @@
+name: verifier-wave93-dangling-history
+
+on:
+  pull_request:
+    paths:
+      - 'verification/wave93_dangling_history_repro.py'
+      - 'tools/AXM_FLOWING_COMPUTE_TRANSITION_ATTESTATION_HISTORY.py'
+      - '.github/workflows/verifier-wave93-dangling-history.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reproduce Wave 93 dangling predecessor evidence acceptance
+        run: python verification/wave93_dangling_history_repro.py
