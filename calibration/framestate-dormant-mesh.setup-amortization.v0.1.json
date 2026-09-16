@@ -1,0 +1,10 @@
+{
+  "schema":"axm.flowing-compute-policy-profile/v0.1",
+  "profile_id":"framestate-dormant-mesh-2026-09-16",
+  "contract_id":"axm.framestate.dormant-mesh/v0.1",
+  "features":["expected_fresh_starts","artifact_available","audit_source_each_start"],
+  "costs":{"setup_cpu_ns":6872688,"cold_per_start_cpu_ns":24660555,"dormant_per_start_cpu_ns":20690421,"audited_per_start_cpu_ns":20760175},
+  "artifact_bytes":15137,
+  "evidence":{"source":"Wave49-50 relay_offline.obj fresh-worker measurements","compile_trials":31,"single_asset_single_host":true},
+  "truth":{"long_lived_renderer_not_this_contract":true,"cpu_only":true,"hardware_joules_unavailable":true}
+}
