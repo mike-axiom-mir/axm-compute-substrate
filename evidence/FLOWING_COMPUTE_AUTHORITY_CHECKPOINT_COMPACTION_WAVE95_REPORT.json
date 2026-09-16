@@ -1,0 +1,93 @@
+{
+  "all_runs_passed": true,
+  "checkpoint": {
+    "archive_counts": {
+      "att_state": 3,
+      "attestations": 8,
+      "history": 3,
+      "key_state": 3,
+      "keys": 5
+    },
+    "archive_digest": "74a77a6c8385048c7d54f4b56df195eccc11af4a0d72916c630e5c33bed34adc",
+    "pruned": {
+      "att_state": 2,
+      "attestations": 8,
+      "history": 2,
+      "key_state": 2,
+      "keys": 1,
+      "secrets": 1
+    }
+  },
+  "controls": {
+    "passed": 29,
+    "rows": [
+      {"name": "exact_wave94_builder_source", "pass": true},
+      {"name": "exact_wave94_verifier_source", "pass": true},
+      {"name": "genesis_full_authority", "pass": true},
+      {"name": "first_transition_commits", "pass": true},
+      {"name": "wave94_dangling_att_state_now_holds", "pass": true},
+      {"name": "cannot_extend_dangling_state", "pass": true},
+      {"name": "cannot_checkpoint_dangling_state", "pass": true},
+      {"name": "restored_full_closure", "pass": true},
+      {"name": "rotation_transition_commits", "pass": true},
+      {"name": "retired_truth_secret_present_precheckpoint", "pass": true},
+      {"name": "checkpoint_binds_exact_base_tuple", "pass": true},
+      {"name": "checkpoint_binds_archive_digest", "pass": true},
+      {"name": "checkpoint_partial_fanout", "pass": true},
+      {"name": "partial_checkpoint_not_authoritative", "pass": true},
+      {"name": "checkpoint_recovery_commits", "pass": true},
+      {"name": "checkpointed_authority_before_prune", "pass": true},
+      {"name": "precut_bodies_pruned", "pass": true},
+      {"name": "retired_symmetric_secret_destroyed", "pass": true},
+      {"name": "checkpointed_authority_survives_precut_prune", "pass": true},
+      {"name": "postcut_transition_commits", "pass": true},
+      {"name": "postcut_authority", "pass": true},
+      {"name": "missing_current_state_holds", "pass": true},
+      {"name": "checkpoint_witness_disagreement_holds", "pass": true},
+      {"name": "competing_checkpoint_holds", "pass": true},
+      {"name": "rehashed_checkpoint_forgery_rejected", "pass": true},
+      {"name": "cut_head_secret_destruction_holds", "pass": true},
+      {"name": "cut_head_secret_restoration_recovers", "pass": true},
+      {"name": "whole_domain_rollback_counterexample_preserved", "pass": true},
+      {"name": "checkpoint_setup_not_assumed_free", "pass": true}
+    ],
+    "total": 29
+  },
+  "next_gate": "Move checkpoint anti-rollback evidence into a genuinely separate failure domain and replace test-only symmetric verification with a public-verification model before claiming safe retired-private-key destruction.",
+  "repeat_runs": 2,
+  "schema": "axm.flowing_compute.wave95.report/v1",
+  "source": {
+    "wave94": {
+      "blob_sha": "4b086ac98331a63e21292d3f11e65b3868c9204c",
+      "builder_head": "340fd44141b40493b0ddd7a51fd653ada9ddf9b8",
+      "path": "tools/AXM_FLOWING_COMPUTE_EVIDENCE_CLOSURE_SIGNER_KEYS.py"
+    },
+    "wave94_verifier": {
+      "evidence_blob_sha": "af5669da6f9c16a471ff45d6ae7b17429c36a8d1",
+      "evidence_path": "verification/WAVE94_ADVERSARIAL_VERIFICATION_2026-09-16.md",
+      "finding": "FAIL_ATTESTATION_AND_KEY_STATE_PREDECESSOR_BODIES_CAN_DANGLE_AND_HISTORY_CAN_EXTEND",
+      "head": "50212ef804bf9a545f930af55584ba7ff1d4fc75",
+      "pr": 19,
+      "workflow_run": 35133408523
+    }
+  },
+  "synthetic_scaling": {
+    "depths": [
+      {"checkpointed_median_cpu_us": 534.041, "depth": 1, "full_closure_median_cpu_us": 671.768, "ratio_checkpointed_over_full": 0.7949783258505912, "rounds": 5},
+      {"checkpointed_median_cpu_us": 567.002, "depth": 4, "full_closure_median_cpu_us": 1923.154, "ratio_checkpointed_over_full": 0.2948292232447324, "rounds": 5},
+      {"checkpointed_median_cpu_us": 583.401, "depth": 16, "full_closure_median_cpu_us": 6881.953, "ratio_checkpointed_over_full": 0.08477259289623164, "rounds": 5},
+      {"checkpointed_median_cpu_us": 612.131, "depth": 64, "full_closure_median_cpu_us": 26686.981, "ratio_checkpointed_over_full": 0.02293743904565301, "rounds": 5}
+    ],
+    "interpretation": "Full retained closure grows with depth in this model. Checkpointed validation is bounded by post-cut live depth, but checkpoint creation itself performs full closure and signatures. This is storage/validation infrastructure evidence only.",
+    "label": "SYNTHETIC single-host process-CPU validation scaling; not monolith/AXM compute-efficiency evidence"
+  },
+  "title": "Authority-bound checkpoint compaction with complete predecessor closure",
+  "truth_boundary": [
+    "No fresh monolith workload was read; no retained/incremental/dormant compute win is claimed.",
+    "Checkpoint signatures use HMAC-SHA256 as a test model only; they show modeled secret possession, not identity, legitimacy, or judgment correctness.",
+    "Compaction can destroy retired pre-cut HMAC secrets after a committed cut, but the checkpoint-signing head secrets remain required in this model.",
+    "All-domain rollback of runtime, witnesses, checkpoint store, and surviving secrets together remains internally indistinguishable.",
+    "Pre-cut bodies become intentionally non-required only after exact full closure is verified and the checkpoint is committed by all required witnesses."
+  ],
+  "wave": 95
+}
