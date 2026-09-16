@@ -1,0 +1,51 @@
+{
+  "schema": "axm.flowing-compute-wave88-preserved-report/v0.1",
+  "date": "2026-09-16",
+  "status": "PASS",
+  "tool": {
+    "path": "tools/AXM_FLOWING_COMPUTE_WITNESS_MEMBERSHIP_STATE.py",
+    "commit": "76ed78a64825a5c71ff2017ef9383d389b878192",
+    "blob_sha": "efabee7b9c9724e1bd23f37cfc909cc9ed54cf1a",
+    "wave87_predecessor_tool_commit": "357cc16fa6448b335f5586e69796583068a03f79",
+    "wave87_predecessor_tool_blob_sha": "102a28b1f6961987f7e5707fd4ba82c524a73df3"
+  },
+  "independent_final_runs": [
+    {
+      "passed_checks": 24,
+      "total_checks": 24,
+      "benchmark_rounds": 60,
+      "synthetic_single_host_reconfiguration_cpu_us_median": 2189.8015
+    },
+    {
+      "passed_checks": 24,
+      "total_checks": 24,
+      "benchmark_rounds": 60,
+      "synthetic_single_host_reconfiguration_cpu_us_median": 2486.1985
+    }
+  ],
+  "positive_cases": [
+    "explicit content-addressed witness membership is bound into the current pointer",
+    "REPLACE handoff recovers after a partial old-membership fan-out",
+    "old membership must complete handoff before added witnesses are bootstrapped",
+    "crash during added-witness bootstrap recovers only exact missing added members",
+    "crash after complete handoff but before pointer move recovers the exact pending reconfiguration",
+    "ADD, REMOVE, and REPLACE transitions commit with predecessor-bound membership lineage",
+    "retired witness records remain append-only but have zero current-state authority"
+  ],
+  "negative_cases": [
+    "silent omission of a currently required witness returns HOLD",
+    "the preserved legacy caller-selected-subset validator can still falsely look healthy after omission",
+    "an added witness with unrelated pre-existing state is not silently adopted",
+    "competing membership reconfigurations from the same predecessor return HOLD; no vote/newest rule is used",
+    "a target membership body replaced under the old content-addressed key fails closed once referenced",
+    "an old required witness cannot vanish before its handoff record is durably written"
+  ],
+  "truth_boundary": {
+    "fresh_monolith_audit": false,
+    "compute_efficiency_claim": false,
+    "energy_claim": false,
+    "distributed_consensus_claim": false,
+    "independent_physical_witnesses": false,
+    "synthetic_scaling_label": "single-host local JSON/hash/fsync membership/reconfiguration orchestration"
+  }
+}
