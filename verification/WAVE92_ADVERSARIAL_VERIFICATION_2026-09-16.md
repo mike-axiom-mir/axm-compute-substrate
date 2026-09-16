@@ -36,11 +36,11 @@ Exact public/reusable API sequence in the reproducer:
 
 No hash collision, content-address key/body substitution, target self-authorization, missing witness, direct current-pointer rewrite, or malformed authorization is required.
 
-Expected verifier verdict:
+Verifier verdict:
 
 `FAIL_REMOVED_EVALUATOR_IDENTITY_CAN_BE_RESURRECTED_AS_ADD`
 
-The exact-API reproducer is `verification/wave92_removed_evaluator_resurrection_repro.py`; the verifier workflow is read-only and runs that file against the Wave 92 module on this branch.
+The exact-API reproducer is `verification/wave92_removed_evaluator_resurrection_repro.py`. GitHub Actions run `35120821858` completed successfully on Python 3.12 and printed the failure verdict while confirming generation 1 and generation 2 both returned `COMMITTED`, final authority was `AUTHORITATIVE`, and the final registry used the exact generation-0 evaluator SHA `841bf7564279a97791b470461a302385a4c9312ae0a817b7dbcf92d0f853650c`.
 
 ## Why it matters
 
