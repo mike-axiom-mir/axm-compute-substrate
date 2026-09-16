@@ -1,0 +1,36 @@
+{
+  "schema": "axm.flowing-compute-verifier-wave79/v0.1",
+  "builder_head_verified": "dbf4acdc9c13d15d56dcc6d596e1b5aac3df8acc",
+  "checks": {
+    "committed_wave79_receipt_revalidates": "PASS",
+    "post_audit_artifact_mutation_still_allows_age_zero_commit": {
+      "status": "COUNTEREXAMPLE_REPRODUCED",
+      "synthetic_artifact_bytes": 7681,
+      "audited_artifact_sha256": "7fec16a715f90ae74ea363f7cc8095627165474e3bfdfa4648b237bf3728c18e",
+      "post_audit_current_artifact_sha256": "f275fbe744ac3fe864dc21b73273e69a0ffc2959f73b2eb21d3db6318d0fba78",
+      "audit_receipt_status": "AUDIT_PASS",
+      "audit_bytes_read": 7681,
+      "audit_chunks_read": 8,
+      "transition_status_after_mutation": "ADVANCED",
+      "resulting_last_strong_audit_sequence": 1,
+      "resulting_carried_generations_since_audit": 0
+    },
+    "semantically_impossible_measurement_metadata_rehashes_and_validates": {
+      "status": "COUNTEREXAMPLE_REPRODUCED",
+      "basis": "committed Wave 79 receipt with receipt digest recomputed",
+      "chunk_bytes": 1,
+      "chunks_read": 1,
+      "bytes_read": 11255808,
+      "audit_cpu_ns": -1,
+      "audit_wall_ns": -1,
+      "validator_result": "ACCEPTED"
+    }
+  },
+  "truth": {
+    "wave79_real_11mb_positive_artifact_was_not_rehashed_by_this_verifier_run": true,
+    "committed_wave79_receipt_and_exact_predecessor_identity_were_revalidated": true,
+    "toctou_counterexample_uses_a_small_synthetic_artifact_to_test_transition_structure": true,
+    "hash_integrity_is_not_actor_authentication": true,
+    "timing_metadata_issue_does_not_by_itself_break_freshness_identity": true
+  }
+}
