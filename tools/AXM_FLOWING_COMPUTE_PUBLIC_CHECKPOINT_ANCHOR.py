@@ -12,8 +12,13 @@ def D(x):return hashlib.sha256(E(x)).hexdigest()
 def H(b):return hashlib.sha256(b).hexdigest()
 def T(s):return hashlib.sha256(s.encode()).hexdigest()
 def seal(x,f):y=deepcopy(x);y.pop(f,None);y[f]=D(y);return y
-def chk(x,f):y=deepcopy(x);g=y.pop(f,None);assert g==D(y),f+" mismatch"
-def put(s,x,f):chk(x,f);k=x[f];assert k not in s or s[k]==x,"collision";s[k]=deepcopy(x);return k
+def chk(x,f):
+ y=deepcopy(x);g=y.pop(f,None)
+ if g!=D(y):raise ValueError(f+" mismatch")
+def put(s,x,f):
+ chk(x,f);k=x[f]
+ if k in s and s[k]!=x:raise ValueError("collision")
+ s[k]=deepcopy(x);return k
 def get(s,k,f):
  if k not in s:raise ValueError(f+" body missing")
  x=deepcopy(s[k]);chk(x,f)
