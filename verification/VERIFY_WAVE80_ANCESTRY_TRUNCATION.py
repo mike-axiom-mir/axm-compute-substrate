@@ -1,6 +1,12 @@
 from __future__ import annotations
 
-from tools.AXM_FLOWING_COMPUTE_AUDIT_BOUND_GENERATION import (
+import sys
+from pathlib import Path
+
+TOOLS = Path(__file__).resolve().parents[1] / 'tools'
+sys.path.insert(0, str(TOOLS))
+
+from AXM_FLOWING_COMPUTE_AUDIT_BOUND_GENERATION import (  # noqa: E402
     SCHEMA,
     AUDITED,
     CARRIED,
@@ -8,7 +14,7 @@ from tools.AXM_FLOWING_COMPUTE_AUDIT_BOUND_GENERATION import (
     validate_pointer,
     validate_chain,
 )
-from tools.AXM_FLOWING_COMPUTE_VERIFICATION_FRESHNESS import start, advance
+from AXM_FLOWING_COMPUTE_VERIFICATION_FRESHNESS import start, advance  # noqa: E402
 
 CID = 'verifier.demo.contract/v0.1'
 
@@ -20,7 +26,6 @@ def finish_pointer(body: dict) -> dict:
 
 
 def main() -> None:
-    # G0 is a normal freshness state.
     g0_state = start(
         contract_id=CID,
         artifact_sha256='a' * 64,
@@ -29,8 +34,8 @@ def main() -> None:
         audited_sequence=0,
     )
 
-    # Build a *locally valid* G1 Wave80 pointer that claims an audit at G1,
-    # but whose receipt SHA has no body in any receipt store.
+    # Poisoned audited predecessor: its receipt reference has valid shape but no
+    # receipt body exists in any store used below.
     g1_state = advance(
         state=g0_state,
         sequence=1,
@@ -38,7 +43,6 @@ def main() -> None:
         artifact_sha256=g0_state['artifact_sha256'],
         proof_sha256=g0_state['proof_sha256'],
     )['state']
-
     poisoned_g1 = finish_pointer({
         'schema': SCHEMA,
         'sequence': 1,
@@ -61,11 +65,11 @@ def main() -> None:
         },
     })
 
-    # Current standalone Wave80 validation accepts this pointer because it checks
-    # receipt-reference shape, not receipt-body resolvability.
+    # Current standalone Wave80 validation accepts it: receipt body resolution is
+    # performed only by validate_chain(), not validate_pointer().
     validate_pointer(poisoned_g1)
 
-    # G2 only carries the prior proof. It legitimately contains no new receipt.
+    # The next generation carries prior proof and therefore has no current receipt.
     g2_state = advance(
         state=g1_state,
         sequence=2,
@@ -84,10 +88,9 @@ def main() -> None:
         'truth': poisoned_g1['truth'],
     })
 
-    # Counterexample: validate_chain only resolves receipt bodies on the *current*
-    # pointer. It validates the predecessor only with validate_pointer(). Because
-    # G2 has no current receipt, an empty store is sufficient and the poisoned G1
-    # becomes a trusted predecessor anchor for this call.
+    # Counterexample: validate_chain() checks the predecessor with standalone
+    # validate_pointer(), then resolves receipt bodies only for carried_g2. Because
+    # G2 has no fresh receipt, the empty store is never asked for G1's missing body.
     validate_chain(
         previous_pointer=poisoned_g1,
         pointer=carried_g2,
@@ -95,8 +98,8 @@ def main() -> None:
     )
 
     print('COUNTEREXAMPLE: PASS')
-    print('Wave80 one-hop validate_chain accepted a carried child whose audited')
-    print('predecessor receipt body was never resolved in this validation call.')
+    print('one-hop validate_chain accepted a carried child whose audited predecessor')
+    print('receipt body was never resolved in this validation call')
 
 
 if __name__ == '__main__':
