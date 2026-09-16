@@ -1,0 +1,29 @@
+name: verifier-wave99-registry-generation-rollback
+
+on:
+  pull_request:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - "verification/wave99_registry_generation_rollback_repro.py"
+      - "verification/WAVE99_ADVERSARIAL_REGISTRY_GENERATION_ROLLBACK_2026-09-17.md"
+      - "tools/AXM_FLOWING_COMPUTE_REMOTE_WITNESS_REGISTRY_QUORUM.py"
+      - "tools/AXM_FLOWING_COMPUTE_REMOTE_WITNESS_REGISTRY_QUORUM_SELFTEST.py"
+      - ".github/workflows/verifier-wave99-registry-generation-rollback.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Re-run exact Wave 99 controls
+        run: python tools/AXM_FLOWING_COMPUTE_REMOTE_WITNESS_REGISTRY_QUORUM_SELFTEST.py --benchmark-rounds 1 > /tmp/wave99-selftest.json
+      - name: Reproduce registry generation rollback
+        run: python verification/wave99_registry_generation_rollback_repro.py
+      - name: Re-run exact Wave 99 controls with optimized Python
+        run: python -O tools/AXM_FLOWING_COMPUTE_REMOTE_WITNESS_REGISTRY_QUORUM_SELFTEST.py --benchmark-rounds 1 > /tmp/wave99-selftest-opt.json
+      - name: Reproduce registry generation rollback with optimized Python
+        run: python -O verification/wave99_registry_generation_rollback_repro.py
