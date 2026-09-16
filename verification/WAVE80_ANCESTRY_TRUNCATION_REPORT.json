@@ -1,0 +1,26 @@
+{
+  "schema": "axm.flowing-compute-wave80-verifier-ancestry/v0.1",
+  "builder_head": "92a9bef461a4c1cd1e49bbfb4a0625b6a1ecf7ae",
+  "counterexample": {
+    "name": "one_hop_chain_accepts_carried_child_of_unresolved_audited_predecessor",
+    "poisoned_predecessor_standalone_validate_pointer": "PASS",
+    "poisoned_predecessor_audit_receipt_body_present": false,
+    "poisoned_predecessor_fake_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "child_mode": "carried_immutable_proof",
+    "child_audit_receipt_count": 0,
+    "validate_chain_with_empty_store": "PASS",
+    "effect": "child inherits freshness history from an audited predecessor whose receipt body was never resolved in this validation call"
+  },
+  "interpretation": {
+    "wave80_narrow_current_edge_binding": "survives",
+    "full_ancestry_proof_from_latest_edge_only": "does_not_survive",
+    "reason": "validate_chain validates previous Wave80 pointers only with validate_pointer(), then resolves receipt bodies only for the current pointer"
+  },
+  "truth_boundary": {
+    "local_reproduction_used_1_to_1_logic_transcribed_from_builder_tools": true,
+    "repository_import_execution_not_available_in_verifier_container": true,
+    "deterministic_repo_reproducer_added": true,
+    "no_claim_that_hash_integrity_itself_failed": true,
+    "no_auto_merge": true
+  }
+}
