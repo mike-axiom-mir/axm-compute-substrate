@@ -32,9 +32,14 @@ def main() -> None:
     drop = w82.make_drop(
         g0,
         w82.C1,
-        "test-only explicit rollback-root retirement for verifier reproduction",
+        "test-only explicit rollback-root retirement for crash-safe GC probe",
     )
-    g1 = w82.evolve(g0, {w82.C3}, {w82.C1: drop}, "verifier reconstruction of Wave82 G1")
+    g1 = w82.evolve(
+        g0,
+        {w82.C3},
+        {w82.C1: drop},
+        "Wave82 test generation: explicitly drop old Wave80/Wave79 rollback root",
+    )
     assert w82.rid(g1) == "f9cb087d701268b4f7eb660161776f37d46d312f0e46c1fbc883c46a452d3eb5"
     assert w82.reachable(g1) == {w82.B}
 
