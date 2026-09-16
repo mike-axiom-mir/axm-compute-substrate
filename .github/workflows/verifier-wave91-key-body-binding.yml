@@ -1,0 +1,24 @@
+name: verifier-wave91-key-body-binding
+
+on:
+  pull_request:
+    paths:
+      - 'verification/WAVE91_ADVERSARIAL_VERIFICATION_2026-09-16.md'
+      - 'verification/wave91_current_registry_key_body_binding_repro.py'
+      - 'tools/AXM_FLOWING_COMPUTE_CURRENT_REGISTRY_AUTHORITY.py'
+      - '.github/workflows/verifier-wave91-key-body-binding.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reproduce Wave 91 current-registry key/body identity gap
+        run: python verification/wave91_current_registry_key_body_binding_repro.py
