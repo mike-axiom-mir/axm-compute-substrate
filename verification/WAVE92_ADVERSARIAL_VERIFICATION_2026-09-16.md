@@ -40,6 +40,8 @@ Expected verifier verdict:
 
 `FAIL_REMOVED_EVALUATOR_IDENTITY_CAN_BE_RESURRECTED_AS_ADD`
 
+The exact-API reproducer is `verification/wave92_removed_evaluator_resurrection_repro.py`; the verifier workflow is read-only and runs that file against the Wave 92 module on this branch.
+
 ## Why it matters
 
 Wave 92 proves direct replacement ancestry for an evaluator that remains continuously present, but it does not preserve evaluator identity history across absence. A one-generation remove/add cycle acts as a lineage reset. This means an old evaluator body can regain live authority under its exact old identity despite the stated forward-lineage rollback direction.
