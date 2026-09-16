@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+# Independent verifier reproduction against the exact Wave 93 builder source.
 import importlib.util
 import json
 import sys
