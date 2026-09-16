@@ -27,6 +27,21 @@ The executable reproducer uses only the committed Wave 93 public module state st
 
 No hash collision, store-key/body substitution, whole-current-tuple rollback, or target self-authorization is required.
 
+## Independent execution evidence
+
+Read-only GitHub Actions workflow `verifier-wave93-dangling-history`, run `35127370580`, completed successfully against the PR merge of verifier head `5de3c5d6f3972574f5be8a6864ad244bc2a4b3ab` over exact builder base `24c3597089097d67b5f2972beb11d51a764bee12`.
+
+The executable output recorded:
+
+- `control_generation1_commit = COMMITTED`
+- `missing_active_evaluator_prior_attestation_body = true`
+- `missing_predecessor_history_body = true`
+- `authority_after_committed_evidence_loss = AUTHORITATIVE`
+- `next_attestation_chains_to_missing_body = true`
+- `generation2_commit = COMMITTED`
+- `final_authority = AUTHORITATIVE`
+- verdict `FAIL_COMMITTED_HISTORY_CAN_EXTEND_OVER_MISSING_PREDECESSOR_BODIES`
+
 ## What survives
 
 The specific Wave 92 evaluator-ID resurrection finding is closed on this path because the **current cumulative history body** preserves the seen/tombstoned sets. Current-transition attestations still require exact transition/root/evaluator/tool/source/sequence/predecessor-hash binding and PASS. Partial witness fan-out remains non-authoritative in the builder controls.
