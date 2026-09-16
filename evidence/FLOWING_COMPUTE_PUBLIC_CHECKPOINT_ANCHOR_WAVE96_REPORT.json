@@ -1,0 +1,71 @@
+{
+  "controls": {
+    "passed": 32,
+    "rows": [
+      {"name": "exact_wave95_sources", "pass": true},
+      {"name": "genesis_authority", "pass": true},
+      {"name": "cp1_single_closure", "pass": true},
+      {"name": "cp1_verify", "pass": true},
+      {"name": "cp1_partial", "pass": true},
+      {"name": "partial_holds", "pass": true},
+      {"name": "cp1_local", "pass": true},
+      {"name": "external_required", "pass": true},
+      {"name": "cp1_external", "pass": true},
+      {"name": "cp1_authority", "pass": true},
+      {"name": "destroyed_checkpoint_private_material_still_verifies", "pass": true},
+      {"name": "transition1", "pass": true},
+      {"name": "cp2_recheckpoint_single_closure", "pass": true},
+      {"name": "cp2_pred_epoch_bound", "pass": true},
+      {"name": "cp2_rotated_signers", "pass": true},
+      {"name": "cp2_local", "pass": true},
+      {"name": "cp2_external", "pass": true},
+      {"name": "cp2_authority", "pass": true},
+      {"name": "old_replay_local_blocked", "pass": true},
+      {"name": "old_replay_external_blocked", "pass": true},
+      {"name": "compaction_survives", "pass": true},
+      {"name": "retired_state_secret_erased", "pass": true},
+      {"name": "segment_pruned", "pass": true},
+      {"name": "transition2_after_recheckpoint", "pass": true},
+      {"name": "third_checkpoint_after_prune", "pass": true},
+      {"name": "cp3_local", "pass": true},
+      {"name": "cp3_external", "pass": true},
+      {"name": "cp3_authority", "pass": true},
+      {"name": "tamper_rejected", "pass": true},
+      {"name": "wrong_rotation_rejected", "pass": true},
+      {"name": "external_detects_local_rollback", "pass": true},
+      {"name": "whole_domain_rollback_counterexample", "pass": true}
+    ],
+    "total": 32
+  },
+  "next_gate": "Put the external anchor on a physically independent monotonic service/device (or two independent remote witnesses), then attack credentialed remote rewrite, witness partition, conflicting remote histories, and recovery with one witness unavailable. Separately migrate the remaining HMAC state-attestation layer to public verification only if transition and rollback semantics survive.",
+  "schema": "axm.flowing_compute.wave96.report/v1",
+  "segments": {
+    "cp1": {"att_state": 1, "attestations": 0, "history": 1, "key_state": 1, "keys": 4},
+    "cp2": {"att_state": 1, "attestations": 4, "history": 1, "key_state": 1, "keys": 5},
+    "cp3": {"att_state": 1, "attestations": 4, "history": 1, "key_state": 1, "keys": 4},
+    "pruned_cp1_to_cp2": {"att_state": 0, "attestations": 4, "history": 0, "key_state": 0, "keys": 1, "secrets": 1}
+  },
+  "source": {
+    "verifier_head": "bbe9bbccbc5c9241c4391c609ec36deef99df1fa",
+    "verifier_pr": 20,
+    "verifier_workflow": 35139830377,
+    "wave95_evidence_blob": "b202f5724dc340119e656189718ea64f0a9feb71",
+    "wave95_head": "42bf7230f2537fe7229983769b9130f9c58c2393",
+    "wave95_tool_blob": "5e38d8ad23dc9c659d774127beb95a745b08a151"
+  },
+  "synthetic_benchmark": {
+    "checkpoint_create_median_cpu_us": 13719.917,
+    "label": "SYNTHETIC single-host process-CPU checkpoint construction/public verification; not monolith compute-efficiency or energy evidence",
+    "public_verify_median_cpu_us": 6783.323,
+    "rounds": 5
+  },
+  "truth_boundary": [
+    "No fresh monolith workload is read; this is authority/checkpoint infrastructure research only.",
+    "Lamport OTS is a public-verification test model; it proves one-time private-material possession, not identity, legitimacy, or judgment correctness.",
+    "Checkpoint signing private material can be erased after signing; the older state-attestation HMAC layer remains separate and is not claimed solved.",
+    "The external anchor is a separately supplied append-only state domain in this model, not a physically independent device/service or distributed consensus.",
+    "Whole-domain rollback including the external anchor remains an explicit counterexample.",
+    "No retained/incremental/dormant compute win is inferred from these tests or timings."
+  ],
+  "wave": 96
+}
