@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import sys
 import tempfile
 from pathlib import Path
 
@@ -11,6 +12,7 @@ TOOL = ROOT / "tools" / "AXM_FLOWING_COMPUTE_EVALUATOR_PROVENANCE.py"
 SPEC = importlib.util.spec_from_file_location("wave90", TOOL)
 assert SPEC and SPEC.loader
 wave90 = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = wave90
 SPEC.loader.exec_module(wave90)
 
 
