@@ -1,0 +1,40 @@
+{
+  "schema": "axm.verifier.wave106.partial-evidence-loss-ci/v1",
+  "builder_head": "eb8ac4d23a3399af82885afc435dae6de0aa28b6",
+  "wave106_tested_source_commit": "652f3da1acd88e02f085cf1ace92c6bfb412e065",
+  "wave106_tool_blob": "daaa9e33b3418138972701bac1cecca928378a17",
+  "wave106_selftest_blob": "3da3ebd06bed5b756ca58d5b77ac9eb5de12bbc6",
+  "pull_request": 31,
+  "workflow_run_id": 35189280561,
+  "job_id": 105098041457,
+  "job_conclusion": "success",
+  "normal_python": {
+    "accepted_world": "AUTHORITATIVE_QUORUM_3_OF_3_MODELED",
+    "lineage_loss_only": "HOLD_BOOTSTRAP_LINEAGE_MISSING_WITH_AUTHORITY_HISTORY",
+    "preserved_authority_link_sha": "39169e0d4f5d81902e6292a8469fdebd927c3624d8af35c4352f0a41c03a28fd",
+    "preserved_checkpoint_sha": "c5d7068234497f1afdb7b2e51f794049a7f41a44a95fd4976e30af5619cef8a7",
+    "deleted_signer_use_sha": "33de5b382042eb1c840245d7b212215820860aacb705d4e2cadde130378516f2",
+    "retained_authority_detector_after_partial_loss": [],
+    "replacement_root_differs": true,
+    "attacked_verdict": "AUTHORITATIVE_GENESIS_MODELED",
+    "verifier_verdict": "FAIL_PARTIAL_EVIDENCE_LOSS_REOPENS_BOOTSTRAP"
+  },
+  "python_optimized": {
+    "accepted_world": "AUTHORITATIVE_QUORUM_3_OF_3_MODELED",
+    "lineage_loss_only": "HOLD_BOOTSTRAP_LINEAGE_MISSING_WITH_AUTHORITY_HISTORY",
+    "preserved_authority_link_sha": "55ed62001b49154c91174f3c8f246044de78d7968543821896f80bd51dd22d82",
+    "preserved_checkpoint_sha": "d453285eef28f14f95473a07b4151e0c65636600b131a7da4ff9bf10b9b13f9b",
+    "deleted_signer_use_sha": "a423a630fd0d2f1ef594f1ac70e67e8a5a53453570a5b3da83e1359eed27dd86",
+    "retained_authority_detector_after_partial_loss": [],
+    "replacement_root_differs": true,
+    "attacked_verdict": "AUTHORITATIVE_GENESIS_MODELED",
+    "verifier_verdict": "FAIL_PARTIAL_EVIDENCE_LOSS_REOPENS_BOOTSTRAP"
+  },
+  "scope": {
+    "builder_files_modified": false,
+    "auto_merge": false,
+    "canon_promotion": false,
+    "new_performance_claim_checked": false,
+    "new_energy_claim_checked": false
+  }
+}
