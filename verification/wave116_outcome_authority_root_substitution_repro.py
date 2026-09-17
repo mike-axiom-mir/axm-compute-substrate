@@ -169,14 +169,25 @@ def main() -> int:
     raw_after = w115._rejection_rows(st, ts) or []
     outcomes_after = w._outcome_rows(st, substitute) or []
 
+    # Before the genuine sibling commits, the lower Wave-110+ layer correctly HOLDs because that
+    # prepared sibling remains unmanifested. That is not rejection of the substitute credential:
+    # the substituted outcome root has already passed Wave-116 authentication and is surfaced in
+    # the status. The decisive gate is that the same substituted root/history can then settle to a
+    # final VALID/AUTHORITATIVE world while preserving the contradictory rejection claim.
+    substitute_root_accepted = (
+        substituted_status_before_good.get("status") == w.HISTORY_UNRESOLVED
+        and substituted_status_before_good.get("reason") == "retained-unmanifested-transaction-evidence"
+        and substituted_status_before_good.get("outcome_authority_id") == substitute.authority_id
+        and substituted_authority_before_good == w.HOLD_UNRESOLVED
+    )
+
     reproduced = (
         first == "TRANSITION_DELTA_HOLD"
         and repeated_actual == "TRANSITION_DELTA_HOLD"
         and contradictory_result != repeated_actual
         and substitute_before.get("status") == w.HISTORY_INCOMPLETE
         and old_domain_after.get("status") == w.HISTORY_INCOMPLETE
-        and substituted_status_before_good.get("status") in (w.HISTORY_NONE, w.HISTORY_VALID)
-        and substituted_authority_before_good.startswith("AUTHORITATIVE")
+        and substitute_root_accepted
         and good == "COMMITTED"
         and final_status.get("status") == w.HISTORY_VALID
         and final_status.get("outcome_authority_id") == substitute.authority_id
@@ -208,6 +219,7 @@ def main() -> int:
         "substitute_outcome_authority_id": substitute.authority_id,
         "substitute_before_binding_rewrite": substitute_before,
         "old_domain_after_binding_rewrite": old_domain_after,
+        "substitute_root_accepted_before_good_commit": substitute_root_accepted,
         "substituted_status_before_good_commit": substituted_status_before_good,
         "substituted_authority_before_good_commit": substituted_authority_before_good,
         "genuine_sibling_commit": good,
