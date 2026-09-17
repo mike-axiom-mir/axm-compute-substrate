@@ -370,7 +370,7 @@ def run() -> dict:
 
     clean = clean_rotation_still_commits()
     check(report, "clean Wave120 rotation prepare/commit still settles VALID and authoritative",
-          clean["commit_result"] == "COMMITTED" and clean["status"].get("status") == w.HISTORY_VALID
+          clean["commit_result"] == "COMMITTED_ROTATED" and clean["status"].get("status") == w.HISTORY_VALID
           and clean["authority"].startswith("AUTHORITATIVE") and clean["current_is_successor"], clean)
 
     report["passed"] = len(report["controls"]) - report["failed"]
