@@ -30,6 +30,32 @@ jobs:
       - name: Reproduce multi-epoch partial-loss counterexample
         if: matrix.mode == 'normal'
         run: python verification/wave107_multiepoch_partial_loss_repro.py | tee /tmp/wave107-verifier-normal.json
+      - name: Bound normal-mode severity
+        if: matrix.mode == 'normal'
+        run: |
+          python - <<'PY'
+          import json
+          r = json.load(open('/tmp/wave107-verifier-normal.json', encoding='utf-8'))
+          assert r['verdict'] == 'FAIL_MULTIEPOCH_AUTHORITY_LINK_LOSS_CLASSIFIED_VALID', r['verdict']
+          for key, verdict in r['full_authority_path'].items():
+              if verdict.startswith('AUTHORITATIVE'):
+                  raise SystemExit(f'unexpected stale-authority acceptance: {key}={verdict}')
+          print(r['verdict'])
+          print(r['full_authority_path'])
+          PY
       - name: Reproduce multi-epoch partial-loss counterexample under python -O
         if: matrix.mode == 'optimized'
         run: python -O verification/wave107_multiepoch_partial_loss_repro.py | tee /tmp/wave107-verifier-optimized.json
+      - name: Bound optimized-mode severity
+        if: matrix.mode == 'optimized'
+        run: |
+          python - <<'PY'
+          import json
+          r = json.load(open('/tmp/wave107-verifier-optimized.json', encoding='utf-8'))
+          assert r['verdict'] == 'FAIL_MULTIEPOCH_AUTHORITY_LINK_LOSS_CLASSIFIED_VALID', r['verdict']
+          for key, verdict in r['full_authority_path'].items():
+              if verdict.startswith('AUTHORITATIVE'):
+                  raise SystemExit(f'unexpected stale-authority acceptance: {key}={verdict}')
+          print(r['verdict'])
+          print(r['full_authority_path'])
+          PY
