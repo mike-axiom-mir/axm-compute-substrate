@@ -1,0 +1,24 @@
+name: verifier-wave97-authority-boundary
+
+on:
+  pull_request:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - "verification/wave97_authority_wrapper_anchor_repro.py"
+      - "verification/WAVE97_ADVERSARIAL_AUTHORITY_BOUNDARY_2026-09-16.md"
+      - "tools/AXM_FLOWING_COMPUTE_SECRET_SIGNER_LINEAGE.py"
+      - ".github/workflows/verifier-wave97-authority-boundary.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reproduce against exact Wave 97 source
+        run: python verification/wave97_authority_wrapper_anchor_repro.py
+      - name: Reproduce with optimized Python
+        run: python -O verification/wave97_authority_wrapper_anchor_repro.py
