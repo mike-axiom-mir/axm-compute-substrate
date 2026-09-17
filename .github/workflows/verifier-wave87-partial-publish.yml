@@ -1,0 +1,17 @@
+name: verifier-wave87-partial-publish
+
+on:
+  pull_request:
+    branches:
+      - chatgpt/lane-001-platform-extract
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reproduce Wave 87 reduced-witness publish failure
+        run: python verification/wave87_commit_prepared_membership_counterexample.py
