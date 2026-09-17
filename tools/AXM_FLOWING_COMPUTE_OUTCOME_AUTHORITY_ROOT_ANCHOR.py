@@ -200,7 +200,7 @@ def _current_anchor(
     registry_store: dict,
     binding_store: dict,
     outcome_domain: OutcomeAuthorityDomain,
-+) -> tuple[dict, dict, dict, str]:
+) -> tuple[dict, dict, dict, str]:
     current, status = w105._current_binding(rt, st, boot, registry_store, binding_store)
     _head, retained_bindings = w105.verify_binding_chain(
         binding_store, registry_store, current["binding_sha"]
@@ -237,7 +237,7 @@ def commit_status_state(
     binding_store: dict,
     transition_store: dict,
     outcome_domain: OutcomeAuthorityDomain,
-+) -> dict:
+) -> dict:
     if rt is None:
         return {
             "status": HISTORY_INCOMPLETE,
@@ -275,7 +275,7 @@ def adopt_genesis(
     certificate_domain: w104.CertificateWitnessDomain,
     binding_store: dict,
     outcome_domain: OutcomeAuthorityDomain,
-+) -> str:
+) -> str:
     if OUTCOME_ROOT_STORE in st or ENVELOPE_STORE in st:
         raise ValueError("wave117-root-anchor-state-already-present")
     original_app_state_sha = rt.get("app_state_sha")
@@ -316,7 +316,7 @@ def authority(
     binding_store: dict,
     outcome_domain: OutcomeAuthorityDomain,
     resolved_endpoints: dict | None = None,
-+) -> str:
+) -> str:
     state = commit_status_state(
         st, boot, rt, registry_store, binding_store, transition_store, outcome_domain
     )
@@ -353,7 +353,7 @@ def prepare(
     outcome_domain: OutcomeAuthorityDomain,
     target_user_app_state_sha: str | None = None,
     target_remote_registry_sha: str | None = None,
-+) -> tuple:
+) -> tuple:
     verdict = authority(
         rt,
         st,
@@ -407,7 +407,7 @@ def commit(
     outcome_domain: OutcomeAuthorityDomain,
     n: int | None = None,
     **faults,
-+) -> str:
+) -> str:
     _current_anchor(rt, st, boot, registry_store, binding_store, outcome_domain)
     result = w116.commit(
         rt,
@@ -444,7 +444,7 @@ def advance_all(
     binding_store: dict,
     outcome_domain: OutcomeAuthorityDomain,
     app_label: str,
-+) -> tuple:
+) -> tuple:
     app = hashlib.sha256(app_label.encode("utf-8")).hexdigest()
     cp, use, link, transition_sha, body = prepare(
         rt,
