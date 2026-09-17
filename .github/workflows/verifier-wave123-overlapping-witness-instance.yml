@@ -21,11 +21,11 @@ jobs:
 
       - name: Re-run untouched Wave 123 builder self-test
         run: |
-          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_SELFTEST.py --report /tmp/wave123-builder-normal.json
+          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_SELFTEST.py --json-out /tmp/wave123-builder-normal.json
 
       - name: Re-run untouched Wave 123 builder self-test under python -O
         run: |
-          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_SELFTEST.py --report /tmp/wave123-builder-optimized.json
+          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_SELFTEST.py --json-out /tmp/wave123-builder-optimized.json
 
       - name: Reproduce overlapping witness-instance counterexample
         env:
