@@ -6,7 +6,7 @@ Status: verifier-only; draft/unmerged/non-CANON
 
 ## Exact builder state
 
-- newest builder head inspected: `a1cf4ccb535142a63a328c4a0dadc86984deaa3b`
+- newest builder head inspected and rechecked before completion: `a1cf4ccb535142a63a328c4a0dadc86984deaa3b`
 - exact Wave-112 source that builder CI tested: `1be9303bba0712869d40444f5cf1b0e878948ab7`
 - Wave-112 implementation blob: `41e73e8f042df974b161fa9b85b128c99b1bb819`
 - Wave-112 original self-test blob: `7a48968a851c23129b6ae31ef017483407e70e8f`
@@ -56,11 +56,13 @@ Read-only verifier workflow: `.github/workflows/verifier-wave112-recovery-atomic
 
 Exact reproducer: `verification/wave112_recovery_atomicity_repro.py`
 
-Successful independent execution:
+Final successful independent execution:
 
-- run `35220536394`, optimized job `105199279376`: unchanged exact Wave-112 CI wrapper PASS 22/22 and verifier reproduced the failure under `python -O`;
-- optimized artifact `10497465149`, ZIP SHA-256 `c0e0b24016114a960be9c4f00083b8ab56649f4b18814e01e66e3605c57ef09a`;
-- run `35220649306`: the adversarial reproducer step independently completed SUCCESS in both normal Python job `105199664783` and optimized job `105199664406`; the long unchanged builder regression steps were still in progress at the last evidence refresh.
+- run `35220649306`, branch head `3977ad3f1e13aee238796976276965f6d454c7aa`;
+- normal job `105199664783`: adversarial reproducer PASS and unchanged exact Wave-112 CI wrapper PASS;
+- optimized job `105199664406`: adversarial reproducer PASS and unchanged exact Wave-112 CI wrapper PASS under `python -O`;
+- normal artifact `10497430466`, ZIP SHA-256 `d13d63faa70629ce829bceecba6e770f591cf665cbb677bf31594fc6bac6f18e`;
+- optimized artifact `10497590342`, ZIP SHA-256 `e89c630f6e0e4c2205aad778b54b934daa2b9b650a748915f0074d698fb45ffc`.
 
 The exact reproduced output records `mutated_store: true`, `appended_epoch2_provenance: true`, a failed first exact retry caused by the pre-existing semantic mismatch, then a second exact retry result of `ALREADY_COMMITTED` while history remains `INCOMPLETE_OR_CORRUPT` and authority remains `HOLD_COMMITTED_HISTORY_INCOMPLETE`.
 
