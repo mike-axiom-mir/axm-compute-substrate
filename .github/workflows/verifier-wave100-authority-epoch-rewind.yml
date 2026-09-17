@@ -26,7 +26,7 @@ jobs:
           python-version: '3.13'
       - name: Reproduce in normal Python
         working-directory: tools
-        run: python ../verification/wave100_authority_epoch_rewind_repro.py
+        run: PYTHONPATH=. python ../verification/wave100_authority_epoch_rewind_repro.py
       - name: Reproduce in optimized Python
         working-directory: tools
-        run: python -O ../verification/wave100_authority_epoch_rewind_repro.py
+        run: PYTHONPATH=. python -O ../verification/wave100_authority_epoch_rewind_repro.py
