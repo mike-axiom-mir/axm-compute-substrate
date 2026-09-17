@@ -1,0 +1,39 @@
+name: Wave 108 committed history manifest
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - "tools/AXM_FLOWING_COMPUTE_COMMITTED_HISTORY_MANIFEST.py"
+      - "tools/AXM_FLOWING_COMPUTE_COMMITTED_HISTORY_MANIFEST_SELFTEST.py"
+      - ".github/workflows/wave108-committed-history-manifest.yml"
+      - "tools/AXM_FLOWING_COMPUTE_BOOTSTRAP_PARTIAL_EVIDENCE_GUARD.py"
+      - "tools/AXM_FLOWING_COMPUTE_BOOTSTRAP_PARTIAL_EVIDENCE_GUARD_SELFTEST.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unchanged Wave 107 regression
+        run: python tools/AXM_FLOWING_COMPUTE_BOOTSTRAP_PARTIAL_EVIDENCE_GUARD_SELFTEST.py > /tmp/wave107.json
+      - name: Wave 108 normal Python
+        run: python tools/AXM_FLOWING_COMPUTE_COMMITTED_HISTORY_MANIFEST_SELFTEST.py --json-out /tmp/wave108-normal.json
+      - name: Wave 108 optimized Python
+        run: python -O tools/AXM_FLOWING_COMPUTE_COMMITTED_HISTORY_MANIFEST_SELFTEST.py --json-out /tmp/wave108-optimized.json
+      - name: Preserve reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave108-exact-source-reports
+          path: |
+            /tmp/wave107.json
+            /tmp/wave108-normal.json
+            /tmp/wave108-optimized.json
