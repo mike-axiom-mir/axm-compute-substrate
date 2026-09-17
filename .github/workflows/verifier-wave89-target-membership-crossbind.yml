@@ -1,0 +1,17 @@
+name: verifier-wave89-target-membership-crossbind
+
+on:
+  pull_request:
+    branches:
+      - chatgpt/lane-001-platform-extract
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reproduce Wave 89 target-membership cross-binding failure
+        run: python verification/wave89_target_membership_crossbind_counterexample.py
