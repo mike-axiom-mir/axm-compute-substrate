@@ -1,0 +1,47 @@
+{
+  "schema": "axm.flowing-compute.source-test-receipt.v1",
+  "wave": 123,
+  "status": "PASS",
+  "experimental_lane_only": true,
+  "tested_source_commit": "b594d1bac276c11f98ce6a6f558fb929ed0c30eb",
+  "source_blobs": {
+    ".github/workflows/wave123-separate-process-witness.yml": "8bea5c92bdc32e0645ce2d38792431c9148c5d79",
+    "tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS.py": "2e87f9416d8ec0d9d04b46e842ac2d7a1a9e0f08",
+    "tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_SELFTEST.py": "cb7828109185284a9d543a697a85129a3273d7a9",
+    "tools/AXM_FLOWING_COMPUTE_TERMINATION_EXCEPTION_ROLLBACK.py": "78df9135f97e568e64ef37b83d743d6475a8adee",
+    "tools/AXM_FLOWING_COMPUTE_TERMINATION_EXCEPTION_ROLLBACK_SELFTEST.py": "1818037e4e017f69c98f1e269b08fc3d2de66071"
+  },
+  "predecessor": {
+    "wave": 122,
+    "evidence_head": "41f1719b48aace2c5db5ae68cadb9ccbce14970d",
+    "tested_source_commit": "5ebe63488494c6767637b82407be8675d1fcca52"
+  },
+  "verification": {
+    "workflow_run": 35283872389,
+    "job": 105411746677,
+    "artifact_id": 10523208489,
+    "artifact_name": "wave123-report",
+    "artifact_sha256": "315c44825ff48f49c05f95e26b14d210cf70e05ba045c7cfa07854f6a11fbc90",
+    "wave122_regression": {"passed": 12, "failed": 0},
+    "wave122_regression_optimized": {"passed": 12, "failed": 0},
+    "wave123": {"passed": 19, "failed": 0},
+    "wave123_optimized": {"passed": 19, "failed": 0}
+  },
+  "claims": {
+    "separate_os_process_tested": true,
+    "actual_sigkill_boundaries_tested": true,
+    "append_only_fsync_witness_ledger_tested": true,
+    "local_rollback_while_witness_newer_detected": true,
+    "witness_substitution_with_surviving_client_pin_detected": true,
+    "whole_domain_rollback_counterexample_survives": true,
+    "power_loss_or_device_finality_proved": false,
+    "separate_host_or_provider_independence_proved": false,
+    "performance_or_energy_claim": false,
+    "retained_incremental_or_dormant_compute_claim": false
+  },
+  "repository_actions": {
+    "merge_performed": false,
+    "auto_merge_enabled": false,
+    "canon_promoted": false
+  }
+}
