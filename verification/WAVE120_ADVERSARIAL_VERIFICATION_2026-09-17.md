@@ -54,3 +54,5 @@ This is **not** a stale-authority takeover, hash collision, credential forgery, 
 Make the lower prepared transition and its binding visible atomically to the caller-visible evidence domain, or add an exact recovery path that can reconstruct/sync the lower transition before predecessor authority is required. Then crash/fault after every lower-prepare write and before/after transition sync; exact retry must either resume the same prepare or roll it back without deleting referenced evidence. Wrong successor, wrong target state, and stale/replayed transition recovery must still HOLD.
 
 CI/runtime evidence will be bound here after the verifier workflow completes; until then, this file records the source-level counterexample only.
+
+Verifier workflow trigger revision: 1.
