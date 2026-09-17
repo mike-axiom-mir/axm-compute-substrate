@@ -1,0 +1,42 @@
+name: Wave 116 authenticated rejection outcome
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - 'tools/AXM_FLOWING_COMPUTE_AUTHENTICATED_REJECTION_OUTCOME.py'
+      - 'tools/AXM_FLOWING_COMPUTE_AUTHENTICATED_REJECTION_OUTCOME_SELFTEST.py'
+      - '.github/workflows/wave116-authenticated-rejection-outcome.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wave116:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Wave 115 regression normal
+        run: python tools/AXM_FLOWING_COMPUTE_PREVALIDATED_COMMIT_DECISION_SELFTEST.py --json-out evidence/wave116_wave115_regression.json
+      - name: Wave 115 exact identity regression
+        run: python tools/AXM_FLOWING_COMPUTE_PREVALIDATED_COMMIT_DECISION_IDENTITY_SELFTEST.py --json-out evidence/wave116_wave115_identity_regression.json
+      - name: Wave 116 normal Python
+        run: python tools/AXM_FLOWING_COMPUTE_AUTHENTICATED_REJECTION_OUTCOME_SELFTEST.py --json-out evidence/wave116_normal.json
+      - name: Wave 116 optimized Python
+        run: python -O tools/AXM_FLOWING_COMPUTE_AUTHENTICATED_REJECTION_OUTCOME_SELFTEST.py --json-out evidence/wave116_optimized.json
+      - name: Upload exact-run reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave116-authenticated-rejection-outcome-reports
+          path: |
+            evidence/wave116_wave115_regression.json
+            evidence/wave116_wave115_identity_regression.json
+            evidence/wave116_normal.json
+            evidence/wave116_optimized.json
+          if-no-files-found: warn
