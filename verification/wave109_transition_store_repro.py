@@ -16,7 +16,12 @@ strong.
 from __future__ import annotations
 
 import json
+import sys
 from copy import deepcopy
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "tools"))
 
 import AXM_FLOWING_COMPUTE_COMMIT_STATUS_AMBIGUITY_GUARD as w
 import AXM_FLOWING_COMPUTE_COMMITTED_HISTORY_MANIFEST as w108
@@ -63,10 +68,9 @@ def run() -> dict:
     cs1 = deepcopy(cs)
     witness_disks1 = domain.disk_snapshots()
     cert1_sha = cs1["head"]
-    binding1_sha = rt1["app_state_sha"]
 
     # Establish a real accepted epoch 2. Critically, keep transition_store intact.
-    cp2, use2, link2, transition2_sha, binding2 = w.advance_all(
+    cp2, _use2, link2, transition2_sha, _binding2 = w.advance_all(
         st, priv, boot, rt, services, tokens, rs, ts, cs, domain, bs,
         "verifier-wave109-epoch2",
     )
