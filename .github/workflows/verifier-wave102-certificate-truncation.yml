@@ -1,0 +1,41 @@
+name: verifier-wave102-certificate-truncation
+
+on:
+  push:
+    branches:
+      - verifier/wave102-certificate-truncation
+  pull_request:
+    branches:
+      - chatgpt/lane-001-platform-extract
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python_mode: [normal, optimized]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Builder Wave 102 self-test
+        shell: bash
+        run: |
+          if [ "${{ matrix.python_mode }}" = "optimized" ]; then
+            PYTHONPATH=tools python -O tools/AXM_FLOWING_COMPUTE_QUORUM_GLOBAL_MAXIMUM_SELFTEST.py --benchmark-rounds 1
+          else
+            PYTHONPATH=tools python tools/AXM_FLOWING_COMPUTE_QUORUM_GLOBAL_MAXIMUM_SELFTEST.py --benchmark-rounds 1
+          fi
+      - name: Independent certificate-tail truncation reproducer
+        shell: bash
+        run: |
+          if [ "${{ matrix.python_mode }}" = "optimized" ]; then
+            python -O verification/wave102_certificate_truncation_repro.py
+          else
+            python verification/wave102_certificate_truncation_repro.py
+          fi
