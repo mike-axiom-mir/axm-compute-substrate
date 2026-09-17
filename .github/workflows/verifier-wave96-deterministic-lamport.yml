@@ -1,0 +1,23 @@
+name: Verifier Wave 96 deterministic Lamport forgery
+
+on:
+  pull_request:
+    paths:
+      - 'verification/wave96_deterministic_lamport_forgery_repro.py'
+      - 'verification/WAVE96_ADVERSARIAL_VERIFICATION_2026-09-16.md'
+      - 'tools/AXM_FLOWING_COMPUTE_PUBLIC_CHECKPOINT_ANCHOR.py'
+      - '.github/workflows/verifier-wave96-deterministic-lamport.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reproduce against exact Wave 96 module
+        run: python verification/wave96_deterministic_lamport_forgery_repro.py
+      - name: Reproduce with optimized Python
+        run: python -O verification/wave96_deterministic_lamport_forgery_repro.py
