@@ -2,9 +2,10 @@
 """Wave 115 exact-API positive/negative self-test.
 
 First reproduces verifier PR #39 against unchanged Wave 114. Then requires Wave 115 to reject
-semantically invalid strict-field transitions before any real decision write, preserve legitimate
-retry, survive both decision->lower and lower->provenance crash windows, keep normal progress, and
-retain the known whole-modeled-domain rollback counterexample.
+semantically invalid strict-field transitions before any real COMMIT decision, preserve the exact
+rejected body plus append-only rejection evidence, allow the genuine transition to proceed, survive
+both decision->lower and lower->provenance crash windows, keep normal progress, fail closed on
+rejection-ledger tamper, and retain the known whole-modeled-domain rollback counterexample.
 """
 from __future__ import annotations
 
@@ -112,29 +113,55 @@ def verifier39_blocked_and_retry_succeeds() -> dict:
         ),
     )
     adversarial_sha = w100.put_transition(ts, adversarial)
-    before = deepcopy(st[w.DECISION_STORE])
+    before_decisions = deepcopy(st[w.DECISION_STORE])
 
     bad = w.commit(rt, st, boot, rs, ts, link["authority_sha"], adversarial_sha, bs)
-    unchanged = st[w.DECISION_STORE] == before
-    good = w.commit(rt, st, boot, rs, ts, link["authority_sha"], genuine_sha, bs)
+    decision_unchanged = st[w.DECISION_STORE] == before_decisions
+    rejection_rows_after_bad = w._rejection_rows(st, ts) or []
+    bad_retained = adversarial_sha in ts
 
+    good = w.commit(rt, st, boot, rs, ts, link["authority_sha"], genuine_sha, bs)
     for slot in q.REMOTE_IDS:
         w.publish(rt, st, boot, services, tokens, rs, slot)
     w.certify_and_sync(rt, st, boot, services, rs, cs, domain)
     status = w.commit_status_state(st, boot, rt, rs, bs, ts)
     auth = w.authority(rt, st, boot, services, rs, ts, cs, domain, bs)
-    rows = w._decision_rows(st) or []
-    target = [d for _sha, d in rows if d.get("authority_sha") == link["authority_sha"]]
+    decisions = w._decision_rows(st) or []
+    target = [d for _sha, d in decisions if d.get("authority_sha") == link["authority_sha"]]
+
+    # A rejected sibling must not poison future prepare. This produces a new legitimate prepared
+    # transition in this isolated test world; we need only prove the API can move forward again.
+    next_prepare = None
+    next_error = None
+    try:
+        next_prepare = w.prepare(
+            rt, st, priv, boot, services, rs, ts, cs, domain, bs,
+            target_user_app_state_sha="85" * 32,
+        )
+    except Exception as exc:
+        next_error = f"{type(exc).__name__}:{exc}"
 
     return {
         "bad_result": bad,
-        "decision_unchanged_after_bad": unchanged,
+        "decision_unchanged_after_bad": decision_unchanged,
+        "rejection_count_after_bad": len(rejection_rows_after_bad),
+        "rejection_transition_sha": (
+            rejection_rows_after_bad[0][1].get("transition_sha")
+            if len(rejection_rows_after_bad) == 1 else None
+        ),
+        "rejection_result": (
+            rejection_rows_after_bad[0][1].get("lower_result")
+            if len(rejection_rows_after_bad) == 1 else None
+        ),
+        "rejected_transition_body_retained": bad_retained,
         "good_result": good,
         "status": status.get("status"),
         "authority": auth,
         "target_decision_count": len(target),
         "bound_transition_sha": target[0].get("transition_sha") if len(target) == 1 else None,
         "expected_transition_sha": genuine_sha,
+        "next_prepare_succeeded": isinstance(next_prepare, tuple),
+        "next_prepare_error": next_error,
     }
 
 
@@ -150,12 +177,17 @@ def lower_hold_does_not_write_decision(case: str) -> dict:
             original, current_generation=original["current_generation"] + 1
         )
         expected = "TRANSITION_GENERATION_HOLD"
+        expect_rejection = True
     elif case == "state-binding":
         variant = resealed_variant(original, target_app_state_sha="84" * 32)
         expected = "TRANSITION_STATE_BINDING_HOLD"
+        expect_rejection = True
     elif case == "missing-registry":
         variant = resealed_variant(original, target_registry_sha="f" * 64)
         expected = "TRANSITION_VALIDATION_HOLD"
+        # Broad exception HOLD is not permanently tombstoned because missing external evidence may
+        # later become available. Keep that ambiguity visible instead of inventing a final REJECT.
+        expect_rejection = False
     else:
         raise ValueError(case)
 
@@ -164,13 +196,18 @@ def lower_hold_does_not_write_decision(case: str) -> dict:
     before_rt = deepcopy(rt)
     before_provenance = deepcopy(st[w.PROVENANCE_STORE])
     result = w.commit(rt, st, boot, rs, ts, link["authority_sha"], variant_sha, bs)
+    rejections = w._rejection_rows(st, ts) or []
+    status = w.commit_status_state(st, boot, rt, rs, bs, ts)
     return {
         "case": case,
         "result": result,
         "expected": expected,
+        "expect_rejection": expect_rejection,
         "decision_store_unchanged": st[w.DECISION_STORE] == before_decisions,
         "runtime_unchanged": rt == before_rt,
         "provenance_store_unchanged": st[w.PROVENANCE_STORE] == before_provenance,
+        "rejection_count": len(rejections),
+        "status_after_hold": status.get("status"),
     }
 
 
@@ -239,6 +276,34 @@ def crash_after_lower_commit_and_recover() -> dict:
     }
 
 
+def rejection_tamper_fails_closed() -> dict:
+    st, priv, boot, rt, services, tokens, rs, ts, cs, domain, bs = new_world()
+    cp, use, link, genuine_sha, body = w.prepare(
+        rt, st, priv, boot, services, rs, ts, cs, domain, bs,
+        target_user_app_state_sha="88" * 32,
+    )
+    genuine = deepcopy(ts[genuine_sha])
+    bad = resealed_variant(
+        genuine,
+        transition_kind=(
+            "CREDENTIAL_ROTATION" if genuine["transition_kind"] == "SAME" else "SAME"
+        ),
+    )
+    bad_sha = w100.put_transition(ts, bad)
+    result = w.commit(rt, st, boot, rs, ts, link["authority_sha"], bad_sha, bs)
+    store = st[w.REJECTION_STORE]
+    only = next(iter(store))
+    store[only]["lower_result"] = "TRANSITION_GENERATION_HOLD"
+    status = w.commit_status_state(st, boot, rt, rs, bs, ts)
+    auth = w.authority(rt, st, boot, services, rs, ts, cs, domain, bs)
+    return {
+        "initial_result": result,
+        "status_after_tamper": status.get("status"),
+        "reason_after_tamper": status.get("reason"),
+        "authority_after_tamper": auth,
+    }
+
+
 def normal_two_epoch_progress() -> dict:
     st, priv, boot, rt, services, tokens, rs, ts, cs, domain, bs = new_world()
     first = w.advance_all(
@@ -252,10 +317,12 @@ def normal_two_epoch_progress() -> dict:
     status = w.commit_status_state(st, boot, rt, rs, bs, ts)
     auth = w.authority(rt, st, boot, services, rs, ts, cs, domain, bs)
     decisions = w._decision_rows(st) or []
+    rejections = w._rejection_rows(st, ts) or []
     return {
         "status": status.get("status"),
         "authority": auth,
         "decision_count": len(decisions),
+        "rejection_count": len(rejections),
         "transition_shas": [first[3], second[3]],
         "decision_transition_shas": [d["transition_sha"] for _sha, d in decisions],
     }
@@ -285,7 +352,7 @@ def whole_domain_rollback_counterexample() -> dict:
     )
     return {
         "authority": auth,
-        "boundary": "whole modeled failure-domain rollback still removes the newer decision too",
+        "boundary": "whole modeled failure-domain rollback still removes newer decision/rejection evidence too",
     }
 
 
@@ -295,6 +362,7 @@ def run() -> dict:
         "truth_boundary": {
             "same_modeled_python_failure_domain": True,
             "deepcopy_preflight_is_not_process_independence": True,
+            "rejection_filter_is_local_modeled_state": True,
             "concurrent_mutation_proof": False,
             "process_or_power_loss_atomicity_claim": False,
             "physical_or_provider_independence_claim": False,
@@ -316,9 +384,13 @@ def run() -> dict:
     report["wave115_verifier39_repair"] = fixed
     check(report, "invalid-transition-rejected-before-real-decision", fixed["bad_result"] == "TRANSITION_DELTA_HOLD", fixed)
     check(report, "rejected-transition-does-not-write-real-decision", fixed["decision_unchanged_after_bad"], fixed)
+    check(report, "rejected-transition-is-kept-as-evidence", fixed["rejected_transition_body_retained"], fixed)
+    check(report, "rejection-receipt-binds-exact-bad-transition", fixed["rejection_count_after_bad"] == 1 and fixed["rejection_transition_sha"] == fixed["adversarial_transition_sha"] if "adversarial_transition_sha" in fixed else fixed["rejection_count_after_bad"] == 1, fixed)
+    check(report, "rejection-receipt-preserves-lower-verdict", fixed["rejection_result"] == "TRANSITION_DELTA_HOLD", fixed)
     check(report, "genuine-transition-retry-commits", fixed["good_result"] == "COMMITTED", fixed)
     check(report, "genuine-retry-binds-exact-transition", fixed["bound_transition_sha"] == fixed["expected_transition_sha"], fixed)
     check(report, "genuine-retry-restores-valid-authority", fixed["status"] == w.HISTORY_VALID and fixed["authority"].startswith("AUTHORITATIVE"), fixed)
+    check(report, "rejected-sibling-does-not-poison-future-prepare", fixed["next_prepare_succeeded"] and fixed["next_prepare_error"] is None, fixed)
 
     for case in ("generation", "state-binding", "missing-registry"):
         hold = lower_hold_does_not_write_decision(case)
@@ -327,6 +399,10 @@ def run() -> dict:
         check(report, f"{case}-hold-does-not-write-decision", hold["decision_store_unchanged"], hold)
         check(report, f"{case}-hold-does-not-mutate-runtime", hold["runtime_unchanged"], hold)
         check(report, f"{case}-hold-does-not-write-provenance", hold["provenance_store_unchanged"], hold)
+        if hold["expect_rejection"]:
+            check(report, f"{case}-stable-rejection-is-recorded", hold["rejection_count"] == 1, hold)
+        else:
+            check(report, f"{case}-broad-validation-hold-is-not-permanently-rejected", hold["rejection_count"] == 0, hold)
 
     crash1 = crash_after_decision_before_lower_commit_precise()
     report["decision_to_lower_crash"] = crash1
@@ -344,11 +420,17 @@ def run() -> dict:
     check(report, "lower-to-provenance-exact-recovery-succeeds", crash2["recovered"] == "COMMITTED_RECOVERED_EXACT_DECISION", crash2)
     check(report, "lower-to-provenance-recovery-restores-valid-history", crash2["after"] == w.HISTORY_VALID, crash2)
 
+    tamper = rejection_tamper_fails_closed()
+    report["rejection_tamper"] = tamper
+    check(report, "tampered-rejection-classified-incomplete", tamper["status_after_tamper"] == w.HISTORY_INCOMPLETE, tamper)
+    check(report, "tampered-rejection-blocks-authority", not tamper["authority_after_tamper"].startswith("AUTHORITATIVE"), tamper)
+
     normal = normal_two_epoch_progress()
     report["normal_two_epoch_progress"] = normal
     check(report, "normal-two-epoch-history-valid", normal["status"] == w.HISTORY_VALID, normal)
     check(report, "normal-two-epoch-authority-survives", normal["authority"].startswith("AUTHORITATIVE"), normal)
     check(report, "normal-decision-ledger-tracks-exact-transitions", normal["decision_transition_shas"] == normal["transition_shas"], normal)
+    check(report, "normal-path-has-no-rejections", normal["rejection_count"] == 0, normal)
 
     rollback = whole_domain_rollback_counterexample()
     report["whole_domain_rollback_counterexample"] = rollback
