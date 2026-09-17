@@ -25,12 +25,23 @@ jobs:
         run: python -O tools/AXM_FLOWING_COMPUTE_OUTCOME_AUTHORITY_ROTATION_LINEAGE_SELFTEST.py --json-out /tmp/wave118-builder-optimized.json
 
       - name: Adversarial reproducer normal
-        run: python verification/wave118_rotation_provenance_crash_repro.py > /tmp/verifier-wave118-normal.json
+        id: adversarial_normal
+        continue-on-error: true
+        shell: bash
+        run: |
+          python verification/wave118_rotation_provenance_crash_repro.py > /tmp/verifier-wave118-normal.json 2> /tmp/verifier-wave118-normal.stderr
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
 
       - name: Adversarial reproducer optimized
-        run: python -O verification/wave118_rotation_provenance_crash_repro.py > /tmp/verifier-wave118-optimized.json
+        id: adversarial_optimized
+        continue-on-error: true
+        shell: bash
+        run: |
+          python -O verification/wave118_rotation_provenance_crash_repro.py > /tmp/verifier-wave118-optimized.json 2> /tmp/verifier-wave118-optimized.stderr
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
 
       - name: Upload exact verifier evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: verifier-wave118-rotation-provenance-crash
@@ -38,5 +49,14 @@ jobs:
             /tmp/wave118-builder-normal.json
             /tmp/wave118-builder-optimized.json
             /tmp/verifier-wave118-normal.json
+            /tmp/verifier-wave118-normal.stderr
             /tmp/verifier-wave118-optimized.json
+            /tmp/verifier-wave118-optimized.stderr
           if-no-files-found: error
+
+      - name: Require adversarial reproducer success
+        if: always()
+        shell: bash
+        run: |
+          test "${{ steps.adversarial_normal.outputs.exit_code }}" = "0"
+          test "${{ steps.adversarial_optimized.outputs.exit_code }}" = "0"
