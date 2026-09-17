@@ -61,9 +61,9 @@ This control matters: the durable evidence is sufficient. The missing piece is p
 
 Reproducer: `verification/wave118_rotation_provenance_crash_repro.py`
 
-Dual-mode corrected verifier run: `35258594807`, job `105328342945`, artifact `10513604468`, artifact SHA-256 `e3d4a2ecf51e7b76dd0aa8ace68d48089a7c19144c7f68edbe42d2d1a98aeaae`. Both normal Python and `python -O` completed successfully and independently emitted `FAIL_ROTATION_LOWER_COMMIT_TO_PROVENANCE_CRASH_HAS_NO_PUBLIC_RECOVERY`, `public_gap_reproduced=true`, and `diagnostic_internal_repair_works=true`.
+Full independent CI run: `35258291996`, job `105327328938`, artifact `10513129578`, artifact SHA-256 `8a235897e1ea88ab8cd4dc6e43543a5211acda827bc642ad897b25bdf850311c`. The same job reran the unchanged Wave 118 builder self-test in normal and optimized Python, then reproduced this adversarial failure in normal and optimized Python; all required steps completed successfully.
 
-Earlier completed corrected normal-mode diagnostic: run `35258292003`, job `105327329440`, artifact `10513519067`, artifact SHA-256 `d3349a52914f349a548431af91cee24d48a53354f2fce927e59f438f98b15d61`.
+Additional dual-mode fast diagnostic: run `35258594807`, job `105328342945`, artifact `10513604468`, artifact SHA-256 `e3d4a2ecf51e7b76dd0aa8ace68d48089a7c19144c7f68edbe42d2d1a98aeaae`. Both modes independently emitted `FAIL_ROTATION_LOWER_COMMIT_TO_PROVENANCE_CRASH_HAS_NO_PUBLIC_RECOVERY`, `public_gap_reproduced=true`, and `diagnostic_internal_repair_works=true`.
 
 An earlier verifier run is intentionally retained because it exposed a verifier-only import-path mistake (`ModuleNotFoundError`); it is not builder evidence. Corrected workflows set `PYTHONPATH=tools`.
 
