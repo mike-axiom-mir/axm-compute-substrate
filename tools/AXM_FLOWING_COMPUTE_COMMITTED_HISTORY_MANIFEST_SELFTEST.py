@@ -84,9 +84,12 @@ def run() -> dict:
     status, link1, cp1 = q.current_local(rt, st, boot)
     if status != "LOCAL_OK":
         raise AssertionError(status)
+    # Wave 104 intentionally forbids deepcopy() of credential-bound endpoints. Preserve a real
+    # modeled disk snapshot instead, then restore those exact registered endpoints for the rollback
+    # counterexample at the end of the test.
     snapshot_epoch1 = (
         deepcopy(st), deepcopy(rt), deepcopy(services), deepcopy(rs),
-        deepcopy(cs), deepcopy(domain), deepcopy(bs)
+        deepcopy(cs), domain.disk_snapshots(), deepcopy(bs)
     )
     state1 = w.committed_history_state(st, boot, rt)
     add("epoch1_manifested_and_authoritative", state1["status"] == w.HISTORY_VALID and state1["committed_count"] == 1 and w.authority(rt, st, boot, services, rs, cs, domain, bs).startswith("AUTHORITATIVE"))
@@ -106,8 +109,9 @@ def run() -> dict:
     attacked = deepcopy(clean_epoch2)
     attacked["L"].pop(link2_sha)
     attack_state = w.committed_history_state(attacked, boot, rt)
+    attack_authority = w.authority(rt, attacked, boot, services, rs, cs, domain, bs)
     add("pr32_newest_link_loss_now_incomplete", attack_state["status"] == w.HISTORY_INCOMPLETE)
-    add("pr32_newest_link_loss_authority_holds", w.authority(rt, attacked, boot, services, rs, cs, domain, bs) == w.HOLD_INCOMPLETE)
+    add("pr32_newest_link_loss_authority_holds", attack_authority == w.HOLD_INCOMPLETE)
 
     for label, stores in (
         ("newest_link_plus_checkpoint", ("L", "C")),
@@ -147,7 +151,9 @@ def run() -> dict:
     prepared_rt = deepcopy(rt)
     prepared_services = deepcopy(services)
     prepared_cs = deepcopy(cs)
-    prepared_domain = deepcopy(domain)
+    # prepare()/authority() only read the registered domain. Reuse the genuine registered
+    # endpoints instead of violating Wave 104 by cloning credentials into a fake endpoint set.
+    prepared_domain = domain
     prepared_bs = deepcopy(bs)
     prepared_ts = deepcopy(ts)
     prepared_app = hashlib.sha256(b"wave108-prepared-only-epoch3").hexdigest()
@@ -204,7 +210,8 @@ def run() -> dict:
     migration_rt = deepcopy(rt107)
     migration_services = deepcopy(services107)
     migration_cs = deepcopy(cs107)
-    migration_domain = deepcopy(domain107)
+    # The explicit-migration guard fires before any replacement endpoint could be relevant.
+    migration_domain = domain107
     migration_bs = deepcopy(bs107)
     migration_blocked = False
     try:
@@ -213,8 +220,9 @@ def run() -> dict:
         migration_blocked = "migration" in str(exc) or w.HOLD_INCOMPLETE in str(exc)
     add("prewave108_history_requires_explicit_migration", migration_blocked)
 
-    rst, rrt, rservices, rrs, rcs, rdomain, rbs = snapshot_epoch1
-    rollback_verdict = w.authority(rrt, rst, boot, rservices, rrs, rcs, rdomain, rbs)
+    rst, rrt, rservices, rrs, rcs, rdomain_disks, rbs = snapshot_epoch1
+    domain.restore_disks(rdomain_disks)
+    rollback_verdict = w.authority(rrt, rst, boot, rservices, rrs, rcs, domain, rbs)
     add("coordinated_whole_world_prefix_rollback_counterexample_preserved", rollback_verdict.startswith("AUTHORITATIVE"))
 
     passed = sum(row["pass"] for row in controls)
@@ -226,7 +234,7 @@ def run() -> dict:
         "pr32_reproduction": {
             "wave107_depth2_guard_status_after_newest_link_loss": pr32_guard["status"],
             "wave108_depth2_guard_status_after_same_loss": attack_state["status"],
-            "wave108_authority_after_same_loss": w.authority(rt, attacked, boot, services, rs, cs, domain, bs),
+            "wave108_authority_after_same_loss": attack_authority,
         },
         "synthetic_scaling": {
             "label": "synthetic retained-depth correctness scaling only",
