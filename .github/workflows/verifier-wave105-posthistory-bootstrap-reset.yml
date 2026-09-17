@@ -1,0 +1,37 @@
+name: verifier-wave105-posthistory-bootstrap-reset
+
+on:
+  push:
+    branches:
+      - verifier/wave105-posthistory-bootstrap-reset
+  pull_request:
+    branches:
+      - chatgpt/lane-001-platform-extract
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    strategy:
+      fail-fast: false
+      matrix:
+        optimize: [normal, optimized]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reproduce against unchanged Wave 105 source
+        shell: bash
+        run: |
+          if [ "${{ matrix.optimize }}" = "optimized" ]; then
+            python -O verification/wave105_posthistory_bootstrap_reset_repro.py | tee verifier-wave105-${{ matrix.optimize }}.json
+          else
+            python verification/wave105_posthistory_bootstrap_reset_repro.py | tee verifier-wave105-${{ matrix.optimize }}.json
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verifier-wave105-${{ matrix.optimize }}
+          path: verifier-wave105-${{ matrix.optimize }}.json
