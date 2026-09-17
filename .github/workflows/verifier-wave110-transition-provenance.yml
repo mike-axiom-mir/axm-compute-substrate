@@ -1,0 +1,46 @@
+name: verifier-wave110-transition-provenance
+
+on:
+  push:
+    branches:
+      - chatgpt/verifier-wave110-transition-provenance
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        optimized: [false, true]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Re-run unchanged Wave 110 builder self-test
+        run: |
+          if [ "${{ matrix.optimized }}" = "true" ]; then
+            python -O tools/AXM_FLOWING_COMPUTE_TRANSITION_EVIDENCE_GUARD_SELFTEST.py > wave110-builder-selftest.txt
+          else
+            python tools/AXM_FLOWING_COMPUTE_TRANSITION_EVIDENCE_GUARD_SELFTEST.py > wave110-builder-selftest.txt
+          fi
+          cat wave110-builder-selftest.txt
+      - name: Run independent Wave 110 adversarial verifier
+        run: |
+          if [ "${{ matrix.optimized }}" = "true" ]; then
+            python -O verification/wave110_transition_provenance_repro.py > wave110-verifier.json
+          else
+            python verification/wave110_transition_provenance_repro.py > wave110-verifier.json
+          fi
+          cat wave110-verifier.json
+      - name: Upload exact verifier evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave110-transition-provenance-${{ matrix.optimized }}
+          path: |
+            wave110-builder-selftest.txt
+            wave110-verifier.json
