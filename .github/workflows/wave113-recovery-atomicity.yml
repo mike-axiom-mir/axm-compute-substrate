@@ -1,0 +1,39 @@
+name: Wave 113 recovery atomicity
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - 'tools/AXM_FLOWING_COMPUTE_RECOVERY_ATOMICITY.py'
+      - 'tools/AXM_FLOWING_COMPUTE_RECOVERY_ATOMICITY_SELFTEST.py'
+      - '.github/workflows/wave113-recovery-atomicity.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wave113:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Wave 112 regression
+        run: python tools/AXM_FLOWING_COMPUTE_RECOVERABLE_TRANSITION_PROVENANCE_CI_SELFTEST.py --json-out evidence/wave113_wave112_regression.json
+      - name: Wave 113 normal Python
+        run: python tools/AXM_FLOWING_COMPUTE_RECOVERY_ATOMICITY_SELFTEST.py --json-out evidence/wave113_normal.json
+      - name: Wave 113 optimized Python
+        run: python -O tools/AXM_FLOWING_COMPUTE_RECOVERY_ATOMICITY_SELFTEST.py --json-out evidence/wave113_optimized.json
+      - name: Upload exact-run reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave113-recovery-atomicity-reports
+          path: |
+            evidence/wave113_wave112_regression.json
+            evidence/wave113_normal.json
+            evidence/wave113_optimized.json
+          if-no-files-found: warn
