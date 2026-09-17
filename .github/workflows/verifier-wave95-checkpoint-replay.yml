@@ -1,0 +1,23 @@
+name: Verifier Wave 95 checkpoint replay
+
+on:
+  pull_request:
+    paths:
+      - 'verification/wave95_checkpoint_replay_recheckpoint_repro.py'
+      - 'tools/AXM_FLOWING_COMPUTE_AUTHORITY_CHECKPOINT_COMPACTION.py'
+      - '.github/workflows/verifier-wave95-checkpoint-replay.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reproduce Wave 95 verifier findings
+        run: python verification/wave95_checkpoint_replay_recheckpoint_repro.py
