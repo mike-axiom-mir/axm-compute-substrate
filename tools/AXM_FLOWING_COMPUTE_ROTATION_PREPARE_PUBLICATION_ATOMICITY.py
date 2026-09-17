@@ -148,7 +148,7 @@ def _validate_staged_prepare(
     exact_transition = staged_transition_store.get(transition_sha)
     if not isinstance(exact_transition, dict) or exact_transition.get("transition_sha") != transition_sha:
         raise ValueError("wave121-exact-transition-body-missing")
-    w120.w118.w114.w113.w112.w110.get_transition(staged_transition_store, transition_sha)
+    w110.w100.get_transition(staged_transition_store, transition_sha)
 
     _append_only(before_binding_store, staged_binding_store, "binding")
     binding_sha = binding.get("binding_sha")
