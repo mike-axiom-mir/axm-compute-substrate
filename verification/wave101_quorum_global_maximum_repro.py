@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Independent Wave 101 verifier: stale quorum can forget a previously authoritative newer epoch.
 
-This imports the unchanged Wave 101 builder code.  It does not patch builder behavior.
+This imports the unchanged Wave 101 builder code. It does not patch builder behavior.
+All checks are explicit rather than Python ``assert`` so ``python -O`` exercises the same path.
 """
 from __future__ import annotations
 
@@ -16,6 +17,11 @@ sys.path.insert(0, str(ROOT / "tools"))
 
 import AXM_FLOWING_COMPUTE_REMOTE_AUTHORITY_MONOTONICITY as a
 import AXM_FLOWING_COMPUTE_REMOTE_WITNESS_REGISTRY_QUORUM as q
+
+
+def need(condition: bool, message: str) -> None:
+    if not condition:
+        raise RuntimeError(message)
 
 
 def epochs(service: dict) -> list[int]:
@@ -34,35 +40,42 @@ def main() -> None:
     rt_epoch1 = deepcopy(rt)
     remote_b_epoch1 = deepcopy(services["remote-b"])
 
-    # Establish epoch 2 locally and on A+B only.  This is already a valid 2-of-3
+    # Establish epoch 2 locally and on A+B only. This is already a valid 2-of-3
     # authoritative Wave 101 state; C intentionally remains at epoch 1.
     app2 = hashlib.sha256(b"wave101-verifier-epoch-2").hexdigest()
     cp2, use2, link2, tr2 = a.prepare(
         rt, st, priv, boot, services, registry_store, transition_store, app2
     )
-    assert a.commit(
+    commit_result = a.commit(
         rt, st, boot, registry_store, transition_store,
         link2["authority_sha"], tr2,
-    ) == "COMMITTED"
-    assert a.publish(rt, st, boot, services, tokens, registry_store, "remote-a") == "APPENDED"
-    assert a.publish(rt, st, boot, services, tokens, registry_store, "remote-b") == "APPENDED"
+    )
+    need(commit_result == "COMMITTED", f"epoch2 local commit failed: {commit_result}")
+
+    publish_a = a.publish(rt, st, boot, services, tokens, registry_store, "remote-a")
+    publish_b = a.publish(rt, st, boot, services, tokens, registry_store, "remote-b")
+    need(publish_a == "APPENDED", f"epoch2 publish A failed: {publish_a}")
+    need(publish_b == "APPENDED", f"epoch2 publish B failed: {publish_b}")
 
     epoch2_verdict = a.authority(rt, st, boot, services, registry_store)
-    assert epoch2_verdict.startswith("AUTHORITATIVE_QUORUM_2"), epoch2_verdict
-    assert epochs(services["remote-a"]) == [1, 2]
-    assert epochs(services["remote-b"]) == [1, 2]
-    assert epochs(services["remote-c"]) == [1]
+    need(epoch2_verdict.startswith("AUTHORITATIVE_QUORUM_2"), f"epoch2 not authoritative: {epoch2_verdict}")
+    need(epochs(services["remote-a"]) == [1, 2], "remote A did not retain epochs 1,2")
+    need(epochs(services["remote-b"]) == [1, 2], "remote B did not retain epochs 1,2")
+    need(epochs(services["remote-c"]) == [1], "remote C was expected to remain at epoch 1")
 
     # Control: rewinding only the mutable local pointer/runtime to epoch 1 is caught
     # while A+B still retain epoch 2.
     local_rollback_control = a.authority(
         rt_epoch1, st, boot, services, registry_store
     )
-    assert not local_rollback_control.startswith("AUTHORITATIVE"), local_rollback_control
+    need(
+        not local_rollback_control.startswith("AUTHORITATIVE"),
+        f"local-pointer-only rollback unexpectedly authoritative: {local_rollback_control}",
+    )
 
-    # Attack: restore only remote B to its old epoch-1 store snapshot.  A remains
+    # Attack: restore only remote B to its old epoch-1 store snapshot. A remains
     # intact at epoch 2, C was merely lagging at epoch 1, and the local content-addressed
-    # store still contains epoch-2 bodies.  No append, reseal, registry change, record
+    # store still contains epoch-2 bodies. No append, reseal, registry change, record
     # deletion on A, or whole-domain rollback is used.
     stale_services = deepcopy(services)
     stale_services["remote-b"] = deepcopy(remote_b_epoch1)
@@ -72,11 +85,11 @@ def main() -> None:
     )
 
     # The intact A witness still proves a newer authority epoch existed.
-    assert epochs(stale_services["remote-a"]) == [1, 2]
-    assert epochs(stale_services["remote-b"]) == [1]
-    assert epochs(stale_services["remote-c"]) == [1]
-    assert link2["authority_sha"] in st["L"]
-    assert cp2["checkpoint_sha"] in st["C"]
+    need(epochs(stale_services["remote-a"]) == [1, 2], "intact remote A lost newer evidence")
+    need(epochs(stale_services["remote-b"]) == [1], "remote B stale restore did not land at epoch 1")
+    need(epochs(stale_services["remote-c"]) == [1], "remote C no longer represents the lagging witness")
+    need(link2["authority_sha"] in st["L"], "newer local authority body unexpectedly missing")
+    need(cp2["checkpoint_sha"] in st["C"], "newer local checkpoint body unexpectedly missing")
 
     result = {
         "schema": "axm.flowing_compute.wave101.independent-verifier/v1",
@@ -100,8 +113,10 @@ def main() -> None:
     }
     print(json.dumps(result, indent=2, sort_keys=True))
 
-    # This assertion intentionally records the currently reproduced bad outcome.
-    assert attack_verdict.startswith("AUTHORITATIVE_QUORUM_2"), attack_verdict
+    need(
+        attack_verdict.startswith("AUTHORITATIVE_QUORUM_2"),
+        f"counterexample did not reproduce: {attack_verdict}",
+    )
 
 
 if __name__ == "__main__":
