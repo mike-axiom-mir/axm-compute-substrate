@@ -8,7 +8,13 @@ fail-closed recovery attempt to leave retained evidence unchanged.
 from __future__ import annotations
 
 import json
+import sys
 from copy import deepcopy
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+TOOLS = ROOT / "tools"
+sys.path.insert(0, str(TOOLS))
 
 import AXM_FLOWING_COMPUTE_RECOVERABLE_TRANSITION_PROVENANCE as w
 import AXM_FLOWING_COMPUTE_TRANSITION_PROVENANCE_LEDGER as w111
