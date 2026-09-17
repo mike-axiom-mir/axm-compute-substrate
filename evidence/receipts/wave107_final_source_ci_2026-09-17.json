@@ -1,0 +1,48 @@
+{
+  "artifact": {
+    "id": 10484875188,
+    "name": "wave107-report",
+    "report_json_sha256": "17acb3fad0d9b3df4297d2b86d402fc07372d41b2bc2a98dac59f998b3f6d652",
+    "zip_sha256": "e58316f9a19bd7def7a6edc86b199a2b18d71e0063b973150f90cb1a5eb394d7"
+  },
+  "ci": {
+    "conclusion": "success",
+    "job_id": 105106546783,
+    "run_id": 35192037553,
+    "wave106_regression": "36/36",
+    "wave107_normal": "22/22",
+    "wave107_python_optimized": "22/22"
+  },
+  "parent_wave106_builder_head": "eb8ac4d23a3399af82885afc435dae6de0aa28b6",
+  "schema": "axm.flowing_compute.wave107.exact_source_ci_receipt/v1",
+  "source_blobs": {
+    "selftest": "66d676685b23fd5cbcc5ac8f06a0ec5e383fd295",
+    "tool": "7aeb0e6f6018d1708b5fe89a4fdbf8e024398deb",
+    "workflow": "fb1e2fc1fec8b8f72e14a9ac8b4172f626953ccb"
+  },
+  "tested_source_commit": "9e4edc8c484d32f9210804dc25ca61fadf7aa835",
+  "truth_boundary": {
+    "automatic_merge": false,
+    "canon_promotion": false,
+    "device_or_provider_independence_claim": false,
+    "energy_claim": false,
+    "fresh_monolith_workload": false,
+    "network_claim": false,
+    "os_process_independence_claim": false,
+    "performance_claim": false,
+    "retained_incremental_dormant_compute_claim": false
+  },
+  "verifier_source": {
+    "evidence_blob": "d0e6c230bc11f04811748d36b3400ca597c9ffc6",
+    "head": "06beba92c188879d65ebd970bbaaa529ca095660",
+    "pr": 31,
+    "reproducer_blob": "c3342d4561ba10ea8deaeb878ffead870edde252"
+  },
+  "wave": 107,
+  "wave106_source": {
+    "builder_head": "eb8ac4d23a3399af82885afc435dae6de0aa28b6",
+    "selftest_blob": "3da3ebd06bed5b756ca58d5b77ac9eb5de12bbc6",
+    "tested_source_commit": "652f3da1acd88e02f085cf1ace92c6bfb412e065",
+    "tool_blob": "daaa9e33b3418138972701bac1cecca928378a17"
+  }
+}
