@@ -23,7 +23,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          python verification/wave118_rotation_provenance_crash_repro.py > /tmp/verifier.json 2> /tmp/verifier.stderr
+          PYTHONPATH=tools python verification/wave118_rotation_provenance_crash_repro.py > /tmp/verifier.json 2> /tmp/verifier.stderr
           code=$?
           echo "$code" > /tmp/verifier.exit
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
