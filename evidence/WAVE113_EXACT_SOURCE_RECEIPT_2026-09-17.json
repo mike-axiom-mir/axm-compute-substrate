@@ -1,0 +1,76 @@
+{
+  "schema": "axm.flowing-compute.wave113.exact-source-receipt/v1",
+  "date": "2026-09-17",
+  "repository": "mike-axiom-mir/axm-compute-substrate",
+  "lane": "chatgpt/lane-001-platform-extract",
+  "pull_request": 2,
+  "status": "experimental-unmerged-non-canon",
+  "predecessor": {
+    "wave": 112,
+    "builder_head_before_wave113": "a1cf4ccb535142a63a328c4a0dadc86984deaa3b",
+    "tested_source_commit": "1be9303bba0712869d40444f5cf1b0e878948ab7"
+  },
+  "independent_verifier": {
+    "pull_request": 37,
+    "head_at_wave113_start": "64f8cbe681d7f06930249e65c6dee9f9d2e3495d",
+    "verdict": "FAIL_FAILED_RECOVERY_MUTATES_LEDGER_AND_THEN_MISREPORTS_ALREADY_COMMITTED",
+    "severity_boundary": "recovery/evidence-integrity+liveness; no stale-authority acceptance demonstrated"
+  },
+  "wave113_exact_tested_source": {
+    "commit": "dfedcab483ba6f798e0cd8e18a8a0c893397efd5",
+    "tool": {
+      "path": "tools/AXM_FLOWING_COMPUTE_RECOVERY_ATOMICITY.py",
+      "blob_sha": "3d948226a00572f9e9ebca5062c395082dc6ec02"
+    },
+    "selftest": {
+      "path": "tools/AXM_FLOWING_COMPUTE_RECOVERY_ATOMICITY_SELFTEST.py",
+      "blob_sha": "aea9be7dbefb3dd5a1c60752b11b05d4980db96d"
+    },
+    "workflow": {
+      "path": ".github/workflows/wave113-recovery-atomicity.yml",
+      "blob_sha": "5173066a6e8727e3018fc77adc21c7c246659e9a"
+    }
+  },
+  "ci": {
+    "run_id": 35222795865,
+    "job_id": 105206836767,
+    "conclusion": "success",
+    "wave112_regression": {"passed": 22, "total": 22},
+    "wave113_normal": {"passed": 25, "total": 25},
+    "wave113_python_optimized": {"passed": 25, "total": 25},
+    "artifact": {
+      "id": 10498630052,
+      "name": "wave113-recovery-atomicity-reports",
+      "sha256": "b97cbe185a1c69ff28cb4a7cc220dd750e71711ba0a5db7f9d16f73c56dac358"
+    }
+  },
+  "written_evidence": {
+    "path": "evidence/FLOWING_COMPUTE_RECOVERY_ATOMICITY_WAVE113_2026-09-17.md",
+    "blob_sha": "b48453a311caa1b620e602b343bde9ed43f0ba09"
+  },
+  "observed": {
+    "wave112_verifier37_reproduced": true,
+    "wave113_damaged_prefix_rejected_before_write": true,
+    "failed_recovery_provenance_store_unchanged": true,
+    "false_already_committed_rejected_when_full_history_invalid": true,
+    "clean_one_row_recovery_succeeds": true,
+    "fault_during_append_rolls_back_in_memory": true,
+    "fault_after_append_rolls_back_in_memory": true,
+    "whole_modeled_domain_rollback_counterexample_preserved": true
+  },
+  "truth_boundary": {
+    "real_axm_or_monolith_workload_run_this_wave": false,
+    "synthetic_scaling_run_this_wave": false,
+    "wall_clock_performance_claim": false,
+    "energy_claim": false,
+    "retained_incremental_dormant_compute_claim": false,
+    "process_crash_or_power_loss_atomicity_claim": false,
+    "independent_durable_commit_witness_claim": false,
+    "os_process_device_network_provider_independence_claim": false,
+    "same_modeled_python_failure_domain": true,
+    "no_automatic_merge": true,
+    "no_canon_promotion": true
+  },
+  "preserved_counterexample": "whole modeled failure-domain rollback to a genuine older prefix still returns modeled authority when no independent newer fact survives",
+  "next_gate": "Wave 114: separate OS-process durable commit-decision/provenance witness; crash/restart, durable-publication boundaries, full local rollback with newer witness intact, stale/cloned disks, witness outage/staleness, saved-genesis restart, partitions, simultaneous old/new views, witness-store corruption/truncation and credential substitution"
+}
