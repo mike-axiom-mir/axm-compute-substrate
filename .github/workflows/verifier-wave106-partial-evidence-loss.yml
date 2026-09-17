@@ -1,0 +1,27 @@
+name: Verifier Wave 106 partial evidence loss
+
+on:
+  pull_request:
+    branches:
+      - chatgpt/lane-001-platform-extract
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reproduce in normal Python
+        env:
+          PYTHONPATH: tools
+        run: python verification/wave106_partial_evidence_loss_rebootstrap_repro.py
+      - name: Reproduce with python -O
+        env:
+          PYTHONPATH: tools
+        run: python -O verification/wave106_partial_evidence_loss_rebootstrap_repro.py
