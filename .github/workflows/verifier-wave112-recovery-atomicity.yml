@@ -21,12 +21,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Re-run unchanged Wave 112 builder self-test
+      - name: Re-run unchanged Wave 112 exact CI self-test
         run: |
           if [ "${{ matrix.optimized }}" = "true" ]; then
-            python -O tools/AXM_FLOWING_COMPUTE_RECOVERABLE_TRANSITION_PROVENANCE_SELFTEST.py > wave112-builder-selftest.txt
+            python -O tools/AXM_FLOWING_COMPUTE_RECOVERABLE_TRANSITION_PROVENANCE_CI_SELFTEST.py > wave112-builder-selftest.txt
           else
-            python tools/AXM_FLOWING_COMPUTE_RECOVERABLE_TRANSITION_PROVENANCE_SELFTEST.py > wave112-builder-selftest.txt
+            python tools/AXM_FLOWING_COMPUTE_RECOVERABLE_TRANSITION_PROVENANCE_CI_SELFTEST.py > wave112-builder-selftest.txt
           fi
           cat wave112-builder-selftest.txt
       - name: Run independent Wave 112 recovery atomicity verifier
@@ -38,9 +38,11 @@ jobs:
           fi
           cat wave112-verifier.json
       - name: Upload exact verifier evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: wave112-recovery-atomicity-${{ matrix.optimized }}
           path: |
             wave112-builder-selftest.txt
             wave112-verifier.json
+          if-no-files-found: warn
