@@ -1,0 +1,76 @@
+name: wave124-exclusive-process-witness
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_EXCLUSIVE.py
+      - tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_EXCLUSIVE_SELFTEST.py
+      - .github/workflows/wave124-exclusive-process-witness.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare report directory
+        run: mkdir -p wave124-report
+      - name: Syntax check exact Wave 124 tools
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python -m py_compile tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_EXCLUSIVE.py tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_EXCLUSIVE_SELFTEST.py
+      - name: Wave 123 unchanged regression
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_SELFTEST.py --json-out wave124-report/wave123-regression.json
+      - name: Wave 123 unchanged regression optimized
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_SELFTEST.py --json-out wave124-report/wave123-regression-optimized.json
+      - name: Wave 124 exact-source self-test
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_EXCLUSIVE_SELFTEST.py --report wave124-report/wave124.json
+      - name: Wave 124 optimized-mode self-test
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_EXCLUSIVE_SELFTEST.py --report wave124-report/wave124-optimized.json
+      - name: Record exact source identity
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          files = [
+              'tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_EXCLUSIVE.py',
+              'tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_EXCLUSIVE_SELFTEST.py',
+              '.github/workflows/wave124-exclusive-process-witness.yml',
+              'tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS.py',
+              'tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_SELFTEST.py',
+          ]
+          out = {
+              'tested_source_commit': subprocess.check_output(['git','rev-parse','HEAD'], text=True).strip(),
+              'blobs': {path: subprocess.check_output(['git','hash-object',path], text=True).strip() for path in files},
+              'wave123_evidence_head': 'fe431e64b3aee7840cff848395aef2e9af2847db',
+              'wave123_tested_source_commit': 'b594d1bac276c11f98ce6a6f558fb929ed0c30eb',
+              'verifier_pr': 48,
+              'verifier_head': 'b58c6ab768bb6eaf2400a542db8e960041fc2b25',
+              'verifier_artifact_sha256': '3f1f64de3a8836588285e40f411f106abf18cd4616083732d051072e096afdaf',
+              'truth_boundary': 'same Linux host, cooperating Wave 124 servers and advisory-lock filesystem only; no directory-inode substitution, direct-writer, power/device/provider, performance/energy/retained-compute claim',
+          }
+          with open('wave124-report/source-identity.json','w',encoding='utf-8') as f:
+              json.dump(out,f,indent=2,sort_keys=True); f.write('\n')
+          PY
+      - name: Upload machine-readable run report
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave124-report
+          path: wave124-report/
+          if-no-files-found: error
