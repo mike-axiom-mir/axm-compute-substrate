@@ -1,0 +1,41 @@
+{
+  "artifact": {
+    "id": 10482737736,
+    "name": "wave106-report",
+    "report_json_sha256": "e57a155f33b1e5c753f4f03aa106c5883bee3bd7e3e5bca00643ee614715c61c",
+    "zip_sha256": "a959621c57322ea589089a73299697b27b5d0b86854f8b2fa9ac12941d0bf2f1"
+  },
+  "ci": {
+    "conclusion": "success",
+    "job_id": 105092603905,
+    "run_id": 35187496172,
+    "wave105_regression": "35/35",
+    "wave106_normal": "36/36",
+    "wave106_python_optimized": "36/36"
+  },
+  "parent_wave105_commit": "5c683032e0834e8a57e1bb780f624eb1cb312d3c",
+  "schema": "axm.flowing_compute.wave106.exact_source_ci_receipt/v1",
+  "source_blobs": {
+    "selftest": "3da3ebd06bed5b756ca58d5b77ac9eb5de12bbc6",
+    "tool": "daaa9e33b3418138972701bac1cecca928378a17",
+    "workflow": "c31b839ba05088fc9b2cc5c6299901b70351440a"
+  },
+  "tested_source_commit": "652f3da1acd88e02f085cf1ace92c6bfb412e065",
+  "truth_boundary": {
+    "automatic_merge": false,
+    "canon_promotion": false,
+    "device_or_provider_independence_claim": false,
+    "energy_claim": false,
+    "fresh_monolith_workload": false,
+    "os_process_independence_claim": false,
+    "performance_claim": false,
+    "retained_incremental_dormant_compute_claim": false
+  },
+  "verifier_source": {
+    "evidence_blob": "847fb896cb5d4d3c5ac7d7ab264c94833c49225b",
+    "head": "ddefa0f3bc1aff5de804efaac1192433a6595ee1",
+    "pr": 30,
+    "reproducer_blob": "975258a690ae9d8756797666be56ee29b5118051"
+  },
+  "wave": 106
+}
