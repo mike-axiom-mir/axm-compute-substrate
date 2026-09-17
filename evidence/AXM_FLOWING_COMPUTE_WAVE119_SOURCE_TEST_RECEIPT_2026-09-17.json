@@ -1,0 +1,65 @@
+{
+  "schema": "axm.flowing-compute.source-test-receipt/w119-v1",
+  "date": "2026-09-17",
+  "lane": "chatgpt/lane-001-platform-extract",
+  "pull_request": 2,
+  "tested_source_commit": "c96d679d7cb03935c821bbdff4ab3e1a19c99018",
+  "source_blobs": {
+    "wave119_tool": "28c8c85b3377289b69d742990556e5429fca487f",
+    "wave119_selftest": "5c08eb322964b60a34359ef82058b34ddf57b96a",
+    "wave119_workflow": "69c6299d3cb547d29df4801baeaf8fe42485d149",
+    "wave118_tool_unchanged": "8db646560e512a9fef3c4e57dc60012126533f6f"
+  },
+  "predecessor": {
+    "wave": 118,
+    "tested_source_commit": "24d89d57ac0aaffe77febec875e1d70109f703a8",
+    "ci_run": 35255168576,
+    "artifact_id": 10513560709,
+    "artifact_sha256": "1edde7fe57fa1abb9e4b7cb7bd96de0a4e1e09380a9c8d027ddf0f4807b784d5"
+  },
+  "verifier_inputs": [
+    {
+      "pull_request": 42,
+      "finding": "exact Wave117 root or root+envelope durable bootstrap prefix has no public retry after crash before lower genesis"
+    },
+    {
+      "pull_request": 43,
+      "finding": "Wave118 lower-commit-to-provenance crash retains enough exact evidence for repair but has no complete public recovery path"
+    }
+  ],
+  "ci": {
+    "run_id": 35261332504,
+    "job_id": 105337519571,
+    "conclusion": "success",
+    "wave118_regression_normal": {"passed": 34, "failed": 0, "total": 34},
+    "wave118_regression_optimized": {"passed": 34, "failed": 0, "total": 34},
+    "wave119_normal": {"passed": 16, "failed": 0, "total": 16, "verdict": "PASS"},
+    "wave119_optimized": {"passed": 16, "failed": 0, "total": 16, "verdict": "PASS"},
+    "artifact_id": 10514504266,
+    "artifact_name": "wave119-report",
+    "artifact_sha256": "1bb51aac958737905b642246fff759841ea7c8e8924ceceea92ced95d5b85e98"
+  },
+  "claims": {
+    "exact_bootstrap_prefix_public_retry": true,
+    "exact_rotation_missing_trailing_provenance_public_retry": true,
+    "exact_successor_activation_after_recovery": true,
+    "clean_rotation_regression_preserved": true,
+    "wrong_successor_mutation_blocked_in_test": true,
+    "os_process_independence": false,
+    "device_independence": false,
+    "provider_independence": false,
+    "power_loss_durability": false,
+    "performance_or_energy_gain": false,
+    "retained_incremental_dormant_compute_win": false
+  },
+  "preserved_counterexamples": [
+    "whole-modeled-domain rollback can erase all newer root/decision/provenance/witness facts together",
+    "ambiguous or extra bootstrap residue is not auto-reconstructed",
+    "recovery wider than one exact already-proven missing trailing provenance row is not authorized",
+    "all tested credentials and stores remain in one Python failure domain"
+  ],
+  "repository_ballast_policy": "machine-readable run reports remain CI artifacts; only concise reusable tool/selftest/workflow plus evidence/receipt are committed",
+  "merge_performed": false,
+  "auto_merge_enabled": false,
+  "canon_promoted": false
+}
