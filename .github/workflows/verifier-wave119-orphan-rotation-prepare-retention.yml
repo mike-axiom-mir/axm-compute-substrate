@@ -1,0 +1,54 @@
+name: verifier-wave119-orphan-rotation-prepare-retention
+
+on:
+  push:
+    branches:
+      - verifier/wave119-orphan-rotation-prepare-retention
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Unchanged Wave 119 builder self-test
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python tools/AXM_FLOWING_COMPUTE_CRASH_RECOVERABLE_ROTATION_LINEAGE_SELFTEST.py --json-out /tmp/wave119-builder-normal.json
+      - name: Unchanged Wave 119 builder self-test optimized
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python -O tools/AXM_FLOWING_COMPUTE_CRASH_RECOVERABLE_ROTATION_LINEAGE_SELFTEST.py --json-out /tmp/wave119-builder-optimized.json
+      - name: Adversarial retention repro
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python verification/wave119_orphan_rotation_prepare_retention_repro.py --attempts 16 --json-out /tmp/verifier-normal.json
+      - name: Adversarial retention repro optimized
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python -O verification/wave119_orphan_rotation_prepare_retention_repro.py --attempts 16 --json-out /tmp/verifier-optimized.json
+      - name: Exact source identity
+        run: |
+          git rev-parse HEAD > /tmp/verifier-head.txt
+          git rev-parse chatgpt/lane-001-platform-extract 2>/dev/null || true
+          sha256sum tools/AXM_FLOWING_COMPUTE_CRASH_RECOVERABLE_ROTATION_LINEAGE.py > /tmp/wave119-tool-sha256.txt
+          sha256sum verification/wave119_orphan_rotation_prepare_retention_repro.py > /tmp/verifier-script-sha256.txt
+      - name: Upload verifier evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: verifier-wave119-orphan-rotation-prepare-retention
+          path: |
+            /tmp/wave119-builder-normal.json
+            /tmp/wave119-builder-optimized.json
+            /tmp/verifier-normal.json
+            /tmp/verifier-optimized.json
+            /tmp/verifier-head.txt
+            /tmp/wave119-tool-sha256.txt
+            /tmp/verifier-script-sha256.txt
+          if-no-files-found: error
