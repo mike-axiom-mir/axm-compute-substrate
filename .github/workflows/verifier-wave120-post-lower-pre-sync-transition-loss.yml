@@ -6,6 +6,7 @@ on:
       - verifier/wave120-post-lower-pre-sync-transition-loss-20260917
     paths:
       - verification/wave120_post_lower_prepare_pre_sync_transition_loss_repro.py
+      - verification/wave120_focused_repair_control.py
       - verification/WAVE120_ADVERSARIAL_VERIFICATION_2026-09-17.md
       - .github/workflows/verifier-wave120-post-lower-pre-sync-transition-loss.yml
   workflow_dispatch:
@@ -16,7 +17,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -24,14 +25,14 @@ jobs:
           python-version: '3.12'
       - name: Prepare report directory
         run: mkdir -p verifier-wave120-report
-      - name: Re-run unchanged Wave 120 builder self-test
+      - name: Focused Wave 120 direct-repair control normal
         env:
           PYTHONPATH: ${{ github.workspace }}/tools
-        run: python tools/AXM_FLOWING_COMPUTE_ROTATION_PREPARE_TRANSACTION_SELFTEST.py --json-out verifier-wave120-report/builder-wave120-normal.json
-      - name: Re-run unchanged Wave 120 builder self-test optimized
+        run: python verification/wave120_focused_repair_control.py --json-out verifier-wave120-report/repair-control-normal.json
+      - name: Focused Wave 120 direct-repair control optimized
         env:
           PYTHONPATH: ${{ github.workspace }}/tools
-        run: python -O tools/AXM_FLOWING_COMPUTE_ROTATION_PREPARE_TRANSACTION_SELFTEST.py --json-out verifier-wave120-report/builder-wave120-optimized.json
+        run: python -O verification/wave120_focused_repair_control.py --json-out verifier-wave120-report/repair-control-optimized.json
       - name: Independent adversarial reproduction normal
         env:
           PYTHONPATH: ${{ github.workspace }}/tools
@@ -47,6 +48,7 @@ jobs:
           files = [
               'tools/AXM_FLOWING_COMPUTE_ROTATION_PREPARE_TRANSACTION.py',
               'tools/AXM_FLOWING_COMPUTE_ROTATION_PREPARE_TRANSACTION_SELFTEST.py',
+              'verification/wave120_focused_repair_control.py',
               'verification/wave120_post_lower_prepare_pre_sync_transition_loss_repro.py',
               'verification/WAVE120_ADVERSARIAL_VERIFICATION_2026-09-17.md',
               '.github/workflows/verifier-wave120-post-lower-pre-sync-transition-loss.yml',
@@ -58,7 +60,7 @@ jobs:
                   path: subprocess.check_output(['git','hash-object',path], text=True).strip()
                   for path in files
               },
-              'truth_boundary': 'same-process prepare atomicity/liveness and evidence synchronization only; no power-loss, process, timing, energy, or retained-compute win claim',
+              'truth_boundary': 'same-process prepare atomicity/liveness and evidence synchronization only; direct repair control uses full public authority path; no power-loss, process, timing, energy, or retained-compute win claim',
           }
           with open('verifier-wave120-report/source-identity.json','w',encoding='utf-8') as f:
               json.dump(out,f,indent=2,sort_keys=True)
