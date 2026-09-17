@@ -24,7 +24,18 @@ Wave 102 correctly fixes verifier PR #26 while its quorum-certificate store rema
 7. Starting from the current certificate store, delete exactly the newest certificate-2 record and move `head` to the still-retained certificate 1. No older certificate body is rewritten.
 8. Ask unchanged Wave 102 for authority.
 
-Expected adversarial failure if reproduced: `AUTHORITATIVE_QUORUM_2...` for epoch 1 even though remote A and newer local content-addressed bodies still preserve evidence that epoch 2 had previously crossed quorum and been certified.
+## Reproduced result
+
+GitHub Actions run `35173730345`, normal Python job `105050726148`, passed the unchanged Wave 102 self-test **33/33** and then reproduced the counterexample against the same code. The exact output included:
+
+- epoch 2: `COMMITTED`, A `APPENDED`, B `APPENDED`, certificate `CERTIFIED`, authority `AUTHORITATIVE_QUORUM_2_OF_3_MODELED`;
+- after the attack: remote A epochs `[1,2]`, restored B `[1]`, untouched lagging C `[1]`;
+- newer local authority/checkpoint bodies both still retained;
+- certificate 1 retained, only certificate 2 tail deleted, resulting certificate maximum epoch `1`;
+- unchanged Wave 102 returned `AUTHORITATIVE_QUORUM_2_OF_3_MODELED` for the old world;
+- verifier verdict: `FAIL_GLOBAL_MAXIMUM_CAN_BE_REWOUND_BY_CERTIFICATE_TAIL_TRUNCATION_PLUS_ONE_STALE_WITNESS`.
+
+The optimized `python -O` matrix job was still queued when this evidence note was updated, so no optimized result is claimed here.
 
 ## Why this matters
 
@@ -34,7 +45,7 @@ That is a smaller failure set than rolling back all three modeled witnesses or r
 
 ## Benchmark / claim boundary
 
-No performance conclusion is added here. Wave 102's published timing remains synthetic single-process authority bookkeeping only. This verifier does not treat it as retained/incremental/dormant compute, energy, network, or provider evidence.
+No performance conclusion is added here. The unchanged self-test's one-round synthetic authority read rose from about `82.1 ms` at retained depth 1 to `88.7 ms` at depth 4 and `91.9 ms` at depth 8 on this runner. That is only a small depth-sensitivity signal, not a stable complexity estimate. Wave 102's published timing remains synthetic single-process authority bookkeeping only; this verifier does not treat it as retained/incremental/dormant compute, energy, network, or provider evidence.
 
 ## Next adversarial gate
 
