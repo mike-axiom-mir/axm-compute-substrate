@@ -1,0 +1,39 @@
+name: Verifier Wave 114 prevalidation decision poison
+
+on:
+  push:
+    branches:
+      - verifier/wave114-prevalidation-decision-poison
+    paths:
+      - 'verification/wave114_prevalidation_decision_poison_repro.py'
+      - 'verification/WAVE114_ADVERSARIAL_VERIFICATION_2026-09-17.md'
+      - '.github/workflows/verifier-wave114-prevalidation-decision-poison.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Unchanged Wave 114 builder self-test
+        run: python tools/AXM_FLOWING_COMPUTE_EXACT_TRANSITION_DECISION_SELFTEST_RUNNER.py --json-out /tmp/wave114_builder.json
+      - name: Adversarial reproducer normal Python
+        run: python verification/wave114_prevalidation_decision_poison_repro.py | tee /tmp/verifier_normal.json
+      - name: Adversarial reproducer optimized Python
+        run: python -O verification/wave114_prevalidation_decision_poison_repro.py | tee /tmp/verifier_optimized.json
+      - name: Upload verifier reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verifier-wave114-prevalidation-decision-poison
+          path: |
+            /tmp/wave114_builder.json
+            /tmp/verifier_normal.json
+            /tmp/verifier_optimized.json
+          if-no-files-found: warn
