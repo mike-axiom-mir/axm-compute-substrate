@@ -1,0 +1,32 @@
+name: Verifier Wave 100 authority epoch rewind
+
+on:
+  push:
+    branches:
+      - chatgpt/verifier-wave100-authority-epoch-rewind
+    paths:
+      - 'verification/wave100_authority_epoch_rewind_repro.py'
+      - '.github/workflows/verifier-wave100-authority-epoch-rewind.yml'
+  pull_request:
+    paths:
+      - 'verification/wave100_authority_epoch_rewind_repro.py'
+      - '.github/workflows/verifier-wave100-authority-epoch-rewind.yml'
+      - 'verification/WAVE100_ADVERSARIAL_AUTHORITY_EPOCH_REWIND_2026-09-17.md'
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Reproduce in normal Python
+        working-directory: tools
+        run: python ../verification/wave100_authority_epoch_rewind_repro.py
+      - name: Reproduce in optimized Python
+        working-directory: tools
+        run: python -O ../verification/wave100_authority_epoch_rewind_repro.py
