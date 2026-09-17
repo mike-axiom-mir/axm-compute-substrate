@@ -1,0 +1,48 @@
+name: Verifier Wave 115 conflicting rejection receipts
+
+on:
+  push:
+    branches:
+      - chatgpt/verifier-wave115-conflicting-rejections
+    paths:
+      - 'verification/wave115_conflicting_rejection_receipts_repro.py'
+      - '.github/workflows/verifier-wave115-conflicting-rejections.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Unchanged Wave 115 broad self-test
+        run: python tools/AXM_FLOWING_COMPUTE_PREVALIDATED_COMMIT_DECISION_SELFTEST.py --json-out evidence/verifier_wave115_builder_broad.json
+      - name: Unchanged Wave 115 broad self-test optimized
+        run: python -O tools/AXM_FLOWING_COMPUTE_PREVALIDATED_COMMIT_DECISION_SELFTEST.py --json-out evidence/verifier_wave115_builder_broad_optimized.json
+      - name: Unchanged Wave 115 focused identity self-test
+        run: python tools/AXM_FLOWING_COMPUTE_PREVALIDATED_COMMIT_DECISION_IDENTITY_SELFTEST.py --json-out evidence/verifier_wave115_builder_identity.json
+      - name: Adversarial contradictory rejection receipt
+        env:
+          PYTHONPATH: tools
+        run: python verification/wave115_conflicting_rejection_receipts_repro.py --json-out evidence/verifier_wave115_conflicting_rejections.json
+      - name: Adversarial contradictory rejection receipt optimized
+        env:
+          PYTHONPATH: tools
+        run: python -O verification/wave115_conflicting_rejection_receipts_repro.py --json-out evidence/verifier_wave115_conflicting_rejections_optimized.json
+      - name: Upload verifier reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verifier-wave115-conflicting-rejection-reports
+          path: |
+            evidence/verifier_wave115_builder_broad.json
+            evidence/verifier_wave115_builder_broad_optimized.json
+            evidence/verifier_wave115_builder_identity.json
+            evidence/verifier_wave115_conflicting_rejections.json
+            evidence/verifier_wave115_conflicting_rejections_optimized.json
+          if-no-files-found: warn
