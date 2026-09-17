@@ -1,0 +1,42 @@
+name: Verifier Wave117 Bootstrap Crash Retry
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - verifier/wave117-bootstrap-crash-retry
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Re-run unchanged Wave117 builder self-test
+        run: |
+          python tools/AXM_FLOWING_COMPUTE_OUTCOME_AUTHORITY_ROOT_ANCHOR_SELFTEST.py --json-out wave117-builder-normal.json
+          python -O tools/AXM_FLOWING_COMPUTE_OUTCOME_AUTHORITY_ROOT_ANCHOR_SELFTEST.py --json-out wave117-builder-optimized.json
+
+      - name: Reproduce bootstrap crash and exact retry failure
+        run: |
+          python tools/AXM_FLOWING_COMPUTE_WAVE117_BOOTSTRAP_CRASH_VERIFIER.py --json-out wave117-verifier-normal.json
+          python -O tools/AXM_FLOWING_COMPUTE_WAVE117_BOOTSTRAP_CRASH_VERIFIER.py --json-out wave117-verifier-optimized.json
+
+      - name: Preserve exact JSON evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave117-bootstrap-crash-verifier-evidence
+          path: |
+            wave117-builder-normal.json
+            wave117-builder-optimized.json
+            wave117-verifier-normal.json
+            wave117-verifier-optimized.json
+          if-no-files-found: warn
