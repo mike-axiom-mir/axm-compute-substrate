@@ -1,0 +1,10 @@
+{
+  "schema": "axm.compute-substrate-independent-verifier-manifest/v0.1",
+  "date": "2026-09-16",
+  "builder_head": "e5271b2c7dd74a9230c3bd48dc530428e7f49356",
+  "builder_tool": "tools/AXM_FLOWING_COMPUTE_WITNESS_MEMBERSHIP_STATE.py",
+  "builder_tool_blob_sha": "efabee7b9c9724e1bd23f37cfc909cc9ed54cf1a",
+  "verifier": "verification/wave88_old_membership_omission_counterexample.py",
+  "expected_verdict": "FAIL_OLD_COMMITTED_WITNESS_CAN_BE_OMITTED_FROM_RECONFIGURATION",
+  "authority": "verifier-only; no merge or canon authority"
+}
