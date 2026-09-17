@@ -169,11 +169,6 @@ def main() -> int:
     ]
     control_ok = (
         control["history_status"] in (w.HISTORY_NONE, w.HISTORY_VALID)
-        and control["root_count"] if False else True
-    )
-    # Keep the control predicate explicit and schema-independent.
-    control_ok = (
-        control["history_status"] in (w.HISTORY_NONE, w.HISTORY_VALID)
         and control["wave117_root_count"] == 1
         and control["wave117_envelope_count"] == 1
         and control["lower_binding_present"]
