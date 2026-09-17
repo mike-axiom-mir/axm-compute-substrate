@@ -127,7 +127,7 @@ def run(rounds: int) -> dict:
 
     sibling_store = deepcopy(cs)
     sibling = deepcopy(max2)
-    sibling["authority_sha"] = "e" * 64
+    sibling["previous_certificate_sha"] = "e" * 64
     sibling["certificate_sha"] = ""
     sibling = g.w98.seal(sibling, "certificate_sha")
     sibling_store["records"][sibling["certificate_sha"]] = sibling
