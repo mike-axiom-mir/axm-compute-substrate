@@ -43,7 +43,7 @@ jobs:
       - name: Reproduce marker-tail commit-status loss under python -O
         if: matrix.mode == 'optimized'
         run: python -O verification/wave108_marker_tail_reclassification_repro.py | tee /tmp/wave108-verifier-optimized.json
-      - name: Require explicit verifier failure verdict
+      - name: Require strong stale-authority counterexample
         shell: bash
         run: |
           if [ "${{ matrix.mode }}" = "optimized" ]; then
@@ -54,9 +54,14 @@ jobs:
           python - "$REPORT" <<'PY'
           import json, sys
           report = json.load(open(sys.argv[1], encoding="utf-8"))
+          expected = "FAIL_COMMITTED_MARKER_TAIL_TRUNCATION_RECLASSIFIES_ACCEPTED_EPOCH_AS_PREPARED_AND_PERMITS_STALE_QUORUM"
           verdict = report["verdict"]
-          if not verdict.startswith("FAIL_"):
-              raise SystemExit(f"counterexample did not reproduce: {verdict}")
+          if verdict != expected:
+              raise SystemExit(f"strong stale-authority counterexample did not reproduce: {verdict}; authority={report['attack']['authority']}")
+          if not report["attack"]["authority"].startswith("AUTHORITATIVE"):
+              raise SystemExit(f"stale epoch was not authoritative: {report['attack']['authority']}")
+          if report["attack"]["committed_history_state"]["status"] != "VALID":
+              raise SystemExit("marker-truncated history did not classify VALID")
           print(verdict)
           print(report["attack"]["authority"])
           print(report["attack"]["committed_history_state"]["status"])
