@@ -8,8 +8,6 @@ on:
       - 'tools/AXM_FLOWING_COMPUTE_BOOTSTRAP_PARTIAL_EVIDENCE_GUARD.py'
       - 'tools/AXM_FLOWING_COMPUTE_BOOTSTRAP_PARTIAL_EVIDENCE_GUARD_SELFTEST.py'
       - '.github/workflows/wave107-bootstrap-partial-evidence-guard.yml'
-      - 'evidence/WAVE107_BOOTSTRAP_PARTIAL_EVIDENCE_GUARD_2026-09-17.md'
-      - 'evidence/receipts/wave107_final_source_ci_2026-09-17.json'
   workflow_dispatch:
 
 permissions:
