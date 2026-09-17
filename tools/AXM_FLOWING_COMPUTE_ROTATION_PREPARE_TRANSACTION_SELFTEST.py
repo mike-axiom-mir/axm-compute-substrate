@@ -37,7 +37,15 @@ def prepared_world(label: str):
     return world
 
 
-def failure_growth(module, attempts: int, label: str) -> dict:
+def failure_growth(module, attempts: int, label: str, *, prevalidated_predecessor: bool = False) -> dict:
+    """Measure retained candidate growth across failed public prepares.
+
+    The exact verifier reproduction and the bounded 16-attempt Wave 120 repair control execute the
+    full predecessor authority path each time. The 1/10/100/1000 structural scaling controls may use
+    a predecessor that was validated once before the loop; prepare_rotation still executes its real
+    root/envelope creation, anchor/lineage checks, lower-prepare boundary, and cleanup. This keeps the
+    scaling probe about retained object/byte growth rather than repeatedly benchmarking authority.
+    """
     world = prepared_world(label)
     st, priv, boot, rt, services, tokens, rs, ts, cs, certificate_domain, bs, keyring = world
     roots = st[w.w117.OUTCOME_ROOT_STORE]
@@ -46,13 +54,22 @@ def failure_growth(module, attempts: int, label: str) -> dict:
     base_envelopes = set(envelopes)
     base_transitions = set(ts)
     base_bindings = set(bs)
-    original = module.w114.prepare
+    original_prepare = module.w114.prepare
+    original_authority = module.authority
+
+    baseline_verdict = original_authority(
+        rt, st, boot, services, rs, ts, cs, certificate_domain, bs, keyring
+    )
+    if not baseline_verdict.startswith("AUTHORITATIVE"):
+        raise RuntimeError(f"failure-growth-baseline-not-authoritative:{baseline_verdict}")
 
     def fail(*args, **kwargs):
         raise RuntimeError("injected-wave120-lower-prepare-failure")
 
     errors = []
     module.w114.prepare = fail
+    if prevalidated_predecessor:
+        module.authority = lambda *args, **kwargs: baseline_verdict
     try:
         for i in range(attempts):
             successor = module.new_outcome_authority_domain()
@@ -67,19 +84,24 @@ def failure_growth(module, attempts: int, label: str) -> dict:
             else:
                 errors.append("NO_ERROR")
     finally:
-        module.w114.prepare = original
+        module.w114.prepare = original_prepare
+        module.authority = original_authority
 
     orphan_roots = set(roots) - base_roots
     orphan_envelopes = set(envelopes) - base_envelopes
     return {
         "attempts": attempts,
+        "scaling_mode": (
+            "synthetic-prevalidated-predecessor-structural-storage-only"
+            if prevalidated_predecessor else "full-public-authority-path"
+        ),
         "errors_exact": all(x == "RuntimeError:injected-wave120-lower-prepare-failure" for x in errors),
         "root_growth": len(orphan_roots),
         "envelope_growth": len(orphan_envelopes),
         "orphan_compact_json_bytes": compact_bytes(roots, orphan_roots) + compact_bytes(envelopes, orphan_envelopes),
         "transition_growth": len(set(ts) - base_transitions),
         "binding_growth": len(set(bs) - base_bindings),
-        "authority_after": module.authority(
+        "authority_after": original_authority(
             rt, st, boot, services, rs, ts, cs, certificate_domain, bs, keyring
         ),
     }
@@ -303,10 +325,13 @@ def run() -> dict:
           and fixed["binding_growth"] == 0 and fixed["authority_after"].startswith("AUTHORITATIVE"), fixed)
 
     for attempts in (1, 10, 100, 1000):
-        scaled = failure_growth(w, attempts, f"wave120-modeled-storage-scale-{attempts}")
+        scaled = failure_growth(
+            w, attempts, f"wave120-modeled-storage-scale-{attempts}", prevalidated_predecessor=True
+        )
         report["modeled_failure_scaling"].append(scaled)
-        check(report, f"modeled {attempts} failed unique rotations add zero orphan bytes",
-              scaled["errors_exact"] and scaled["root_growth"] == 0
+        check(report, f"synthetic modeled {attempts} failed unique rotations add zero orphan bytes",
+              scaled["scaling_mode"] == "synthetic-prevalidated-predecessor-structural-storage-only"
+              and scaled["errors_exact"] and scaled["root_growth"] == 0
               and scaled["envelope_growth"] == 0 and scaled["orphan_compact_json_bytes"] == 0,
               scaled)
 
@@ -351,11 +376,12 @@ def run() -> dict:
     report["passed"] = len(report["controls"]) - report["failed"]
     report["truth_boundary"] = {
         "modeled_failure_scaling_is_timing_benchmark": False,
+        "modeled_failure_scaling_uses_prevalidated_predecessor": True,
         "energy_claim": False,
         "retained_incremental_dormant_compute_win_claim": False,
         "process_or_power_loss_atomicity_claim": False,
         "whole_domain_rollback_counterexample_removed": False,
-        "note": "1/10/100/1000 scaling counts retained objects/serialized bytes only; it is not a speed benchmark",
+        "note": "1/10/100/1000 scaling is explicitly synthetic structural object/byte accounting with a once-prevalidated predecessor; exact verifier reproduction and bounded repair controls keep the full public authority path",
     }
     if report["failed"]:
         raise AssertionError(json.dumps(report, sort_keys=True))
