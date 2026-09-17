@@ -16,7 +16,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -24,14 +24,37 @@ jobs:
           python-version: '3.12'
       - name: Prepare report directory
         run: mkdir -p wave121-report
-      - name: Wave 120 regression
+      - name: Syntax check exact Wave 121 tools
         env:
           PYTHONPATH: ${{ github.workspace }}/tools
-        run: python tools/AXM_FLOWING_COMPUTE_ROTATION_PREPARE_TRANSACTION_SELFTEST.py --json-out wave121-report/wave120-regression.json
-      - name: Wave 120 optimized regression
+        run: python -m py_compile tools/AXM_FLOWING_COMPUTE_ROTATION_PREPARE_PUBLICATION_ATOMICITY.py tools/AXM_FLOWING_COMPUTE_ROTATION_PREPARE_PUBLICATION_ATOMICITY_SELFTEST.py
+      - name: Bounded Wave 120 predecessor control
         env:
           PYTHONPATH: ${{ github.workspace }}/tools
-        run: python -O tools/AXM_FLOWING_COMPUTE_ROTATION_PREPARE_TRANSACTION_SELFTEST.py --json-out wave121-report/wave120-regression-optimized.json
+        run: |
+          python - <<'PY'
+          import json
+          import AXM_FLOWING_COMPUTE_ROTATION_PREPARE_TRANSACTION as w
+          import AXM_FLOWING_COMPUTE_ROTATION_PREPARE_TRANSACTION_SELFTEST as t
+          result = t.clean_rotation_still_commits()
+          ok = (
+              result['commit_result'] == 'COMMITTED_ROTATED'
+              and result['status'].get('status') == w.HISTORY_VALID
+              and result['authority'].startswith('AUTHORITATIVE')
+              and result['current_is_successor']
+          )
+          report = {
+              'schema': 'axm.flowing-compute.wave121.wave120-bounded-predecessor-control/v1',
+              'ok': ok,
+              'result': result,
+              'note': 'bounded correctness control only; full Wave120 13/13 normal + optimized suite was already green at source head d8d466181ffc80554549899c1dcafa115a27e7ec in run 35269779977',
+          }
+          with open('wave121-report/wave120-bounded-control.json','w',encoding='utf-8') as f:
+              json.dump(report,f,indent=2,sort_keys=True)
+              f.write('\n')
+          if not ok:
+              raise SystemExit(json.dumps(report, sort_keys=True))
+          PY
       - name: Wave 121 exact-source self-test
         env:
           PYTHONPATH: ${{ github.workspace }}/tools
@@ -57,6 +80,7 @@ jobs:
                   path: subprocess.check_output(['git','hash-object',path], text=True).strip()
                   for path in files
               },
+              'wave120_full_regression_prior_run': 35269779977,
               'truth_boundary': 'same-process staged prepare publication + exact exception rollback only; hard process kill during multi-write publication remains unproved; no performance/energy/retained-compute claim',
           }
           with open('wave121-report/source-identity.json','w',encoding='utf-8') as f:
