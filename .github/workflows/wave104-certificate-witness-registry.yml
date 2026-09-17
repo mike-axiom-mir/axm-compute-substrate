@@ -1,0 +1,37 @@
+name: wave104-certificate-witness-registry
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - 'tools/AXM_FLOWING_COMPUTE_CERTIFICATE_WITNESS_REGISTRY.py'
+      - 'tools/AXM_FLOWING_COMPUTE_CERTIFICATE_WITNESS_REGISTRY_SELFTEST.py'
+      - '.github/workflows/wave104-certificate-witness-registry.yml'
+      - 'evidence/WAVE104_CERTIFICATE_WITNESS_REGISTRY_2026-09-17.md'
+      - 'evidence/wave104_certificate_witness_registry_report.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Wave 103 regression
+        run: python tools/AXM_FLOWING_COMPUTE_CERTIFICATE_MAXIMUM_WITNESS_SELFTEST.py
+      - name: Wave 104 exact-source self-test
+        run: python tools/AXM_FLOWING_COMPUTE_CERTIFICATE_WITNESS_REGISTRY_SELFTEST.py --json-out /tmp/wave104-report.json
+      - name: Wave 104 optimized-mode self-test
+        run: python -O tools/AXM_FLOWING_COMPUTE_CERTIFICATE_WITNESS_REGISTRY_SELFTEST.py
+      - name: Upload machine-readable run report
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave104-report
+          path: /tmp/wave104-report.json
+          if-no-files-found: error
