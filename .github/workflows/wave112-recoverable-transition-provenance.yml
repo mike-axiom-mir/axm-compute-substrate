@@ -1,0 +1,39 @@
+name: Wave 112 recoverable transition provenance
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - 'tools/AXM_FLOWING_COMPUTE_RECOVERABLE_TRANSITION_PROVENANCE.py'
+      - 'tools/AXM_FLOWING_COMPUTE_RECOVERABLE_TRANSITION_PROVENANCE_SELFTEST.py'
+      - '.github/workflows/wave112-recoverable-transition-provenance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wave112:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Wave 111 regression
+        run: python tools/AXM_FLOWING_COMPUTE_TRANSITION_PROVENANCE_LEDGER_SELFTEST.py --json-out evidence/wave112_wave111_regression.json
+      - name: Wave 112 normal Python
+        run: python tools/AXM_FLOWING_COMPUTE_RECOVERABLE_TRANSITION_PROVENANCE_SELFTEST.py --json-out evidence/wave112_normal.json
+      - name: Wave 112 optimized Python
+        run: python -O tools/AXM_FLOWING_COMPUTE_RECOVERABLE_TRANSITION_PROVENANCE_SELFTEST.py --json-out evidence/wave112_optimized.json
+      - name: Upload exact-run reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave112-recoverable-transition-provenance-reports
+          path: |
+            evidence/wave112_wave111_regression.json
+            evidence/wave112_normal.json
+            evidence/wave112_optimized.json
+          if-no-files-found: warn
