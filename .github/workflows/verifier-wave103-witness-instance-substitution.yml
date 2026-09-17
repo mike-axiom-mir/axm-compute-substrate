@@ -1,0 +1,41 @@
+name: Verifier Wave 103 witness instance substitution
+
+on:
+  push:
+    branches:
+      - chatgpt/verifier-wave103-witness-instance-substitution
+    paths:
+      - 'verification/wave103_certificate_witness_instance_substitution_repro.py'
+      - 'verification/WAVE103_ADVERSARIAL_VERIFICATION_2026-09-17.md'
+      - '.github/workflows/verifier-wave103-witness-instance-substitution.yml'
+  pull_request:
+    paths:
+      - 'verification/wave103_certificate_witness_instance_substitution_repro.py'
+      - 'verification/WAVE103_ADVERSARIAL_VERIFICATION_2026-09-17.md'
+      - '.github/workflows/verifier-wave103-witness-instance-substitution.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        mode: [normal, optimized]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Re-run unchanged Wave 103 self-test and verifier repro
+        shell: bash
+        run: |
+          if [ "${{ matrix.mode }}" = "optimized" ]; then
+            python -O tools/AXM_FLOWING_COMPUTE_CERTIFICATE_MAXIMUM_WITNESS_SELFTEST.py
+            python -O verification/wave103_certificate_witness_instance_substitution_repro.py
+          else
+            python tools/AXM_FLOWING_COMPUTE_CERTIFICATE_MAXIMUM_WITNESS_SELFTEST.py
+            python verification/wave103_certificate_witness_instance_substitution_repro.py
+          fi
