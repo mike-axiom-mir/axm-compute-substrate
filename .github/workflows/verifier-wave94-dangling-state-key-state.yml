@@ -1,0 +1,24 @@
+name: verifier-wave94-dangling-state-key-state
+
+on:
+  pull_request:
+    paths:
+      - 'verification/WAVE94_ADVERSARIAL_VERIFICATION_2026-09-16.md'
+      - 'verification/wave94_dangling_state_key_state_repro.py'
+      - 'tools/AXM_FLOWING_COMPUTE_EVIDENCE_CLOSURE_SIGNER_KEYS.py'
+      - '.github/workflows/verifier-wave94-dangling-state-key-state.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reproduce Wave 94 dangling authority-state chains
+        run: python verification/wave94_dangling_state_key_state_repro.py
