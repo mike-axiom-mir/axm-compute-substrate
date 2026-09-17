@@ -1,0 +1,48 @@
+{
+  "schema": "axm.flowing-compute.exact-source-receipt/v1",
+  "wave": 117,
+  "date": "2026-09-17",
+  "lane": "chatgpt/lane-001-platform-extract",
+  "pull_request": 2,
+  "tested_source_commit": "1c033d96e792c9f8532bf2355c9f1ec958da969a",
+  "source_blobs": {
+    "tool": "c2d3b7f9176f24dc9fd5599527bb3619f89f01e7",
+    "selftest": "859365b19e5cd9537b49144f9e43303affd281eb",
+    "workflow": "e5e557fc0fb232c092bd6760ace9a717633ffa95"
+  },
+  "github_actions": {
+    "run_id": 35249201898,
+    "job_id": 105297045575,
+    "conclusion": "success",
+    "artifact_id": 10509393416,
+    "artifact_name": "wave117-report",
+    "artifact_sha256": "cc4cdf2fea411835c63570be7b0e3408ed45a8377f1611ac334482705a8c16d1"
+  },
+  "wave117_selftest": {
+    "passed": 22,
+    "failed": 0,
+    "total": 22,
+    "normal_mode": "success",
+    "optimized_mode": "success"
+  },
+  "wave116_regression": {
+    "normal_mode": "success",
+    "optimized_mode": "success"
+  },
+  "claims": {
+    "checkpoint_anchored_outcome_authority_identity": true,
+    "signer_rotation": false,
+    "os_process_independence": false,
+    "device_independence": false,
+    "provider_independence": false,
+    "performance_win": false,
+    "energy_win": false,
+    "retained_incremental_dormant_compute_win": false
+  },
+  "preserved_counterexamples": [
+    "bootstrap root selection before first accepted checkpoint remains a configuration boundary",
+    "whole-modeled-domain rollback can erase the root anchor together with all newer evidence"
+  ],
+  "merge_performed": false,
+  "canon_promotion_performed": false
+}
