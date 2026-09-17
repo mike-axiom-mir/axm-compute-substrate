@@ -1,0 +1,68 @@
+{
+  "schema": "axm.flowing-compute.wave110.exact-source-receipt/v1",
+  "date": "2026-09-17",
+  "lane": "chatgpt/lane-001-platform-extract",
+  "pull_request": 2,
+  "status": "experimental-unmerged-not-canon",
+  "trigger": {
+    "verifier_pr": 34,
+    "verifier_head": "5bb440a9e7428ba0dbd4eb40f97f561e4215d471",
+    "verifier_evidence_blob": "b1af4cd5608171191e6974d4e322a399c04544dd",
+    "verifier_reproducer_blob": "dc870b6f63dae94e243d152a033c1b1565c5f3db",
+    "verifier_ci_run": 35204202093,
+    "verifier_job": 105145889080,
+    "verifier_verdict": "FAIL_SURVIVING_TRANSITION_RECORD_IGNORED_BY_COMMIT_STATUS_GUARD"
+  },
+  "tested_source": {
+    "commit": "dfe22164f853cf1f04f0ae93103e33478ed074fd",
+    "tool": {
+      "path": "tools/AXM_FLOWING_COMPUTE_TRANSITION_EVIDENCE_GUARD.py",
+      "blob": "abc96489922bcf7af64412a8e85cf447796321b1"
+    },
+    "selftest": {
+      "path": "tools/AXM_FLOWING_COMPUTE_TRANSITION_EVIDENCE_GUARD_SELFTEST.py",
+      "blob": "00b0eccac36cf479c81004ceac811a6af1293b85"
+    },
+    "workflow": {
+      "path": ".github/workflows/wave110-transition-evidence-guard.yml",
+      "blob": "eaf21f0aefa0576dbdc06f77c68fba9abfbd427e"
+    }
+  },
+  "ci": {
+    "run": 35206504427,
+    "job": 105153493003,
+    "conclusion": "success",
+    "wave109_regression": "18/18",
+    "wave110_normal": "20/20",
+    "wave110_python_optimized": "20/20",
+    "artifact_id": 10490167911,
+    "artifact_name": "wave110-transition-evidence-reports",
+    "artifact_digest": "sha256:4e536132a20f62976fe6807067a8565b97d54fa3540a024062624cd1c30d73bd"
+  },
+  "evidence": {
+    "report_commit": "ac55047b842d10b7c58784079cb8260b8eb08452",
+    "report_path": "evidence/WAVE110_TRANSITION_EVIDENCE_GUARD_2026-09-17.md",
+    "report_blob": "daf98a84902a89621c04e3c3ec2abfdd91f097ef"
+  },
+  "observed_result": {
+    "wave109_attack_state": "VALID",
+    "wave109_attack_authority": "AUTHORITATIVE_QUORUM_2_OF_3_MODELED",
+    "wave110_attack_state": "UNRESOLVED_COMMIT_STATUS",
+    "wave110_attack_reason": "retained-unmanifested-transition-evidence",
+    "wave110_attack_authority": "HOLD_COMMIT_STATUS_UNRESOLVED"
+  },
+  "truth_boundary": {
+    "fresh_monolith_result": false,
+    "performance_claim": false,
+    "energy_claim": false,
+    "retained_compute_claim": false,
+    "incremental_compute_claim": false,
+    "dormant_compute_claim": false,
+    "os_process_durability_claim": false,
+    "physical_or_provider_independence_claim": false,
+    "synthetic_depth6": "correctness-only"
+  },
+  "preserved_counterexample": "If the whole same-domain newer commit evidence is erased together, including marker tails, newer L/C/U/root-binding rows, and the newer transition record, an older genuine prefix can still look internally valid under the already-preserved partial stale-quorum conditions when the only newer certificate witness is unavailable.",
+  "next_gate": "Independent durable commit-decision witness/receipt in a separate OS process and durable store, attacked at prepare/commit/decision/marker crash boundaries and against stale/cloned local disks and whole-local-process rollback.",
+  "merge_or_canon_action": false
+}
