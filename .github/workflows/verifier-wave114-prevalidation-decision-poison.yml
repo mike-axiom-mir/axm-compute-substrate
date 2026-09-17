@@ -8,6 +8,13 @@ on:
       - 'verification/wave114_prevalidation_decision_poison_repro.py'
       - 'verification/WAVE114_ADVERSARIAL_VERIFICATION_2026-09-17.md'
       - '.github/workflows/verifier-wave114-prevalidation-decision-poison.yml'
+  pull_request:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - 'verification/wave114_prevalidation_decision_poison_repro.py'
+      - 'verification/WAVE114_ADVERSARIAL_VERIFICATION_2026-09-17.md'
+      - '.github/workflows/verifier-wave114-prevalidation-decision-poison.yml'
   workflow_dispatch:
 
 permissions:
