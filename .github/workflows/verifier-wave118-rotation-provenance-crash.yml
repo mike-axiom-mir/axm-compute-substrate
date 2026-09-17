@@ -1,0 +1,42 @@
+name: verifier-wave118-rotation-provenance-crash
+
+on:
+  push:
+    branches:
+      - verifier/wave118-rotation-provenance-crash
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Unchanged Wave 118 builder self-test
+        run: python tools/AXM_FLOWING_COMPUTE_OUTCOME_AUTHORITY_ROTATION_LINEAGE_SELFTEST.py --json-out /tmp/wave118-builder-normal.json
+
+      - name: Unchanged Wave 118 builder self-test optimized
+        run: python -O tools/AXM_FLOWING_COMPUTE_OUTCOME_AUTHORITY_ROTATION_LINEAGE_SELFTEST.py --json-out /tmp/wave118-builder-optimized.json
+
+      - name: Adversarial reproducer normal
+        run: python verification/wave118_rotation_provenance_crash_repro.py > /tmp/verifier-wave118-normal.json
+
+      - name: Adversarial reproducer optimized
+        run: python -O verification/wave118_rotation_provenance_crash_repro.py > /tmp/verifier-wave118-optimized.json
+
+      - name: Upload exact verifier evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: verifier-wave118-rotation-provenance-crash
+          path: |
+            /tmp/wave118-builder-normal.json
+            /tmp/wave118-builder-optimized.json
+            /tmp/verifier-wave118-normal.json
+            /tmp/verifier-wave118-optimized.json
+          if-no-files-found: error
