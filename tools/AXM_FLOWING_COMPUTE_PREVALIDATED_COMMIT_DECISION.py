@@ -7,17 +7,19 @@ that transition. A strict-field, correctly content-addressed but semantically in
 could therefore poison the authority's durable decision identity even though the lower commit
 returned HOLD.
 
-Wave 115 changes only that ordering inside the same modeled Python failure domain:
+Wave 115 changes that ordering inside the same modeled Python failure domain:
 1. run the exact lower Wave-110 commit path against deep-copied state, including the exact
    Wave-114 decision that would be present during the real commit;
-2. if the lower result is anything except COMMITTED, return that result with the real decision
-   ledger untouched;
-3. only after successful semantic prevalidation append/bind the exact Wave-114 decision in the
-   real state, then execute the lower commit and provenance path.
+2. if the lower result is a stable semantic rejection, append an exact rejection receipt while
+   leaving the real COMMIT-decision/provenance/runtime state untouched;
+3. exclude only those explicitly rejected transition identities from later ambiguity scans;
+4. only after successful semantic prevalidation bind the exact real Wave-114 COMMIT decision,
+   then execute the lower commit and provenance path.
 
-This is deterministic same-process prevalidation, not an OS-process transaction, durable-device
-atomicity, concurrency proof, power-loss proof, network proof, or provider-independent witness.
-No performance, energy, retained/incremental/dormant-compute, merge, or CANON claim is made.
+This is deterministic same-process prevalidation and append-only rejection evidence, not an
+OS-process transaction, durable-device atomicity, concurrency proof, power-loss proof, network
+proof, or provider-independent witness. No performance, energy, retained/incremental/dormant-
+compute, merge, or CANON claim is made.
 """
 from __future__ import annotations
 
@@ -51,6 +53,27 @@ TRANSITION_FIELDS = w114.TRANSITION_FIELDS
 DECISION_FIELDS = w114.DECISION_FIELDS
 PROVENANCE_STORE = w113.PROVENANCE_STORE
 
+REJECTION_STORE = "flowing_compute_wave115_transition_rejections"
+REJECTION_SCHEMA = "axm.flowing-compute.transition-rejection/w115-v1"
+REJECTION_FIELDS = {
+    "schema",
+    "seq",
+    "predecessor_rejection_sha",
+    "authority_sha",
+    "transition_sha",
+    "checkpoint_sha",
+    "lower_result",
+    "rejection_sha",
+}
+STABLE_SEMANTIC_REJECTIONS = {
+    "TRANSITION_AUTHORITY_HOLD",
+    "TRANSITION_CHECKPOINT_HOLD",
+    "TRANSITION_GENERATION_HOLD",
+    "TRANSITION_DELTA_HOLD",
+    "TRANSITION_STATE_BINDING_HOLD",
+    "TRANSITION_LINK_PREDECESSOR_HOLD",
+}
+
 HISTORY_NONE = w114.HISTORY_NONE
 HISTORY_VALID = w114.HISTORY_VALID
 HISTORY_INCOMPLETE = w114.HISTORY_INCOMPLETE
@@ -58,14 +81,265 @@ HISTORY_UNRESOLVED = w114.HISTORY_UNRESOLVED
 HOLD_INCOMPLETE = w114.HOLD_INCOMPLETE
 HOLD_UNRESOLVED = w114.HOLD_UNRESOLVED
 
-# Reuse the already-tested exact history/recovery contract.
 _decision_rows = w114._decision_rows
 _decision_for_authority = w114._decision_for_authority
 _strict_transition_get = w114._strict_transition_get
-commit_status_state = w114.commit_status_state
-adopt_genesis = w114.adopt_genesis
-authority = w114.authority
-prepare = w114.prepare
+
+
+def _seal_rejection(body: dict) -> dict:
+    out = deepcopy(body)
+    out["rejection_sha"] = ""
+    out["rejection_sha"] = w114._canonical_sha(out, "rejection_sha")
+    return out
+
+
+def _check_rejection(body: dict, transition_store: dict, key: str | None = None) -> None:
+    if set(body) != REJECTION_FIELDS:
+        raise ValueError("rejection-field-set-mismatch")
+    if body.get("schema") != REJECTION_SCHEMA:
+        raise ValueError("rejection-schema-mismatch")
+    if body.get("lower_result") not in STABLE_SEMANTIC_REJECTIONS:
+        raise ValueError("rejection-result-not-stable-semantic")
+    expected = w114._canonical_sha(body, "rejection_sha")
+    if body.get("rejection_sha") != expected:
+        raise ValueError("rejection-seal-mismatch")
+    if key is not None and key != expected:
+        raise ValueError("rejection-key-body-mismatch")
+    transition = _strict_transition_get(transition_store, body["transition_sha"])
+    if transition.get("target_authority_sha") != body.get("authority_sha"):
+        raise ValueError("rejection-authority-mismatch")
+    if transition.get("target_checkpoint_sha") != body.get("checkpoint_sha"):
+        raise ValueError("rejection-checkpoint-mismatch")
+
+
+def _rejection_rows(
+    st: dict, transition_store: dict, *, allow_missing: bool = False
+) -> list[tuple[str, dict]] | None:
+    store = st.get(REJECTION_STORE)
+    if store is None:
+        if allow_missing:
+            return None
+        raise ValueError("rejection-store-missing")
+    if not isinstance(store, dict):
+        raise ValueError("rejection-store-invalid")
+    rows = []
+    seen_seq = set()
+    for sha, raw in store.items():
+        if not isinstance(sha, str) or not isinstance(raw, dict):
+            raise ValueError("rejection-store-entry-invalid")
+        body = deepcopy(raw)
+        _check_rejection(body, transition_store, sha)
+        seq = body.get("seq")
+        if not isinstance(seq, int) or seq < 1 or seq in seen_seq:
+            raise ValueError("rejection-sequence-invalid")
+        seen_seq.add(seq)
+        rows.append((sha, body))
+    rows.sort(key=lambda row: row[1]["seq"])
+    previous_sha = None
+    for expected_seq, (sha, body) in enumerate(rows, start=1):
+        if body["seq"] != expected_seq:
+            raise ValueError("rejection-chain-sequence-gap")
+        if body["predecessor_rejection_sha"] != previous_sha:
+            raise ValueError("rejection-predecessor-sha-mismatch")
+        previous_sha = sha
+    return rows
+
+
+def _append_rejection(
+    st: dict,
+    transition_store: dict,
+    transition_sha: str,
+    lower_result: str,
+) -> str:
+    if lower_result not in STABLE_SEMANTIC_REJECTIONS:
+        return "NOT_STABLE_REJECTION"
+    transition = _strict_transition_get(transition_store, transition_sha)
+    rows = _rejection_rows(st, transition_store)
+    assert rows is not None
+    existing = [body for _sha, body in rows if body["transition_sha"] == transition_sha]
+    if existing:
+        if len(existing) != 1 or existing[0]["lower_result"] != lower_result:
+            raise ValueError("rejection-transition-has-conflicting-result")
+        return "ALREADY_REJECTED"
+
+    predecessor = rows[-1][0] if rows else None
+    body = _seal_rejection({
+        "schema": REJECTION_SCHEMA,
+        "seq": len(rows) + 1,
+        "predecessor_rejection_sha": predecessor,
+        "authority_sha": transition["target_authority_sha"],
+        "transition_sha": transition_sha,
+        "checkpoint_sha": transition["target_checkpoint_sha"],
+        "lower_result": lower_result,
+        "rejection_sha": "",
+    })
+    store = st[REJECTION_STORE]
+    sha = body["rejection_sha"]
+    if sha in store and store[sha] != body:
+        raise ValueError("rejection-collision")
+    store[sha] = body
+    return "REJECTED_RECORDED"
+
+
+def _effective_transition_store(st: dict, transition_store: dict) -> dict:
+    rows = _rejection_rows(st, transition_store)
+    assert rows is not None
+    rejected = {body["transition_sha"] for _sha, body in rows}
+    return {
+        sha: deepcopy(body)
+        for sha, body in transition_store.items()
+        if sha not in rejected
+    }
+
+
+def commit_status_state(
+    st: dict,
+    boot: dict,
+    rt: dict | None,
+    registry_store: dict,
+    binding_store: dict,
+    transition_store: dict,
+) -> dict:
+    try:
+        effective = _effective_transition_store(st, transition_store)
+    except Exception as exc:
+        return {
+            "status": HISTORY_INCOMPLETE,
+            "reason": f"transition-rejection-verification:{type(exc).__name__}:{exc}",
+        }
+    base = w114.commit_status_state(
+        st, boot, rt, registry_store, binding_store, effective
+    )
+    rows = _rejection_rows(st, transition_store)
+    assert rows is not None
+    return {
+        **base,
+        "wave114": base,
+        "rejected_transition_count": len(rows),
+        "rejection_head_sha": rows[-1][0] if rows else "",
+    }
+
+
+def adopt_genesis(
+    rt: dict,
+    st: dict,
+    boot: dict,
+    services: dict,
+    registry_store: dict,
+    transition_store: dict,
+    certificate_store: dict,
+    domain: w104.CertificateWitnessDomain,
+    binding_store: dict,
+) -> str:
+    if REJECTION_STORE in st:
+        raise ValueError("rejection-store-already-present")
+    result = w114.adopt_genesis(
+        rt,
+        st,
+        boot,
+        services,
+        registry_store,
+        transition_store,
+        certificate_store,
+        domain,
+        binding_store,
+    )
+    st[REJECTION_STORE] = {}
+    state = commit_status_state(
+        st, boot, rt, registry_store, binding_store, transition_store
+    )
+    if state.get("status") not in (HISTORY_NONE, HISTORY_VALID):
+        raise ValueError(f"Wave 115 genesis evidence HOLD: {state}")
+    return result
+
+
+def authority(
+    rt: dict,
+    st: dict,
+    boot: dict,
+    services: dict,
+    registry_store: dict,
+    transition_store: dict,
+    certificate_store: dict,
+    domain: w104.CertificateWitnessDomain,
+    binding_store: dict,
+    resolved_endpoints: dict | None = None,
+) -> str:
+    state = commit_status_state(
+        st, boot, rt, registry_store, binding_store, transition_store
+    )
+    if state.get("status") == HISTORY_INCOMPLETE:
+        return HOLD_INCOMPLETE
+    if state.get("status") == HISTORY_UNRESOLVED:
+        return HOLD_UNRESOLVED
+    try:
+        effective = _effective_transition_store(st, transition_store)
+    except Exception:
+        return HOLD_INCOMPLETE
+    return w114.authority(
+        rt,
+        st,
+        boot,
+        services,
+        registry_store,
+        effective,
+        certificate_store,
+        domain,
+        binding_store,
+        resolved_endpoints,
+    )
+
+
+def prepare(
+    rt: dict,
+    st: dict,
+    priv: dict,
+    boot: dict,
+    services: dict,
+    registry_store: dict,
+    transition_store: dict,
+    certificate_store: dict,
+    domain: w104.CertificateWitnessDomain,
+    binding_store: dict,
+    target_user_app_state_sha: str | None = None,
+    target_remote_registry_sha: str | None = None,
+) -> tuple:
+    verdict = authority(
+        rt,
+        st,
+        boot,
+        services,
+        registry_store,
+        transition_store,
+        certificate_store,
+        domain,
+        binding_store,
+    )
+    if not verdict.startswith("AUTHORITATIVE"):
+        raise ValueError("Wave 115 predecessor HOLD")
+    effective = _effective_transition_store(st, transition_store)
+    out = w114.prepare(
+        rt,
+        st,
+        priv,
+        boot,
+        services,
+        registry_store,
+        effective,
+        certificate_store,
+        domain,
+        binding_store,
+        target_user_app_state_sha,
+        target_remote_registry_sha,
+    )
+    transition_sha = out[3]
+    transition = _strict_transition_get(effective, transition_sha)
+    if transition_sha in transition_store and transition_store[transition_sha] != transition:
+        raise ValueError("transition-collision-on-prepare-sync")
+    transition_store[transition_sha] = deepcopy(transition)
+    return out
+
+
 publish = w114.publish
 certify_and_sync = w114.certify_and_sync
 
@@ -81,12 +355,6 @@ def _prevalidate_lower_commit(
     binding_store: dict,
     n: int | None = None,
 ) -> str:
-    """Run the exact lower commit semantics on isolated copies before real decision publication.
-
-    The probe includes the exact Wave-114 decision row that would be present for the real lower
-    commit. No probe mutation is copied back. Therefore a lower HOLD cannot mutate the real
-    decision/provenance/runtime stores.
-    """
     probe_rt = deepcopy(rt)
     probe_st = deepcopy(st)
     probe_boot = deepcopy(boot)
@@ -130,8 +398,6 @@ def commit(
     fault_after_decision_before_lower_commit: bool = False,
     fault_after_lower_commit: bool = False,
 ) -> str:
-    # Preserve Wave-114 exact crash recovery first. If the lower commit already happened,
-    # the durable decision must already bind the exact transition used for recovery.
     recovered = w114._recover_missing_trailing_provenance(
         st,
         boot,
@@ -146,9 +412,6 @@ def commit(
         return recovered
 
     _strict_transition_get(transition_store, transition_sha)
-
-    # Critical Wave-115 ordering change: no real COMMIT decision is written unless the exact
-    # lower semantic commit returns COMMITTED in an isolated deterministic preflight.
     preflight = _prevalidate_lower_commit(
         rt,
         st,
@@ -161,6 +424,7 @@ def commit(
         n,
     )
     if preflight != "COMMITTED":
+        _append_rejection(st, transition_store, transition_sha, preflight)
         return preflight
 
     w114._ensure_commit_decision(
@@ -186,9 +450,6 @@ def commit(
         n,
     )
     if result != "COMMITTED":
-        # In this single-thread deterministic model, preflight and the real lower call see the
-        # same lower-owned inputs. If that assumption is ever violated, keep the decision visible
-        # and fail closed rather than deleting/relabeling append-only evidence.
         return f"HOLD_LOWER_CHANGED_AFTER_PREVALIDATION:{result}"
 
     if fault_after_lower_commit:
