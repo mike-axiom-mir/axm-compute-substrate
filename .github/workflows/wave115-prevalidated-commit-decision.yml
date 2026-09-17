@@ -7,6 +7,7 @@ on:
     paths:
       - 'tools/AXM_FLOWING_COMPUTE_PREVALIDATED_COMMIT_DECISION.py'
       - 'tools/AXM_FLOWING_COMPUTE_PREVALIDATED_COMMIT_DECISION_SELFTEST.py'
+      - 'tools/AXM_FLOWING_COMPUTE_PREVALIDATED_COMMIT_DECISION_IDENTITY_SELFTEST.py'
       - '.github/workflows/wave115-prevalidated-commit-decision.yml'
   workflow_dispatch:
 
@@ -27,6 +28,10 @@ jobs:
         run: python tools/AXM_FLOWING_COMPUTE_PREVALIDATED_COMMIT_DECISION_SELFTEST.py --json-out evidence/wave115_normal.json
       - name: Wave 115 optimized Python
         run: python -O tools/AXM_FLOWING_COMPUTE_PREVALIDATED_COMMIT_DECISION_SELFTEST.py --json-out evidence/wave115_optimized.json
+      - name: Wave 115 exact rejection identity
+        run: python tools/AXM_FLOWING_COMPUTE_PREVALIDATED_COMMIT_DECISION_IDENTITY_SELFTEST.py --json-out evidence/wave115_identity.json
+      - name: Wave 115 exact rejection identity optimized
+        run: python -O tools/AXM_FLOWING_COMPUTE_PREVALIDATED_COMMIT_DECISION_IDENTITY_SELFTEST.py --json-out evidence/wave115_identity_optimized.json
       - name: Upload exact-run reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -36,4 +41,6 @@ jobs:
             evidence/wave115_wave114_regression.json
             evidence/wave115_normal.json
             evidence/wave115_optimized.json
+            evidence/wave115_identity.json
+            evidence/wave115_identity_optimized.json
           if-no-files-found: warn
