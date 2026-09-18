@@ -1,0 +1,68 @@
+name: verifier-wave122-midwrite-termination
+
+on:
+  push:
+    branches:
+      - verifier/wave122-midwrite-termination-20260918
+    paths:
+      - verification/wave122_adversarial_midwrite_termination.py
+      - .github/workflows/verifier-wave122-midwrite-termination.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare report directory
+        run: mkdir -p verifier-wave122-report
+      - name: Unchanged Wave 122 builder self-test
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python tools/AXM_FLOWING_COMPUTE_TERMINATION_EXCEPTION_ROLLBACK_SELFTEST.py --json-out verifier-wave122-report/builder-wave122.json
+      - name: Unchanged Wave 122 builder self-test optimized
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python -O tools/AXM_FLOWING_COMPUTE_TERMINATION_EXCEPTION_ROLLBACK_SELFTEST.py --json-out verifier-wave122-report/builder-wave122-optimized.json
+      - name: Independent mid-write and repeated-termination probe
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python verification/wave122_adversarial_midwrite_termination.py --json-out verifier-wave122-report/verifier.json
+      - name: Independent probe optimized
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python -O verification/wave122_adversarial_midwrite_termination.py --json-out verifier-wave122-report/verifier-optimized.json
+      - name: Record exact source identity
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          paths = [
+              'tools/AXM_FLOWING_COMPUTE_TERMINATION_EXCEPTION_ROLLBACK.py',
+              'tools/AXM_FLOWING_COMPUTE_TERMINATION_EXCEPTION_ROLLBACK_SELFTEST.py',
+              'verification/wave122_adversarial_midwrite_termination.py',
+              '.github/workflows/verifier-wave122-midwrite-termination.yml',
+          ]
+          out = {
+              'head': subprocess.check_output(['git','rev-parse','HEAD'], text=True).strip(),
+              'blobs': {p: subprocess.check_output(['git','hash-object',p], text=True).strip() for p in paths},
+              'builder_head': '41f1719b48aace2c5db5ae68cadb9ccbce14970d',
+              'builder_tested_source': '5ebe63488494c6767637b82407be8675d1fcca52',
+              'truth_boundary': 'same-process Python verification only; no merge/CANON; no hard-kill/power-loss/process/store/performance/energy claim',
+          }
+          with open('verifier-wave122-report/source-identity.json','w',encoding='utf-8') as f:
+              json.dump(out,f,indent=2,sort_keys=True)
+              f.write('\n')
+          PY
+      - name: Upload verifier evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: verifier-wave122-midwrite-report
+          path: verifier-wave122-report/
+          if-no-files-found: error
