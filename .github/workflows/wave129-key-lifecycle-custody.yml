@@ -1,0 +1,95 @@
+name: Wave 129 key lifecycle custody
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wave129:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Environment identity
+        run: |
+          python --version
+          openssl version
+          uname -a
+          id
+          grep -E '^(Uid|Gid|CapEff|NoNewPrivs):' /proc/self/status || true
+          cat /proc/sys/kernel/yama/ptrace_scope || true
+
+      - name: Unchanged Wave 128 full protocol normal
+        env:
+          PYTHONPATH: tools
+        run: |
+          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY_SELFTEST.py --report /tmp/wave128-protocol-normal.json
+
+      - name: Unchanged Wave 128 full protocol optimized
+        env:
+          PYTHONPATH: tools
+        run: |
+          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY_SELFTEST.py --report /tmp/wave128-protocol-optimized.json
+
+      - name: Unchanged Wave 128 focused custody normal
+        env:
+          PYTHONPATH: tools
+        run: |
+          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY_ADVERSARIAL_SELFTEST.py --report /tmp/wave128-custody-normal.json
+
+      - name: Unchanged Wave 128 focused custody optimized
+        env:
+          PYTHONPATH: tools
+        run: |
+          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY_ADVERSARIAL_SELFTEST.py --report /tmp/wave128-custody-optimized.json
+
+      - name: Wave 129 lifecycle custody normal
+        env:
+          PYTHONPATH: tools
+        run: |
+          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_LIFECYCLE_SELFTEST.py --report /tmp/wave129-normal.json
+
+      - name: Wave 129 lifecycle custody optimized
+        env:
+          PYTHONPATH: tools
+        run: |
+          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_LIFECYCLE_SELFTEST.py --report /tmp/wave129-optimized.json
+
+      - name: Exact source identity
+        run: |
+          git rev-parse HEAD > /tmp/tested-head.txt
+          git rev-parse HEAD^ > /tmp/tested-parent.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY.py > /tmp/wave128-tool-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_LIFECYCLE.py > /tmp/wave129-tool-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_LIFECYCLE_SELFTEST.py > /tmp/wave129-selftest-blob.txt
+          git rev-parse HEAD:.github/workflows/wave129-key-lifecycle-custody.yml > /tmp/wave129-workflow-blob.txt
+
+      - name: Upload exact Wave 129 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave129-key-lifecycle-custody
+          path: |
+            /tmp/wave128-protocol-normal.json
+            /tmp/wave128-protocol-optimized.json
+            /tmp/wave128-custody-normal.json
+            /tmp/wave128-custody-optimized.json
+            /tmp/wave129-normal.json
+            /tmp/wave129-optimized.json
+            /tmp/tested-head.txt
+            /tmp/tested-parent.txt
+            /tmp/wave128-tool-blob.txt
+            /tmp/wave129-tool-blob.txt
+            /tmp/wave129-selftest-blob.txt
+            /tmp/wave129-workflow-blob.txt
+          if-no-files-found: error
