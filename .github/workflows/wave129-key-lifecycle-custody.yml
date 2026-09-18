@@ -58,13 +58,13 @@ jobs:
         env:
           PYTHONPATH: tools
         run: |
-          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_LIFECYCLE_SELFTEST.py --report /tmp/wave129-normal.json
+          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_LIFECYCLE_CI.py --report /tmp/wave129-normal.json
 
       - name: Wave 129 lifecycle custody optimized
         env:
           PYTHONPATH: tools
         run: |
-          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_LIFECYCLE_SELFTEST.py --report /tmp/wave129-optimized.json
+          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_LIFECYCLE_CI.py --report /tmp/wave129-optimized.json
 
       - name: Exact source identity
         run: |
@@ -73,6 +73,7 @@ jobs:
           git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY.py > /tmp/wave128-tool-blob.txt
           git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_LIFECYCLE.py > /tmp/wave129-tool-blob.txt
           git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_LIFECYCLE_SELFTEST.py > /tmp/wave129-selftest-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_LIFECYCLE_CI.py > /tmp/wave129-ci-harness-blob.txt
           git rev-parse HEAD:.github/workflows/wave129-key-lifecycle-custody.yml > /tmp/wave129-workflow-blob.txt
 
       - name: Upload exact Wave 129 evidence
@@ -91,5 +92,6 @@ jobs:
             /tmp/wave128-tool-blob.txt
             /tmp/wave129-tool-blob.txt
             /tmp/wave129-selftest-blob.txt
+            /tmp/wave129-ci-harness-blob.txt
             /tmp/wave129-workflow-blob.txt
           if-no-files-found: error
