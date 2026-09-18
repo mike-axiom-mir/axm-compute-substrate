@@ -271,6 +271,32 @@ def _assert_no_known_residue(specs: dict[str, tuple[Path, bytes, int]]) -> None:
         raise RuntimeError("wave134-bootstrap-temp-residue:" + ",".join(sorted(residue)))
 
 
+def _assert_no_bootstrap_residue_paths(anchor_dir: Path, witness_dir: Path) -> None:
+    """After readiness, reject leftover bootstrap temps without re-deriving genesis.
+
+    Once a legitimate key rotation has advanced, the live response key and
+    mutable state no longer equal genesis. Re-deriving bootstrap bytes from
+    those current files would silently confuse evolution with bootstrap. At
+    this point we only need the stable target names to detect leftover helper
+    artifacts; any such residue is retained and rejected for inspection.
+    """
+    rd = anchor_dir / w132.ROT_DIR
+    targets = [
+        rd / w133.BOOTSTRAP_INTENT,
+        rd / w132.GENESIS_PUBLIC,
+        rd / w132.LINEAGE,
+        witness_dir / w132.WITNESS_LINEAGE,
+        rd / w132.STATE,
+        rd / w133.BOOTSTRAP_READY,
+    ]
+    residue: list[str] = []
+    for path in targets:
+        residue.extend(p.name for p in _legacy_candidates(path))
+        residue.extend(p.name for p in _stage_candidates(path))
+    if residue:
+        raise RuntimeError("wave134-bootstrap-temp-residue-after-ready:" + ",".join(sorted(residue)))
+
+
 def ensure_rotation_bootstrap(anchor_dir: str | Path, witness_dir: str | Path, *,
                               atomic_fault_target: str | None = None,
                               atomic_fault_after: str | None = None,
@@ -278,6 +304,15 @@ def ensure_rotation_bootstrap(anchor_dir: str | Path, witness_dir: str | Path, *
     ad, wd = Path(anchor_dir), Path(witness_dir)
     authority_uid, _ = w130._assert_separate_authority_uid()
     rd = ad / w132.ROT_DIR
+
+    # Preserve Wave 133's crucial post-bootstrap behavior: after readiness is
+    # durable, validate the frozen genesis receipt directly. Do not validate
+    # the current response key as if it were still Wave-131 genesis, because a
+    # legitimate Wave-132 rotation intentionally changes that key.
+    if rd.exists() and (rd / w133.BOOTSTRAP_READY).exists():
+        out = w133._validate_bootstrap_receipt(ad, wd)
+        _assert_no_bootstrap_residue_paths(ad, wd)
+        return {**out, "recovered": False, "already_ready": True, "wave134_atomic_recovery": True}
 
     if not rd.exists():
         w133._validate_wave131_genesis_allow_rotation(ad)
@@ -294,11 +329,6 @@ def ensure_rotation_bootstrap(anchor_dir: str | Path, witness_dir: str | Path, *
 
     for _, (path, data, mode) in specs.items():
         _clean_or_recover_existing(path, data, authority_uid, mode)
-
-    if (rd / w133.BOOTSTRAP_READY).exists():
-        out = w133._validate_bootstrap_receipt(ad, wd)
-        _assert_no_known_residue(specs)
-        return {**out, "recovered": False, "already_ready": True, "wave134_atomic_recovery": True}
 
     if w133._pre_ready_has_evolution(rd, wd):
         raise RuntimeError("wave134-bootstrap-receipt-missing-after-evolution")
