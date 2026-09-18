@@ -1,0 +1,96 @@
+name: Verifier Wave 128 initializer memory custody
+
+on:
+  push:
+    branches:
+      - verifier/wave128-initializer-memory-custody
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Environment identity
+        run: |
+          python --version
+          openssl version
+          uname -a
+          id
+          grep -E '^(Uid|Gid|CapEff|NoNewPrivs):' /proc/self/status || true
+
+      - name: Unchanged Wave 128 full protocol normal
+        env:
+          PYTHONPATH: tools
+        run: |
+          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY_SELFTEST.py --report /tmp/wave128-protocol-normal.json
+
+      - name: Unchanged Wave 128 full protocol optimized
+        env:
+          PYTHONPATH: tools
+        run: |
+          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY_SELFTEST.py --report /tmp/wave128-protocol-optimized.json
+
+      - name: Unchanged Wave 128 focused custody normal
+        env:
+          PYTHONPATH: tools
+        run: |
+          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY_ADVERSARIAL_SELFTEST.py --report /tmp/wave128-custody-normal.json
+
+      - name: Unchanged Wave 128 focused custody optimized
+        env:
+          PYTHONPATH: tools
+        run: |
+          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY_ADVERSARIAL_SELFTEST.py --report /tmp/wave128-custody-optimized.json
+
+      - name: Adversarial initializer-memory reproducer normal
+        env:
+          PYTHONPATH: tools
+        run: |
+          python verification/wave128_initializer_memory_custody_repro.py --report /tmp/verifier-normal.json
+
+      - name: Adversarial initializer-memory reproducer optimized
+        env:
+          PYTHONPATH: tools
+        run: |
+          python -O verification/wave128_initializer_memory_custody_repro.py --report /tmp/verifier-optimized.json
+
+      - name: Exact source identity
+        run: |
+          git rev-parse HEAD > /tmp/verifier-head.txt
+          git rev-parse HEAD^ > /tmp/verifier-parent.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY.py > /tmp/wave128-tool-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY_SELFTEST.py > /tmp/wave128-protocol-selftest-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY_ADVERSARIAL_SELFTEST.py > /tmp/wave128-custody-selftest-blob.txt
+          git rev-parse HEAD:verification/wave128_initializer_memory_custody_repro.py > /tmp/verifier-script-blob.txt
+          git rev-parse HEAD:.github/workflows/verifier-wave128-initializer-memory-custody.yml > /tmp/verifier-workflow-blob.txt
+
+      - name: Upload exact verifier evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave128-initializer-memory-custody-verifier
+          path: |
+            /tmp/wave128-protocol-normal.json
+            /tmp/wave128-protocol-optimized.json
+            /tmp/wave128-custody-normal.json
+            /tmp/wave128-custody-optimized.json
+            /tmp/verifier-normal.json
+            /tmp/verifier-optimized.json
+            /tmp/verifier-head.txt
+            /tmp/verifier-parent.txt
+            /tmp/wave128-tool-blob.txt
+            /tmp/wave128-protocol-selftest-blob.txt
+            /tmp/wave128-custody-selftest-blob.txt
+            /tmp/verifier-script-blob.txt
+            /tmp/verifier-workflow-blob.txt
+          if-no-files-found: error
