@@ -1,0 +1,77 @@
+name: Verifier Wave 137 lineage-stage regression
+
+on:
+  push:
+    branches:
+      - verifier/wave137-lineage-stage-regression
+    paths:
+      - 'verification/wave137_lineage_stage_regression_repro.py'
+      - '.github/workflows/verifier-wave137-lineage-stage-regression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Environment identity
+        run: |
+          python --version
+          openssl version
+          uname -a
+          id
+          grep -E '^(Uid|Gid|CapPrm|CapEff|NoNewPrivs):' /proc/self/status || true
+          sudo -n true
+
+      - name: Stage UID-neutral verifier code
+        run: |
+          sudo rm -rf /tmp/axm-v-w137-code
+          sudo mkdir -p /tmp/axm-v-w137-code
+          sudo cp -a tools/. /tmp/axm-v-w137-code/
+          sudo cp verification/wave137_lineage_stage_regression_repro.py /tmp/axm-v-w137-code/
+          sudo find /tmp/axm-v-w137-code -type d -exec chmod 0755 {} +
+          sudo find /tmp/axm-v-w137-code -type f -exec chmod 0644 {} +
+
+      - name: Adversarial verifier normal
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-v-w137-code HOME=/tmp python /tmp/axm-v-w137-code/wave137_lineage_stage_regression_repro.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/verifier-normal.json' sh "$worker_uid"
+
+      - name: Adversarial verifier optimized
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-v-w137-code HOME=/tmp python -O /tmp/axm-v-w137-code/wave137_lineage_stage_regression_repro.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/verifier-optimized.json' sh "$worker_uid"
+
+      - name: Exact source identity
+        run: |
+          git rev-parse HEAD > /tmp/verifier-head.txt
+          git rev-parse HEAD^ > /tmp/verifier-parent.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ROTATION_NAMESPACE.py > /tmp/wave137-tool-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ROTATION_TRANSACTION_RECOVERY.py > /tmp/wave136-tool-blob.txt
+          git rev-parse HEAD:verification/wave137_lineage_stage_regression_repro.py > /tmp/verifier-script-blob.txt
+          git rev-parse HEAD:.github/workflows/verifier-wave137-lineage-stage-regression.yml > /tmp/verifier-workflow-blob.txt
+
+      - name: Upload exact verifier evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave137-lineage-stage-regression-verifier
+          path: |
+            /tmp/verifier-normal.json
+            /tmp/verifier-optimized.json
+            /tmp/verifier-head.txt
+            /tmp/verifier-parent.txt
+            /tmp/wave137-tool-blob.txt
+            /tmp/wave136-tool-blob.txt
+            /tmp/verifier-script-blob.txt
+            /tmp/verifier-workflow-blob.txt
+          if-no-files-found: error
