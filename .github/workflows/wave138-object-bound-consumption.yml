@@ -1,0 +1,85 @@
+name: Wave 138 exact object binding
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wave138:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Environment identity
+        run: |
+          python --version
+          openssl version
+          uname -a
+          id
+          grep -E '^(Uid|Gid|CapPrm|CapEff|NoNewPrivs):' /proc/self/status || true
+          sudo -n true
+
+      - name: Stage UID-neutral test code
+        run: |
+          sudo rm -rf /tmp/axm-w138-code
+          sudo mkdir -p /tmp/axm-w138-code
+          sudo cp -a tools/. /tmp/axm-w138-code/
+          sudo find /tmp/axm-w138-code -type d -exec chmod 0755 {} +
+          sudo find /tmp/axm-w138-code -type f -exec chmod 0644 {} +
+
+      - name: Unchanged Wave 137 regression normal
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w138-code HOME=/tmp python /tmp/axm-w138-code/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ROTATION_NAMESPACE_SELFTEST.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave137-normal.json' sh "$worker_uid"
+
+      - name: Unchanged Wave 137 regression optimized
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w138-code HOME=/tmp python -O /tmp/axm-w138-code/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ROTATION_NAMESPACE_SELFTEST.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave137-optimized.json' sh "$worker_uid"
+
+      - name: Wave 138 object binding normal
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w138-code HOME=/tmp python /tmp/axm-w138-code/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_OBJECT_BOUND_CONSUMPTION_SELFTEST.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave138-normal.json' sh "$worker_uid"
+
+      - name: Wave 138 object binding optimized
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w138-code HOME=/tmp python -O /tmp/axm-w138-code/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_OBJECT_BOUND_CONSUMPTION_SELFTEST.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave138-optimized.json' sh "$worker_uid"
+
+      - name: Exact source identity
+        run: |
+          git rev-parse HEAD > /tmp/tested-head.txt
+          git rev-parse HEAD^ > /tmp/tested-parent.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ROTATION_NAMESPACE.py > /tmp/wave137-tool-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_OBJECT_BOUND_CONSUMPTION.py > /tmp/wave138-tool-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_OBJECT_BOUND_CONSUMPTION_SELFTEST.py > /tmp/wave138-selftest-blob.txt
+          git rev-parse HEAD:.github/workflows/wave138-object-bound-consumption.yml > /tmp/wave138-workflow-blob.txt
+
+      - name: Upload exact Wave 138 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave138-exact-object-binding
+          path: |
+            /tmp/wave137-normal.json
+            /tmp/wave137-optimized.json
+            /tmp/wave138-normal.json
+            /tmp/wave138-optimized.json
+            /tmp/tested-head.txt
+            /tmp/tested-parent.txt
+            /tmp/wave137-tool-blob.txt
+            /tmp/wave138-tool-blob.txt
+            /tmp/wave138-selftest-blob.txt
+            /tmp/wave138-workflow-blob.txt
+          if-no-files-found: error
