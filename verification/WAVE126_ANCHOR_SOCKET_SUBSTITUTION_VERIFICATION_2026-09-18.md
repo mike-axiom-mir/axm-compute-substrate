@@ -12,7 +12,9 @@ Wave 126 moves monotonicity into a separate anchor process and requires the witn
 
 The unchanged `anchor_request(...)` compares the reply's `anchor_credential_fingerprint` field to the expected fingerprint, but the response is not MACed or signed with the anchor credential. `reconcile_with_anchor(...)` checks the returned sequence, witness head SHA, and witness credential fingerprint, but does not verify an anchor signature/record proof from the response.
 
-## Counterexample under test
+## Reproduced counterexample
+
+`FAIL_UNAUTHENTICATED_ANCHOR_SOCKET_SUBSTITUTION_ADVANCES_WITNESS_WITHOUT_GENUINE_ANCHOR`
 
 1. Start a genuine Wave 126 witness and genuine Wave 126 anchor as separate OS processes.
 2. Commit one real terminal outcome and confirm the genuine anchor is at sequence 1.
@@ -20,21 +22,32 @@ The unchanged `anchor_request(...)` compares the reply's `anchor_credential_fing
 4. Unlink only its Unix-domain socket **pathname**. The genuine listener remains alive on its already-open socket inode.
 5. Bind a protocol-compatible fake anchor at the same pathname. The fake owns **no anchor secret**; it only echoes the already-public expected fingerprint and mirrors the request's record count/head back in the response.
 6. Ask the unchanged real Wave 126 witness to commit a second terminal outcome.
-7. Check whether the unchanged client records the result as authoritative while the genuine anchor ledger remains at sequence 1 and the witness ledger advances to sequence 2.
+7. The unchanged witness accepts the fake pre/post reconciliation responses, appends the genuine witness-signed sequence-2 COMMIT, and the unchanged client/status path reports `AUTHORITATIVE_PROCESS_WITNESS_COMMIT`.
+8. Direct diagnostic inspection after the attack shows the genuine anchor process is still alive and its durable anchor ledger is still at sequence 1, while the witness ledger is at sequence 2.
 
-Expected failure label if reproduced:
-
-`FAIL_UNAUTHENTICATED_ANCHOR_SOCKET_SUBSTITUTION_ADVANCES_WITNESS_WITHOUT_GENUINE_ANCHOR`
+This means the independently pinned **anchor identity string** is checked, but the peer producing the reconciliation response is not proving possession of the anchor credential. A process that can replace the mutable Unix-socket pathname can impersonate the anchor response without reading `credential.bin`.
 
 ## Boundary
 
 This test is intentionally same-host/same-filesystem. It does not replace/rollback the anchor directory, witness directory, external anchor fingerprint, host-pin namespace, network namespace, or builder code. It does not forge either HMAC credential, rewrite either durable ledger, use an older writer, exploit a hash collision, or make any speed/energy/retained-compute claim.
 
-If reproduced, this is stronger than the already-disclosed whole witness+anchor rollback counterexample: the independently pinned genuine anchor remains alive and newer/current; only its mutable communication pathname is substituted.
+This is stronger than the already-disclosed whole witness+anchor rollback counterexample: the independently pinned genuine anchor remains alive and its newer/current durable state remains intact; only its mutable communication pathname is substituted.
+
+## Independent execution evidence
+
+Initial verifier run `35298748930`, job `105456673196`:
+
+- unchanged Wave 126 builder self-test: PASS normal;
+- unchanged Wave 126 builder self-test: PASS under `python -O`;
+- socket-substitution counterexample: reproduced normal;
+- socket-substitution counterexample: reproduced under `python -O`;
+- exact-source metadata step then failed because the verifier workflow used `git rev-parse HEAD^` with the default shallow checkout (`fetch-depth: 1`), so artifact upload was skipped and the overall run was marked failure.
+
+That final failure is verifier-workflow provenance plumbing, not a builder or counterexample failure. The workflow has been corrected to fetch two commits and is being rerun before this lane is treated as complete evidence.
 
 ## Verification lane
 
 - Reproducer: `verification/wave126_anchor_socket_substitution_repro.py`
 - CI: `.github/workflows/verifier-wave126-anchor-socket-substitution.yml`
 
-CI outcome and exact artifact digest will be appended after the executable run. Do not merge automatically or promote this result to CANON.
+Do not merge automatically or promote this result to CANON.
