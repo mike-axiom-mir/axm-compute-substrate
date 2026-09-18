@@ -1,0 +1,67 @@
+name: verifier-wave121-baseexception
+
+on:
+  push:
+    branches:
+      - chatgpt/verifier-wave121-baseexception
+    paths:
+      - verification/wave121_baseexception_publication_verifier.py
+      - .github/workflows/verifier-wave121-baseexception.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare report directory
+        run: mkdir -p verifier-wave121-report
+      - name: Unchanged Wave 121 builder self-test normal
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python tools/AXM_FLOWING_COMPUTE_ROTATION_PREPARE_PUBLICATION_ATOMICITY_SELFTEST.py --json-out verifier-wave121-report/builder-wave121-normal.json
+      - name: Unchanged Wave 121 builder self-test optimized
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python -O tools/AXM_FLOWING_COMPUTE_ROTATION_PREPARE_PUBLICATION_ATOMICITY_SELFTEST.py --json-out verifier-wave121-report/builder-wave121-optimized.json
+      - name: Independent BaseException adversarial verifier normal
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python verification/wave121_baseexception_publication_verifier.py | tee verifier-wave121-report/verifier-normal.json
+      - name: Independent BaseException adversarial verifier optimized
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python -O verification/wave121_baseexception_publication_verifier.py | tee verifier-wave121-report/verifier-optimized.json
+      - name: Exact source identity
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          files = [
+              'tools/AXM_FLOWING_COMPUTE_ROTATION_PREPARE_PUBLICATION_ATOMICITY.py',
+              'tools/AXM_FLOWING_COMPUTE_ROTATION_PREPARE_PUBLICATION_ATOMICITY_SELFTEST.py',
+              'verification/wave121_baseexception_publication_verifier.py',
+              '.github/workflows/verifier-wave121-baseexception.yml',
+          ]
+          out = {
+              'tested_commit': subprocess.check_output(['git','rev-parse','HEAD'], text=True).strip(),
+              'blobs': {path: subprocess.check_output(['git','hash-object',path], text=True).strip() for path in files},
+              'builder_base_head': '85ca87b7eec6699957343f00203e6d25f2309c39',
+              'builder_exact_tested_source': 'a3c763a106bc5aea6245816de67f220f2b8695bc',
+          }
+          with open('verifier-wave121-report/source-identity.json','w',encoding='utf-8') as f:
+              json.dump(out,f,indent=2,sort_keys=True)
+              f.write('\n')
+          PY
+      - name: Upload independent verifier evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: verifier-wave121-baseexception-report
+          path: verifier-wave121-report/
+          if-no-files-found: error
