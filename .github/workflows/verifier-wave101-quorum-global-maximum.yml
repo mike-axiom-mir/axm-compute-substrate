@@ -1,0 +1,33 @@
+name: verifier-wave101-quorum-global-maximum
+
+on:
+  pull_request:
+    paths:
+      - 'verification/wave101_quorum_global_maximum_repro.py'
+      - 'verification/WAVE101_ADVERSARIAL_VERIFICATION_2026-09-17.md'
+      - '.github/workflows/verifier-wave101-quorum-global-maximum.yml'
+      - 'tools/AXM_FLOWING_COMPUTE_REMOTE_AUTHORITY_MONOTONICITY.py'
+      - 'tools/AXM_FLOWING_COMPUTE_REMOTE_AUTHORITY_MONOTONICITY_SELFTEST.py'
+      - 'tools/AXM_FLOWING_COMPUTE_REMOTE_REGISTRY_MONOTONICITY.py'
+      - 'tools/AXM_FLOWING_COMPUTE_REMOTE_WITNESS_REGISTRY_QUORUM.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Re-run Wave 101 builder self-test
+        run: |
+          cd tools
+          python AXM_FLOWING_COMPUTE_REMOTE_AUTHORITY_MONOTONICITY_SELFTEST.py --benchmark-rounds 1
+      - name: Reproduce independent adversarial counterexample
+        run: python verification/wave101_quorum_global_maximum_repro.py
+      - name: Reproduce under optimized Python
+        run: python -O verification/wave101_quorum_global_maximum_repro.py
