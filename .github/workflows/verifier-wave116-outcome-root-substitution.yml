@@ -1,0 +1,45 @@
+name: Verifier Wave 116 outcome authority root substitution
+
+on:
+  push:
+    branches:
+      - chatgpt/verifier-wave116-outcome-root-substitution
+    paths:
+      - 'verification/wave116_outcome_authority_root_substitution_repro.py'
+      - '.github/workflows/verifier-wave116-outcome-root-substitution.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Unchanged Wave 116 builder self-test
+        run: python tools/AXM_FLOWING_COMPUTE_AUTHENTICATED_REJECTION_OUTCOME_SELFTEST.py --json-out evidence/verifier_wave116_builder.json
+      - name: Unchanged Wave 116 builder self-test optimized
+        run: python -O tools/AXM_FLOWING_COMPUTE_AUTHENTICATED_REJECTION_OUTCOME_SELFTEST.py --json-out evidence/verifier_wave116_builder_optimized.json
+      - name: Adversarial outcome authority root substitution
+        env:
+          PYTHONPATH: tools
+        run: python verification/wave116_outcome_authority_root_substitution_repro.py --json-out evidence/verifier_wave116_outcome_root_substitution.json
+      - name: Adversarial outcome authority root substitution optimized
+        env:
+          PYTHONPATH: tools
+        run: python -O verification/wave116_outcome_authority_root_substitution_repro.py --json-out evidence/verifier_wave116_outcome_root_substitution_optimized.json
+      - name: Upload verifier reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verifier-wave116-outcome-root-substitution-reports
+          path: |
+            evidence/verifier_wave116_builder.json
+            evidence/verifier_wave116_builder_optimized.json
+            evidence/verifier_wave116_outcome_root_substitution.json
+            evidence/verifier_wave116_outcome_root_substitution_optimized.json
+          if-no-files-found: warn
