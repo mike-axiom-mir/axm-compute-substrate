@@ -1,0 +1,92 @@
+name: Verifier Wave 133 atomic-temp kill boundary
+
+on:
+  push:
+    branches:
+      - verifier/wave133-atomic-temp-kill-recovery
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-wave133-atomic-temp:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Environment identity
+        run: |
+          python --version
+          openssl version
+          uname -a
+          id
+          grep -E '^(Uid|Gid|CapPrm|CapEff|NoNewPrivs):' /proc/self/status || true
+          sudo -n true
+
+      - name: Stage UID-neutral test code
+        run: |
+          sudo rm -rf /tmp/axm-w133-verifier-code
+          sudo mkdir -p /tmp/axm-w133-verifier-code
+          sudo cp -a tools/. /tmp/axm-w133-verifier-code/
+          sudo cp verification/wave133_atomic_temp_kill_repro.py /tmp/axm-w133-verifier-code/
+          sudo find /tmp/axm-w133-verifier-code -type d -exec chmod 0755 {} +
+          sudo find /tmp/axm-w133-verifier-code -type f -exec chmod 0644 {} +
+
+      - name: Unchanged Wave 133 control normal
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w133-verifier-code HOME=/tmp python /tmp/axm-w133-verifier-code/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ROTATION_BOOTSTRAP_RECOVERY_SELFTEST.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave133-control-normal.json' sh "$worker_uid"
+
+      - name: Unchanged Wave 133 control optimized
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w133-verifier-code HOME=/tmp python -O /tmp/axm-w133-verifier-code/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ROTATION_BOOTSTRAP_RECOVERY_SELFTEST.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave133-control-optimized.json' sh "$worker_uid"
+
+      - name: Adversarial atomic-temp cut normal
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w133-verifier-code HOME=/tmp python /tmp/axm-w133-verifier-code/wave133_atomic_temp_kill_repro.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave133-adversarial-normal.json' sh "$worker_uid"
+
+      - name: Adversarial atomic-temp cut optimized
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w133-verifier-code HOME=/tmp python -O /tmp/axm-w133-verifier-code/wave133_atomic_temp_kill_repro.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave133-adversarial-optimized.json' sh "$worker_uid"
+
+      - name: Exact source identity
+        run: |
+          git rev-parse HEAD > /tmp/verifier-head.txt
+          git rev-parse HEAD^ > /tmp/verifier-parent.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ROTATION_BOOTSTRAP_RECOVERY.py > /tmp/wave133-tool-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ROTATION_BOOTSTRAP_RECOVERY_SELFTEST.py > /tmp/wave133-selftest-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS.py > /tmp/atomic-helper-blob.txt
+          git rev-parse HEAD:verification/wave133_atomic_temp_kill_repro.py > /tmp/verifier-script-blob.txt
+          git rev-parse HEAD:.github/workflows/verifier-wave133-atomic-temp-kill.yml > /tmp/verifier-workflow-blob.txt
+          printf '%s\n' 'be2bf60d834a4feab9e7a49f166c92a7e464684c' > /tmp/builder-evidence-head.txt
+          printf '%s\n' '1a6867e4ee1ddeb8010cf1115da9efe5ac246f5f' > /tmp/builder-tested-source.txt
+
+      - name: Upload exact verifier evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave133-atomic-temp-kill-verifier
+          path: |
+            /tmp/wave133-control-normal.json
+            /tmp/wave133-control-optimized.json
+            /tmp/wave133-adversarial-normal.json
+            /tmp/wave133-adversarial-optimized.json
+            /tmp/verifier-head.txt
+            /tmp/verifier-parent.txt
+            /tmp/wave133-tool-blob.txt
+            /tmp/wave133-selftest-blob.txt
+            /tmp/atomic-helper-blob.txt
+            /tmp/verifier-script-blob.txt
+            /tmp/verifier-workflow-blob.txt
+            /tmp/builder-evidence-head.txt
+            /tmp/builder-tested-source.txt
+          if-no-files-found: error
