@@ -1,0 +1,80 @@
+name: Verifier Wave 124 Cloned Store Fork
+
+on:
+  push:
+    branches:
+      - verifier/wave124-cloned-store-fork
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Re-run untouched Wave 124 builder self-test
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: |
+          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_EXCLUSIVE_SELFTEST.py --report /tmp/wave124-builder-normal.json
+
+      - name: Re-run untouched Wave 124 builder self-test under python -O
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: |
+          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_EXCLUSIVE_SELFTEST.py --report /tmp/wave124-builder-optimized.json
+
+      - name: Reproduce cloned-store fork counterexample
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: |
+          python verification/WAVE124_CLONED_STORE_FORK_ADVERSARIAL.py --report /tmp/wave124-clone-normal.json
+
+      - name: Reproduce counterexample under python -O
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: |
+          python -O verification/WAVE124_CLONED_STORE_FORK_ADVERSARIAL.py --report /tmp/wave124-clone-optimized.json
+
+      - name: Record verifier source identity
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          files = [
+              'tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_EXCLUSIVE.py',
+              'tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_EXCLUSIVE_SELFTEST.py',
+              'tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS.py',
+              'verification/WAVE124_CLONED_STORE_FORK_ADVERSARIAL.py',
+              '.github/workflows/verifier-wave124-cloned-store-fork.yml',
+          ]
+          out = {
+              'verifier_head': subprocess.check_output(['git','rev-parse','HEAD'], text=True).strip(),
+              'blobs': {p: subprocess.check_output(['git','hash-object',p], text=True).strip() for p in files},
+              'builder_evidence_head': '27ccee01297feaa9dac169a00d6af456979f606b',
+              'builder_tested_source': '959e4c46e7c2ecf8e2043ebaa177b696d7d35f31',
+              'truth_boundary': 'tests cloned-store/directory-identity fork left open by Wave 124; does not falsify same-directory flock exclusion; no performance/energy/retained-compute or physical/provider-finality claim',
+          }
+          with open('/tmp/wave124-clone-source.json','w',encoding='utf-8') as f:
+              json.dump(out,f,indent=2,sort_keys=True); f.write('\n')
+          PY
+
+      - name: Preserve machine-readable verifier reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave124-cloned-store-fork-verifier
+          path: |
+            /tmp/wave124-builder-normal.json
+            /tmp/wave124-builder-optimized.json
+            /tmp/wave124-clone-normal.json
+            /tmp/wave124-clone-optimized.json
+            /tmp/wave124-clone-source.json
+          if-no-files-found: warn
