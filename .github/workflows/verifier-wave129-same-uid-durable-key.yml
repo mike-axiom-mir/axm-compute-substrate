@@ -1,0 +1,83 @@
+name: Verifier Wave 129 same-UID durable key boundary
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact verifier head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Environment
+        run: |
+          set -euxo pipefail
+          python --version
+          openssl version
+          uname -a
+          id
+          grep '^CapEff:' /proc/self/status || true
+          cat /proc/sys/kernel/yama/ptrace_scope || true
+
+      - name: Unchanged Wave 129 lifecycle controls normal
+        env:
+          PYTHONPATH: tools
+        run: |
+          set -euxo pipefail
+          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_LIFECYCLE_CI.py --report /tmp/wave129-builder-normal.json
+
+      - name: Unchanged Wave 129 lifecycle controls optimized
+        env:
+          PYTHONPATH: tools
+        run: |
+          set -euxo pipefail
+          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_LIFECYCLE_CI.py --report /tmp/wave129-builder-optimized.json
+
+      - name: Adversarial durable-key read normal
+        env:
+          PYTHONPATH: tools
+        run: |
+          set -euxo pipefail
+          python verification/wave129_same_uid_durable_key_boundary_repro.py --report /tmp/wave129-verifier-normal.json
+
+      - name: Adversarial durable-key read optimized
+        env:
+          PYTHONPATH: tools
+        run: |
+          set -euxo pipefail
+          python -O verification/wave129_same_uid_durable_key_boundary_repro.py --report /tmp/wave129-verifier-optimized.json
+
+      - name: Exact source identities
+        run: |
+          set -euxo pipefail
+          git rev-parse HEAD > /tmp/verifier-head.txt
+          git rev-parse HEAD^ > /tmp/verifier-parent.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_LIFECYCLE.py > /tmp/wave129-tool-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_LIFECYCLE_CI.py > /tmp/wave129-ci-harness-blob.txt
+          git rev-parse HEAD:verification/wave129_same_uid_durable_key_boundary_repro.py > /tmp/verifier-script-blob.txt
+          git rev-parse HEAD:.github/workflows/verifier-wave129-same-uid-durable-key.yml > /tmp/verifier-workflow-blob.txt
+
+      - name: Upload verifier evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave129-same-uid-durable-key-verifier
+          path: |
+            /tmp/wave129-builder-normal.json
+            /tmp/wave129-builder-optimized.json
+            /tmp/wave129-verifier-normal.json
+            /tmp/wave129-verifier-optimized.json
+            /tmp/verifier-head.txt
+            /tmp/verifier-parent.txt
+            /tmp/wave129-tool-blob.txt
+            /tmp/wave129-ci-harness-blob.txt
+            /tmp/verifier-script-blob.txt
+            /tmp/verifier-workflow-blob.txt
+          if-no-files-found: error
