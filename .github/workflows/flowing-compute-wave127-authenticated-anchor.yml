@@ -36,13 +36,13 @@ jobs:
         env:
           PYTHONPATH: tools
         run: |
-          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_AUTHENTICATED_ANCHOR_SELFTEST.py --report /tmp/wave127-normal.json
+          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_AUTHENTICATED_ANCHOR_SELFTEST_FIXED.py --report /tmp/wave127-normal.json
 
       - name: Wave 127 authenticated anchor optimized
         env:
           PYTHONPATH: tools
         run: |
-          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_AUTHENTICATED_ANCHOR_SELFTEST.py --report /tmp/wave127-optimized.json
+          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_AUTHENTICATED_ANCHOR_SELFTEST_FIXED.py --report /tmp/wave127-optimized.json
 
       - name: Exact source identity
         run: |
@@ -50,7 +50,9 @@ jobs:
           git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ANCHORED.py > /tmp/wave126-tool-blob.txt
           git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ANCHORED_SELFTEST.py > /tmp/wave126-selftest-blob.txt
           git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_AUTHENTICATED_ANCHOR.py > /tmp/wave127-tool-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_AUTHENTICATED_ANCHOR_FIXED.py > /tmp/wave127-fixed-tool-blob.txt
           git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_AUTHENTICATED_ANCHOR_SELFTEST.py > /tmp/wave127-selftest-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_AUTHENTICATED_ANCHOR_SELFTEST_FIXED.py > /tmp/wave127-fixed-selftest-blob.txt
           git rev-parse HEAD:.github/workflows/flowing-compute-wave127-authenticated-anchor.yml > /tmp/wave127-workflow-blob.txt
 
       - name: Upload exact Wave 127 evidence
@@ -66,6 +68,8 @@ jobs:
             /tmp/wave126-tool-blob.txt
             /tmp/wave126-selftest-blob.txt
             /tmp/wave127-tool-blob.txt
+            /tmp/wave127-fixed-tool-blob.txt
             /tmp/wave127-selftest-blob.txt
+            /tmp/wave127-fixed-selftest-blob.txt
             /tmp/wave127-workflow-blob.txt
           if-no-files-found: error
