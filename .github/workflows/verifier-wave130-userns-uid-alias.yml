@@ -1,0 +1,223 @@
+name: Verifier Wave 130 userns UID alias
+
+on:
+  pull_request:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - 'verification/wave130_userns_uid_alias_verifier.py'
+      - '.github/workflows/verifier-wave130-userns-uid-alias.yml'
+      - 'evidence/VERIFIER_WAVE130_USERNS_UID_ALIAS.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  adversarial-wave130:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 8
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Capture environment
+        run: |
+          {
+            python --version
+            openssl version
+            uname -a
+            id
+            grep -E '^(Uid|Gid|CapEff|CapPrm|NoNewPrivs):' /proc/self/status || true
+            printf 'uid_map='; tr '\n' ';' < /proc/self/uid_map; echo
+            printf 'gid_map='; tr '\n' ';' < /proc/self/gid_map; echo
+            sysctl kernel.unprivileged_userns_clone 2>/dev/null || true
+            sysctl kernel.apparmor_restrict_unprivileged_userns 2>/dev/null || true
+            cat /proc/sys/kernel/yama/ptrace_scope 2>/dev/null || true
+            sudo -n true && echo sudo_noninteractive=yes
+          } | tee /tmp/verifier-environment.txt
+
+      - name: Stage UID-neutral Wave 130 source
+        run: |
+          sudo rm -rf /tmp/axm-w130-code
+          sudo mkdir -p /tmp/axm-w130-code
+          sudo cp -a tools/. /tmp/axm-w130-code/
+          sudo find /tmp/axm-w130-code -type d -exec chmod 0755 {} +
+          sudo find /tmp/axm-w130-code -type f -exec chmod 0644 {} +
+
+      - name: Unchanged Wave 130 control normal
+        continue-on-error: true
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w130-code HOME=/tmp python /tmp/axm-w130-code/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_AUTHORITY_BOUNDARY_SELFTEST.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave130-control-normal.json' sh "$worker_uid"
+
+      - name: Unchanged Wave 130 control optimized
+        continue-on-error: true
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w130-code HOME=/tmp python -O /tmp/axm-w130-code/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_AUTHORITY_BOUNDARY_SELFTEST.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave130-control-optimized.json' sh "$worker_uid"
+
+      - name: Adversarial user-namespace UID alias normal
+        continue-on-error: true
+        run: |
+          python verification/wave130_userns_uid_alias_verifier.py \
+            --worker-uid "$(id -u)" \
+            --namespace-uid 23001 \
+            --tool /tmp/axm-w130-code/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_AUTHORITY_BOUNDARY.py \
+            --report /tmp/wave130-userns-normal.json
+
+      - name: Adversarial user-namespace UID alias optimized
+        continue-on-error: true
+        run: |
+          python -O verification/wave130_userns_uid_alias_verifier.py \
+            --worker-uid "$(id -u)" \
+            --namespace-uid 23001 \
+            --tool /tmp/axm-w130-code/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_AUTHORITY_BOUNDARY.py \
+            --report /tmp/wave130-userns-optimized.json
+
+      - name: Preserve exact source identities
+        if: always()
+        run: |
+          git rev-parse HEAD > /tmp/verifier-tested-head.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_AUTHORITY_BOUNDARY.py > /tmp/wave130-tool-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_AUTHORITY_BOUNDARY_SELFTEST.py > /tmp/wave130-selftest-blob.txt
+          git rev-parse HEAD:verification/wave130_userns_uid_alias_verifier.py > /tmp/verifier-script-blob.txt
+          git rev-parse HEAD:.github/workflows/verifier-wave130-userns-uid-alias.yml > /tmp/verifier-workflow-blob.txt
+
+      - name: Build exact evidence bundle and PR note
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          def load(path):
+              p = Path(path)
+              if not p.exists():
+                  return {"missing": str(p)}
+              try:
+                  return json.loads(p.read_text())
+              except Exception as exc:
+                  return {"parse_error": f"{type(exc).__name__}:{exc}", "path": str(p)}
+
+          c1 = load('/tmp/wave130-control-normal.json')
+          c2 = load('/tmp/wave130-control-optimized.json')
+          a1 = load('/tmp/wave130-userns-normal.json')
+          a2 = load('/tmp/wave130-userns-optimized.json')
+
+          summary = {
+              "control_normal": {"passed": c1.get("passed"), "total": c1.get("total")},
+              "control_optimized": {"passed": c2.get("passed"), "total": c2.get("total")},
+              "attack_normal": a1,
+              "attack_optimized": a2,
+          }
+          Path('/tmp/verifier-summary.json').write_text(json.dumps(summary, indent=2, sort_keys=True) + '\n')
+          PY
+          zip -j /tmp/wave130-userns-verifier-evidence.zip \
+            /tmp/verifier-environment.txt \
+            /tmp/wave130-control-normal.json \
+            /tmp/wave130-control-optimized.json \
+            /tmp/wave130-userns-normal.json \
+            /tmp/wave130-userns-optimized.json \
+            /tmp/verifier-summary.json \
+            /tmp/verifier-tested-head.txt \
+            /tmp/wave130-tool-blob.txt \
+            /tmp/wave130-selftest-blob.txt \
+            /tmp/verifier-script-blob.txt \
+            /tmp/verifier-workflow-blob.txt
+          sha256sum /tmp/wave130-userns-verifier-evidence.zip | tee /tmp/verifier-bundle-sha256.txt
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          s = json.loads(Path('/tmp/verifier-summary.json').read_text())
+          digest = Path('/tmp/verifier-bundle-sha256.txt').read_text().split()[0]
+          head = Path('/tmp/verifier-tested-head.txt').read_text().strip()
+          tblob = Path('/tmp/wave130-tool-blob.txt').read_text().strip()
+          normal = s['attack_normal']
+          opt = s['attack_optimized']
+          lines = [
+              '### Independent Wave 130 adversarial verifier result',
+              '',
+              f'- tested head: `{head}`',
+              f'- unchanged Wave 130 tool blob: `{tblob}`',
+              f"- unchanged control normal: `{s['control_normal'].get('passed')}/{s['control_normal'].get('total')}`",
+              f"- unchanged control optimized: `{s['control_optimized'].get('passed')}/{s['control_optimized'].get('total')}`",
+              f"- user-namespace UID-alias attack normal reproduced: `{normal.get('reproduced')}`",
+              f"- user-namespace UID-alias attack optimized reproduced: `{opt.get('reproduced')}`",
+              f'- exact evidence bundle SHA-256: `{digest}`',
+              '',
+              'Normal attack key observations:',
+              '```json',
+              json.dumps({
+                  'namespace_preflight': normal.get('namespace_preflight'),
+                  'wave130_boundary': normal.get('wave130_init', {}).get('wave130_durable_key_boundary'),
+                  'outside_namespace_observation': normal.get('outside_namespace_observation'),
+                  'process_results': normal.get('process_results'),
+              }, indent=2, sort_keys=True),
+              '```',
+              '',
+              'Optimized attack key observations:',
+              '```json',
+              json.dumps({
+                  'namespace_preflight': opt.get('namespace_preflight'),
+                  'wave130_boundary': opt.get('wave130_init', {}).get('wave130_durable_key_boundary'),
+                  'outside_namespace_observation': opt.get('outside_namespace_observation'),
+                  'process_results': opt.get('process_results'),
+              }, indent=2, sort_keys=True),
+              '```',
+              '',
+              'NON-CANON verifier evidence only. No merge or prior-evidence rewrite requested.',
+          ]
+          Path('/tmp/pr-note.md').write_text('\n'.join(lines) + '\n')
+          PY
+
+      - name: Upload exact verifier evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave130-userns-uid-alias-verifier
+          path: |
+            /tmp/wave130-userns-verifier-evidence.zip
+            /tmp/verifier-bundle-sha256.txt
+            /tmp/verifier-summary.json
+            /tmp/pr-note.md
+          if-no-files-found: warn
+
+      - name: Post verifier evidence to draft PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.existsSync('/tmp/pr-note.md')
+              ? fs.readFileSync('/tmp/pr-note.md', 'utf8')
+              : 'Verifier evidence note was not generated; inspect the workflow run.';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+
+      - name: Enforce verifier outcome
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          s = json.loads(Path('/tmp/verifier-summary.json').read_text())
+          checks = [
+              s['control_normal'].get('passed') == s['control_normal'].get('total') and s['control_normal'].get('total') == 8,
+              s['control_optimized'].get('passed') == s['control_optimized'].get('total') and s['control_optimized'].get('total') == 8,
+              s['attack_normal'].get('reproduced') is True,
+              s['attack_optimized'].get('reproduced') is True,
+          ]
+          print(json.dumps({'checks': checks, 'all_ok': all(checks)}, sort_keys=True))
+          raise SystemExit(0 if all(checks) else 1)
+          PY

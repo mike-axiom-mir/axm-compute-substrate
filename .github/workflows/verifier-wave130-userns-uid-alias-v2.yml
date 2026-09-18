@@ -1,0 +1,174 @@
+name: Verifier Wave 130 userns UID alias v2
+
+on:
+  pull_request:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - 'verification/wave130_userns_uid_alias_verifier_v2.py'
+      - '.github/workflows/verifier-wave130-userns-uid-alias-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  adversarial-wave130-v2:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 8
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Environment
+        run: |
+          {
+            python --version
+            openssl version
+            uname -a
+            id
+            grep -E '^(Uid|Gid|CapEff|CapPrm|NoNewPrivs):' /proc/self/status || true
+            printf 'uid_map='; tr '\n' ';' < /proc/self/uid_map; echo
+            printf 'gid_map='; tr '\n' ';' < /proc/self/gid_map; echo
+            sysctl kernel.unprivileged_userns_clone 2>/dev/null || true
+            sysctl kernel.apparmor_restrict_unprivileged_userns 2>/dev/null || true
+          } | tee /tmp/w130-v2-environment.txt
+
+      - name: Stage unchanged Wave 130 source
+        run: |
+          sudo rm -rf /tmp/axm-w130-code
+          sudo mkdir -p /tmp/axm-w130-code
+          sudo cp -a tools/. /tmp/axm-w130-code/
+          sudo find /tmp/axm-w130-code -type d -exec chmod 0755 {} +
+          sudo find /tmp/axm-w130-code -type f -exec chmod 0644 {} +
+
+      - name: Unchanged Wave 130 normal
+        continue-on-error: true
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w130-code HOME=/tmp python /tmp/axm-w130-code/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_AUTHORITY_BOUNDARY_SELFTEST.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/w130-v2-control-normal.json' sh "$worker_uid"
+
+      - name: Unchanged Wave 130 optimized
+        continue-on-error: true
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w130-code HOME=/tmp python -O /tmp/axm-w130-code/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_AUTHORITY_BOUNDARY_SELFTEST.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/w130-v2-control-optimized.json' sh "$worker_uid"
+
+      - name: UID-only user namespace attack normal
+        continue-on-error: true
+        run: |
+          python verification/wave130_userns_uid_alias_verifier_v2.py \
+            --worker-uid "$(id -u)" --namespace-uid 23001 \
+            --tool /tmp/axm-w130-code/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_AUTHORITY_BOUNDARY.py \
+            --report /tmp/w130-v2-attack-normal.json
+
+      - name: UID-only user namespace attack optimized
+        continue-on-error: true
+        run: |
+          python -O verification/wave130_userns_uid_alias_verifier_v2.py \
+            --worker-uid "$(id -u)" --namespace-uid 23001 \
+            --tool /tmp/axm-w130-code/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_AUTHORITY_BOUNDARY.py \
+            --report /tmp/w130-v2-attack-optimized.json
+
+      - name: Evidence identities
+        if: always()
+        run: |
+          git rev-parse HEAD > /tmp/w130-v2-tested-head.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_AUTHORITY_BOUNDARY.py > /tmp/w130-v2-tool-blob.txt
+          git rev-parse HEAD:verification/wave130_userns_uid_alias_verifier_v2.py > /tmp/w130-v2-verifier-blob.txt
+          git rev-parse HEAD:.github/workflows/verifier-wave130-userns-uid-alias-v2.yml > /tmp/w130-v2-workflow-blob.txt
+
+      - name: Bundle and summarize
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          def load(p):
+              q=Path(p)
+              if not q.exists(): return {'missing': p}
+              try: return json.loads(q.read_text())
+              except Exception as e: return {'parse_error': f'{type(e).__name__}:{e}'}
+          c1=load('/tmp/w130-v2-control-normal.json'); c2=load('/tmp/w130-v2-control-optimized.json')
+          a1=load('/tmp/w130-v2-attack-normal.json'); a2=load('/tmp/w130-v2-attack-optimized.json')
+          s={'control_normal':{'passed':c1.get('passed'),'total':c1.get('total')},
+             'control_optimized':{'passed':c2.get('passed'),'total':c2.get('total')},
+             'attack_normal':a1,'attack_optimized':a2}
+          Path('/tmp/w130-v2-summary.json').write_text(json.dumps(s,indent=2,sort_keys=True)+'\n')
+          PY
+          zip -j /tmp/w130-v2-evidence.zip \
+            /tmp/w130-v2-environment.txt \
+            /tmp/w130-v2-control-normal.json /tmp/w130-v2-control-optimized.json \
+            /tmp/w130-v2-attack-normal.json /tmp/w130-v2-attack-optimized.json \
+            /tmp/w130-v2-summary.json /tmp/w130-v2-tested-head.txt \
+            /tmp/w130-v2-tool-blob.txt /tmp/w130-v2-verifier-blob.txt /tmp/w130-v2-workflow-blob.txt
+          sha256sum /tmp/w130-v2-evidence.zip | tee /tmp/w130-v2-bundle-sha256.txt
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          s=json.loads(Path('/tmp/w130-v2-summary.json').read_text())
+          digest=Path('/tmp/w130-v2-bundle-sha256.txt').read_text().split()[0]
+          head=Path('/tmp/w130-v2-tested-head.txt').read_text().strip()
+          blob=Path('/tmp/w130-v2-tool-blob.txt').read_text().strip()
+          def slim(a):
+              return {'reproduced':a.get('reproduced'), 'worker_parent':a.get('worker_parent'),
+                      'namespace_preflight':a.get('namespace_preflight'),
+                      'wave130_boundary':a.get('wave130_init',{}).get('wave130_durable_key_boundary'),
+                      'outside_namespace_observation':a.get('outside_namespace_observation'),
+                      'process_results':a.get('process_results')}
+          lines=['### Wave 130 verifier v2 — UID-only namespace alias','',
+                 f'- tested head: `{head}`', f'- unchanged Wave 130 tool blob: `{blob}`',
+                 f"- control normal: `{s['control_normal'].get('passed')}/{s['control_normal'].get('total')}`",
+                 f"- control optimized: `{s['control_optimized'].get('passed')}/{s['control_optimized'].get('total')}`",
+                 f"- attack normal reproduced: `{s['attack_normal'].get('reproduced')}`",
+                 f"- attack optimized reproduced: `{s['attack_optimized'].get('reproduced')}`",
+                 f'- exact evidence bundle SHA-256: `{digest}`','',
+                 'V1 is intentionally preserved; it stopped at an unnecessary GID/setgroups operation. '
+                 'V2 maps only UID because Wave 130 authorizes only on euid/st_uid.','',
+                 'Normal:','```json',json.dumps(slim(s['attack_normal']),indent=2,sort_keys=True),'```','',
+                 'Optimized:','```json',json.dumps(slim(s['attack_optimized']),indent=2,sort_keys=True),'```','',
+                 'NON-CANON verifier evidence only.']
+          Path('/tmp/w130-v2-pr-note.md').write_text('\n'.join(lines)+'\n')
+          PY
+
+      - name: Upload v2 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave130-userns-uid-alias-verifier-v2
+          path: |
+            /tmp/w130-v2-evidence.zip
+            /tmp/w130-v2-bundle-sha256.txt
+            /tmp/w130-v2-summary.json
+            /tmp/w130-v2-pr-note.md
+          if-no-files-found: warn
+
+      - name: Comment exact v2 result
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs=require('fs');
+            const body=fs.existsSync('/tmp/w130-v2-pr-note.md') ? fs.readFileSync('/tmp/w130-v2-pr-note.md','utf8') : 'v2 evidence note missing';
+            await github.rest.issues.createComment({owner:context.repo.owner,repo:context.repo.repo,issue_number:context.issue.number,body});
+
+      - name: Enforce bounded result
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          s=json.loads(Path('/tmp/w130-v2-summary.json').read_text())
+          checks=[s['control_normal'].get('passed')==8 and s['control_normal'].get('total')==8,
+                  s['control_optimized'].get('passed')==8 and s['control_optimized'].get('total')==8,
+                  s['attack_normal'].get('reproduced') is True,
+                  s['attack_optimized'].get('reproduced') is True]
+          print(json.dumps({'checks':checks,'all_ok':all(checks)},sort_keys=True))
+          raise SystemExit(0 if all(checks) else 1)
+          PY
