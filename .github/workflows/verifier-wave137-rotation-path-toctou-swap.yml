@@ -36,7 +36,7 @@ jobs:
           sudo mkdir -p /tmp/axm-w137-verifier-code
           sudo cp -a tools/. /tmp/axm-w137-verifier-code/
           sudo cp verification/wave137_rotation_path_toctou_swap_repro.py /tmp/axm-w137-verifier-code/wave137_rotation_path_toctou_swap_repro.py
-          sudo cp verification/wave137_rotation_path_toctou_swap_repro_v2.py /tmp/axm-w137-verifier-code/verifier.py
+          sudo cp verification/wave137_rotation_path_toctou_swap_repro_v3.py /tmp/axm-w137-verifier-code/verifier.py
           sudo find /tmp/axm-w137-verifier-code -type d -exec chmod 0755 {} +
           sudo find /tmp/axm-w137-verifier-code -type f -exec chmod 0644 {} +
 
@@ -68,6 +68,7 @@ jobs:
           git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ROTATION_NAMESPACE_SELFTEST.py > /tmp/wave137-selftest-blob.txt
           git rev-parse HEAD:verification/wave137_rotation_path_toctou_swap_repro.py > /tmp/verifier-v1-blob.txt
           git rev-parse HEAD:verification/wave137_rotation_path_toctou_swap_repro_v2.py > /tmp/verifier-v2-blob.txt
+          git rev-parse HEAD:verification/wave137_rotation_path_toctou_swap_repro_v3.py > /tmp/verifier-v3-blob.txt
           git rev-parse HEAD:.github/workflows/verifier-wave137-rotation-path-toctou-swap.yml > /tmp/verifier-workflow-blob.txt
 
       - name: Upload verifier evidence
@@ -85,5 +86,6 @@ jobs:
             /tmp/wave137-selftest-blob.txt
             /tmp/verifier-v1-blob.txt
             /tmp/verifier-v2-blob.txt
+            /tmp/verifier-v3-blob.txt
             /tmp/verifier-workflow-blob.txt
           if-no-files-found: error
