@@ -1,0 +1,33 @@
+name: verifier-wave118-crash-diagnostic
+
+on:
+  push:
+    branches:
+      - verifier/wave118-rotation-provenance-crash
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run verifier normal
+        shell: bash
+        run: PYTHONPATH=tools python verification/wave118_rotation_provenance_crash_repro.py > /tmp/verifier-normal.json
+      - name: Run verifier optimized
+        shell: bash
+        run: PYTHONPATH=tools python -O verification/wave118_rotation_provenance_crash_repro.py > /tmp/verifier-optimized.json
+      - name: Upload diagnostic
+        uses: actions/upload-artifact@v4
+        with:
+          name: verifier-wave118-fast-diagnostic
+          path: |
+            /tmp/verifier-normal.json
+            /tmp/verifier-optimized.json
+          if-no-files-found: error
