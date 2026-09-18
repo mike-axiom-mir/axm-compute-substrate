@@ -204,6 +204,8 @@ def child_fake_server(socket_path: Path, ready_path: Path) -> int:
                 if not chunk:
                     break
                 data += chunk
+            # Deliberately unsigned. The public identity string alone must not
+            # be enough to impersonate the anchor.
             conn.sendall(w.canonical({
                 "schema": protocol.RESPONSE_SCHEMA,
                 "body": {"ok": True, "fake": True},
@@ -242,199 +244,4 @@ def start_anchor(uid: int, anchor_dir: Path, socket_path: Path, ready: Path,
 
 
 def run_suite(worker_uid: int, anchor_uid: int, report_path: Path | None) -> int:
-    if os.geteuid() != 0:
-        raise PermissionError("wave130-selftest-requires-root-or-sudo-orchestrator")
-    if worker_uid == anchor_uid:
-        raise ValueError("worker-and-anchor-uid-must-differ")
-
-    results: list[dict] = []
-    base = Path(tempfile.mkdtemp(prefix="axm-w130-boundary-"))
-    os.chmod(base, 0o777)
-    anchor_proc: subprocess.Popen | None = None
-    fake_proc: subprocess.Popen | None = None
-    try:
-        pred = base / "predecessor"
-        pred.mkdir(mode=0o777)
-        run_as(worker_uid, pycmd(str(W129), "init-witness", str(pred / "witness")))
-        run_as(worker_uid, pycmd(
-            str(W129), "init-anchor", str(pred / "anchor"), str(pred / "witness")
-        ))
-        pred_read = parse_json_line(run_as(worker_uid, pycmd(
-            str(SCRIPT), "--child-read-key",
-            str(pred / "anchor" / PRIVATE_KEY),
-            str(pred / "witness" / WITNESS_PUBLIC_KEY),
-        )))
-        ok = bool(pred_read.get("readable") and pred_read.get("derived_public_matches"))
-        results.append({"name": "predecessor_wave129_same_uid_read_reproduced", "ok": ok,
-                        "detail": pred_read})
-
-        fixed = base / "fixed"
-        fixed.mkdir(mode=0o777)
-        env_anchor = base_env({ENV_UID: str(worker_uid)})
-        run_as(anchor_uid, pycmd(str(W130), "init-witness", str(fixed / "witness")),
-               env=env_anchor)
-        init = parse_json_line(run_as(anchor_uid, pycmd(
-            str(W130), "init-anchor", str(fixed / "anchor"), str(fixed / "witness"),
-            "--anchor-id", "wave130-dedicated-uid-anchor",
-        ), env=env_anchor))
-        chown_tree(fixed / "witness", worker_uid, worker_uid)
-        os.chmod(fixed / "witness", 0o700)
-
-        ad_st = (fixed / "anchor").stat()
-        pk_st = (fixed / "anchor" / PRIVATE_KEY).stat()
-        boundary_ok = (
-            ad_st.st_uid == anchor_uid and stat.S_IMODE(ad_st.st_mode) == 0o700
-            and pk_st.st_uid == anchor_uid and stat.S_IMODE(pk_st.st_mode) == 0o600
-            and init["wave130_durable_key_boundary"]["forbidden_worker_uid"] == worker_uid
-        )
-        results.append({"name": "dedicated_uid_private_store_boundary", "ok": boundary_ok,
-                        "detail": init["wave130_durable_key_boundary"]})
-
-        fixed_read = parse_json_line(run_as(worker_uid, pycmd(
-            str(SCRIPT), "--child-read-key",
-            str(fixed / "anchor" / PRIVATE_KEY),
-            str(fixed / "witness" / WITNESS_PUBLIC_KEY),
-        )))
-        results.append({"name": "worker_direct_private_key_read_denied",
-                        "ok": not fixed_read.get("readable", True), "detail": fixed_read})
-
-        run_dir = fixed / "run"
-        run_dir.mkdir(mode=0o777)
-        os.chmod(run_dir, 0o777)
-        socket_path = run_dir / "anchor.sock"
-        ready = run_dir / "anchor.ready"
-        error = run_dir / "anchor.error"
-        anchor_proc = start_anchor(
-            anchor_uid, fixed / "anchor", socket_path, ready, error, worker_uid
-        )
-
-        proc_probe = parse_json_line(run_as(worker_uid, pycmd(
-            str(SCRIPT), "--child-proc-probe", str(anchor_proc.pid)
-        )))
-        proc_ok = not proc_probe.get("mem_open") and proc_probe.get("readable_fd_count") == 0
-        results.append({"name": "worker_proc_secret_paths_denied", "ok": proc_ok,
-                        "detail": proc_probe})
-
-        anchor_fp = init["anchor_credential_fingerprint"]
-        public_path = fixed / "witness" / WITNESS_PUBLIC_KEY
-        ping = parse_json_line(run_as(worker_uid, pycmd(
-            str(SCRIPT), "--child-ping", str(socket_path), anchor_fp, str(public_path)
-        )))
-        results.append({"name": "worker_can_use_authenticated_anchor_without_key", "ok": ping.get("ok") is True,
-                        "detail": ping})
-
-        run_as(worker_uid, pycmd(str(SCRIPT), "--child-unlink", str(socket_path)))
-        fake_ready = run_dir / "fake.ready"
-        fake_proc = popen_as(worker_uid, pycmd(
-            str(SCRIPT), "--child-fake-server", str(socket_path), str(fake_ready)
-        ), env=base_env())
-        wait_file(fake_ready, fake_proc)
-        fake_ping_cp = run_as(worker_uid, pycmd(
-            str(SCRIPT), "--child-ping", str(socket_path), anchor_fp, str(public_path)
-        ), check=False)
-        fake_ping = parse_json_line(fake_ping_cp)
-        if fake_proc.poll() is None:
-            fake_proc.wait(timeout=3)
-        fake_proc = None
-        results.append({"name": "worker_socket_substitution_still_rejected",
-                        "ok": fake_ping_cp.returncode != 0 and fake_ping.get("ok") is False,
-                        "detail": fake_ping})
-
-        os.kill(anchor_proc.pid, signal.SIGKILL)
-        anchor_proc.wait(timeout=3)
-        anchor_proc = None
-        restart_ready = run_dir / "anchor.restart.ready"
-        restart_error = run_dir / "anchor.restart.error"
-        anchor_proc = start_anchor(
-            anchor_uid, fixed / "anchor", socket_path, restart_ready,
-            restart_error, worker_uid
-        )
-        restart_ping = parse_json_line(run_as(worker_uid, pycmd(
-            str(SCRIPT), "--child-ping", str(socket_path), anchor_fp, str(public_path)
-        )))
-        same_identity = (
-            restart_ping.get("ok") is True
-            and restart_ping.get("body", {}).get("anchor_credential_fingerprint") == anchor_fp
-            and restart_ping.get("body", {}).get("response_public_fingerprint")
-                == init.get("response_public_fingerprint")
-        )
-        results.append({"name": "sigkill_restart_preserves_exact_anchor_identity",
-                        "ok": same_identity, "detail": restart_ping})
-
-        bad = base / "same-uid-refusal"
-        bad.mkdir(mode=0o777)
-        run_as(worker_uid, pycmd(str(W130), "init-witness", str(bad / "witness")),
-               env=base_env({ENV_UID: str(worker_uid)}))
-        bad_cp = run_as(worker_uid, pycmd(
-            str(W130), "init-anchor", str(bad / "anchor"), str(bad / "witness")
-        ), env=base_env({ENV_UID: str(worker_uid)}), check=False)
-        no_private = not (bad / "anchor" / PRIVATE_KEY).exists()
-        results.append({"name": "same_uid_authority_configuration_fails_before_key_generation",
-                        "ok": bad_cp.returncode != 0 and no_private,
-                        "detail": {"returncode": bad_cp.returncode,
-                                   "stderr_tail": bad_cp.stderr[-500:],
-                                   "private_exists": not no_private}})
-
-        passed = sum(1 for r in results if r["ok"])
-        report = {
-            "schema": "axm.flowing-compute.wave130-dedicated-uid-boundary-selftest.v1",
-            "mode": "optimized" if sys.flags.optimize else "normal",
-            "worker_uid": worker_uid,
-            "anchor_uid": anchor_uid,
-            "passed": passed,
-            "total": len(results),
-            "results": results,
-            "truth_boundary": (
-                "tested Unix uid/process isolation only; root/kernel, anchor-uid compromise, "
-                "cross-host copied keys, interrupted-init recovery, rotation, hardware custody, "
-                "performance and physical/provider finality remain unproved"
-            ),
-        }
-        if report_path:
-            report_path.parent.mkdir(parents=True, exist_ok=True)
-            report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
-        print(json.dumps(report, sort_keys=True))
-        return 0 if passed == len(results) else 1
-    finally:
-        for proc in (fake_proc, anchor_proc):
-            if proc is not None and proc.poll() is None:
-                try:
-                    os.kill(proc.pid, signal.SIGKILL)
-                except ProcessLookupError:
-                    pass
-                try:
-                    proc.wait(timeout=3)
-                except Exception:
-                    pass
-        shutil.rmtree(base, ignore_errors=True)
-
-
-def main() -> int:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--worker-uid", type=int)
-    ap.add_argument("--anchor-uid", type=int, default=23001)
-    ap.add_argument("--report", type=Path)
-    ap.add_argument("--child-read-key", nargs=2)
-    ap.add_argument("--child-proc-probe", type=int)
-    ap.add_argument("--child-ping", nargs=3)
-    ap.add_argument("--child-unlink")
-    ap.add_argument("--child-fake-server", nargs=2)
-    ns = ap.parse_args()
-    if ns.child_read_key:
-        return child_read_key(Path(ns.child_read_key[0]), Path(ns.child_read_key[1]))
-    if ns.child_proc_probe is not None:
-        return child_proc_probe(ns.child_proc_probe)
-    if ns.child_ping:
-        return child_ping(Path(ns.child_ping[0]), ns.child_ping[1], Path(ns.child_ping[2]))
-    if ns.child_unlink:
-        return child_unlink(Path(ns.child_unlink))
-    if ns.child_fake_server:
-        return child_fake_server(Path(ns.child_fake_server[0]), Path(ns.child_fake_server[1]))
-    worker_uid = ns.worker_uid
-    if worker_uid is None:
-        raise ValueError("--worker-uid-required")
-    return run_suite(worker_uid, ns.anchor_uid, ns.report)
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+    if os.gete²È="25}%5=¡Á­}ÍÐ¹ÍÑ}µ½‘”¤€ôô€Á¼ØÀÀ(€€€€€€€€€€€…¹¥¹¥Ñl‰Ý…Ù”ÄÌÁ}‘ÕÉ…‰±•}­•å}‰½Õ¹‘…Éä‰ul‰™½É‰¥‘‘•¹}Ý½É­•É}Õ¥‰t€ôôÝ½É­•É}Õ¥(€€€€€€€€¤(€€€€€€€É•ÍÕ±ÑÌ¹…ÁÁ•¹¡ì‰¹…µ”ˆè€‰‘•‘¥…Ñ•‘}Õ¥‘}ÁÉ¥Ù…Ñ•}ÍÑ½É•}‰½Õ¹‘…Éäˆ°€‰½¬ˆè‰½Õ¹‘…Éå}½¬°(€€€€€€€€€€€€€€€€€€€€€€€€‰‘•Ñ…¥°ˆè¥¹¥Ñl‰Ý…Ù”ÄÌÁ}‘ÕÉ…‰±•}­•å}‰½Õ¹‘…Éä‰uô¤((€€€€€€€™¥á•‘}É•…€ôÁ…ÉÍ•}©Í½¹}±¥¹”¡ÉÕ¹}…Ì¡Ý½É­•É}Õ¥°Áåµ (€€€€€€€€€€€ÍÑÈ¡MI%AP¤°€ˆ´µ¡¥±µÉ•…µ­•äˆ°(€€€€€€€€€€€ÍÑÈ¡™¥á•€¼€‰…¹¡½Èˆ€¼AI%YQ}-d¤°(€€€€€€€€€€€ÍÑÈ¡™¥á•€¼€‰Ý¥Ñ¹•ÍÌˆ€¼]%Q9MM}AU	1%}-d¤°(€€€€€€€€¤¤¤(€€€€€€€É•ÍÕ±ÑÌ¹…ÁÁ•¹¡ì‰¹…µ”ˆè€‰Ý½É­•É}‘¥É•Ñ}ÁÉ¥Ù…Ñ•}­•å}É•…‘}‘•¹¥•ˆ°(€€€€€€€€€€€€€€€€€€€€€€€€‰½¬ˆè¹½Ð™¥á•‘}É•…¹•Ð ‰É•…‘…‰±”ˆ°QÉÕ”¤°€‰‘•Ñ…¥°ˆè™¥á•‘}É•…‘ô¤((€€€€€€€ÉÕ¹}‘¥È€ô™¥á•€¼€‰ÉÕ¸ˆ(€€€€€€€ÉÕ¹}‘¥È¹µ­‘¥È¡µ½‘”ôÁ¼ÜÜÜ¤(€€€€€€€½Ì¹¡µ½¡ÉÕ¹}‘¥È°€Á¼ÜÜÜ¤(€€€€€€€Í½­•Ñ}Á…Ñ €ôÉÕ¹}‘¥È€¼€‰…¹¡½È¹Í½¬ˆ(€€€€€€€É•…‘ä€ôÉÕ¹}‘¥È€¼€‰…¹¡½È¹É•…‘äˆ(€€€€€€€•ÉÉ½È€ôÉÕ¹}‘¥È€¼€‰…¹¡½È¹•ÉÉ½Èˆ(€€€€€€€…¹¡½É}ÁÉ½Œ€ôÍÑ…ÉÑ}…¹¡½È (€€€€€€€€€€€…¹¡½É}Õ¥°™¥á•€¼€‰…¹¡½Èˆ°Í½­•Ñ}Á…Ñ °É•…‘ä°•ÉÉ½È°Ý½É­•É}Õ¥(€€€€€€€€¤((€€€€€€€ÁÉ½}ÁÉ½‰”€ôÁ…ÉÍ•}©Í½¹}±¥¹”¡ÉÕ¹}…Ì¡Ý½É­•É}Õ¥°Áåµ (€€€€€€€€€€€ÍÑÈ¡MI%AP¤°€ˆ´µ¡¥±µÁÉ½ŒµÁÉ½‰”ˆ°ÍÑÈ¡…¹¡½É}ÁÉ½Œ¹Á¥¤(€€€€€€€€¤¤¤(€€€€€€€ÁÉ½}½¬€ô¹½ÐÁÉ½}ÁÉ½‰”¹•Ð ‰µ•µ}½Á•¸ˆ¤…¹ÁÉ½}ÁÉ½‰”¹•Ð ‰É•…‘…‰±•}™‘}½Õ¹Ðˆ¤€ôô€À(€€€€€€€É•ÍÕ±ÑÌ¹…ÁÁ•¹¡ì‰¹…µ”ˆè€‰Ý½É­•É}ÁÉ½}Í•É•Ñ}Á…Ñ¡Í}‘•¹¥•ˆ°€‰½¬ˆèÁÉ½}½¬°(€€€€€€€€€€€€€€€€€€€€€€€€‰‘•Ñ…¥°ˆèÁÉ½}ÁÉ½‰•ô¤((€€€€€€€…¹¡½É}™À€ô¥¹¥Ñl‰…¹¡½É}É•‘•¹Ñ¥…±}™¥¹•ÉÁÉ¥¹Ð‰t(€€€€€€€ÁÕ‰±¥}Á…Ñ €ô™¥á•€¼€‰Ý¥Ñ¹•ÍÌˆ€¼]%Q9MM}AU	1%}-d(€€€€€€€Á¥¹œ€ôÁ…ÉÍ•}©Í½¹}±¥¹”¡ÉÕ¹}…Ì¡Ý½É­•É}Õ¥°Áåµ (€€€€€€€€€€€ÍÑÈ¡MI%AP¤°€ˆ´µ¡¥±µÁ¥¹œˆ°ÍÑÈ¡Í½­•Ñ}Á…Ñ ¤°…¹¡½É}™À°ÍÑÈ¡ÁÕ‰±¥}Á…Ñ ¤(€€€€€€€€¤¤¤(€€€€€€€É•ÍÕ±ÑÌ¹…ÁÁ•¹¡ì‰¹…µ”ˆè€‰Ý½É­•É}…¹}ÕÍ•}…ÕÑ¡•¹Ñ¥…Ñ•‘}…¹¡½É}Ý¥Ñ¡½ÕÑ}­•äˆ°€‰½¬ˆèÁ¥¹œ¹•Ð ‰½¬ˆ¤¥ÌQÉÕ”°(€€€€€€€€€€€€€€€€€€€€€€€€‰‘•Ñ…¥°ˆèÁ¥¹ô¤((€€€€€€€€ŒQ¡”Ý½É­•È…¸É•Á±…”Ñ¡”Á…Ñ¡¹…µ”¥¸„‘•±¥‰•É…Ñ•±äÍ¡…É•Í½­•Ð(€€€€€€€€Œ‘¥É•Ñ½Éä°‰ÕÐÍÑ¥±°…¹¹½Ð™½É”Ñ¡”Í¥¹•…¹¡½ÈÉ•ÍÁ½¹Í”¸(€€€€€€€ÉÕ¹}…Ì¡Ý½É­•É}Õ¥°Áåµ¡ÍÑÈ¡MI%AP¤°€ˆ´µ¡¥±µÕ¹±¥¹¬ˆ°ÍÑÈ¡Í½­•Ñ}Á…Ñ ¤¤¤(€€€€€€€™…­•}É•…‘ä€ôÉÕ¹}‘¥È€¼€‰™…­”¹É•…‘äˆ(€€€€€€€™…­•}ÁÉ½Œ€ôÁ½Á•¹}…Ì¡Ý½É­•É}Õ¥°Áåµ (€€€€€€€€€€€ÍÑÈ¡MI%AP¤°€ˆ´µ¡¥±µ™…­”µÍ•ÉÙ•Èˆ°ÍÑÈ¡Í½­•Ñ}Á…Ñ ¤°ÍÑÈ¡™…­•}É•…‘ä¤(€€€€€€€€¤°•¹Øõ‰…Í•}•¹Ø ¤¤(€€€€€€€Ý…¥Ñ}™¥±”¡™…­•}É•…‘ä°™…­•}ÁÉ½Œ¤(€€€€€€€™…­•}Á¥¹}À€ôÉÕ¹}…Ì¡Ý½É­•É}Õ¥°Áåµ (€€€€€€€€€€€ÍÑÈ¡MI%AP¤°€ˆ´µ¡¥±µÁ¥¹œˆ°ÍÑÈ¡Í½­•Ñ}Á…Ñ ¤°…¹¡½É}™À°ÍÑÈ¡ÁÕ‰±¥}Á…Ñ ¤(€€€€€€€€¤°¡•¬õ…±Í”¤(€€€€€€€™…­•}Á¥¹œ€ôÁ…ÉÍ•}©Í½¹}±¥¹”¡™…­•}Á¥¹}À¤(€€€€€€€¥˜™…­•}ÁÉ½Œ¹Á½±° ¤¥Ì9½¹”è(€€€€€€€€€€€™…­•}ÁÉ½Œ¹Ý…¥Ð¡Ñ¥µ•½ÕÐôÌ¤(€€€€€€€™…­•}ÁÉ½Œ€ô9½¹”(€€€€€€€É•ÍÕ±ÑÌ¹…ÁÁ•¹¡ì‰¹…µ”ˆè€‰Ý½É­•É}Í½­•Ñ}ÍÕ‰ÍÑ¥ÑÕÑ¥½¹}ÍÑ¥±±}É•©•Ñ•ˆ°(€€€€€€€€€€€€€€€€€€€€€€€€‰½¬ˆè™…­•}Á¥¹}À¹É•ÑÕÉ¹½‘”€„ô€À…¹™…­•}Á¥¹œ¹•Ð ‰½¬ˆ¤¥Ì…±Í”°(€€€€€€€€€€€€€€€€€€€€€€€€‰‘•Ñ…¥°ˆè™…­•}Á¥¹ô¤((€€€€€€€½Ì¹­¥±°¡…¹¡½É}ÁÉ½Œ¹Á¥°Í¥¹…°¹M%-%10¤(€€€€€€€…¹¡½É}ÁÉ½Œ¹Ý…¥Ð¡Ñ¥µ•½ÕÐôÌ¤(€€€€€€€…¹¡½É}ÁÉ½Œ€ô9½¹”(€€€€€€€É•ÍÑ…ÉÑ}É•…‘ä€ôÉÕ¹}‘¥È€¼€‰…¹¡½È¹É•ÍÑ…ÉÐ¹É•…‘äˆ(€€€€€€€É•ÍÑ…ÉÑ}•ÉÉ½È€ôÉÕ¹}‘¥È€¼€‰…¹¡½È¹É•ÍÑ…ÉÐ¹•ÉÉ½Èˆ(€€€€€€€…¹¡½É}ÁÉ½Œ€ôÍÑ…ÉÑ}…¹¡½È (€€€€€€€€€€€…¹¡½É}Õ¥°™¥á•€¼€‰…¹¡½Èˆ°Í½­•Ñ}Á…Ñ °É•ÍÑ…ÉÑ}É•…‘ä°(€€€€€€€€€€€É•ÍÑ…ÉÑ}•ÉÉ½È°Ý½É­•É}Õ¥(€€€€€€€€¤(€€€€€€€É•ÍÑ…ÉÑ}Á¥¹œ€ôÁ…ÉÍ•}©Í½¹}±¥¹”¡ÉÕ¹}…Ì¡Ý½É­•É}Õ¥°Áåµ (€€€€€€€€€€€ÍÑÈ¡MI%AP¤°€ˆ´µ¡¥±µÁ¥¹œˆ°ÍÑÈ¡Í½­•Ñ}Á…Ñ ¤°…¹¡½É}™À°ÍÑÈ¡ÁÕ‰±¥}Á…Ñ ¤(€€€€€€€€¤¤¤(€€€€€€€Í…µ•}¥‘•¹Ñ¥Ñä€ô€ (€€€€€€€€€€€É•ÍÑ…ÉÑ}Á¥¹œ¹•Ð ‰½¬ˆ¤¥ÌQÉÕ”(€€€€€€€€€€€…¹É•ÍÑ…ÉÑ}Á¥¹œ¹•Ð ‰‰½‘äˆ°íô¤¹•Ð ‰…¹¡½É}É•‘•¹Ñ¥…±}™¥¹•ÉÁÉ¥¹Ðˆ¤€ôô…¹¡½É}™À(€€€€€€€€€€€…¹É•ÍÑ…ÉÑ}Á¥¹œ¹•Ð ‰‰½‘äˆ°íô¤¹•Ð ‰É•ÍÁ½¹Í•}ÁÕ‰±¥}™¥¹•ÉÁÉ¥¹Ðˆ¤(€€€€€€€€€€€€€€€€ôô¥¹¥Ð¹•Ð ‰É•ÍÁ½¹Í•}ÁÕ‰±¥}™¥¹•ÉÁÉ¥¹Ðˆ¤(€€€€€€€€¤(€€€€€€€É•ÍÕ±ÑÌ¹…ÁÁ•¹¡ì‰¹…µ”ˆè€‰Í¥­¥±±}É•ÍÑ…ÉÑ}ÁÉ•Í•ÉÙ•Í}•á…Ñ}…¹¡½É}¥‘•¹Ñ¥Ñäˆ°(€€€€€€€€€€€€€€€€€€€€€€€€‰½¬ˆèÍ…µ•}¥‘•¹Ñ¥Ñä°€‰‘•Ñ…¥°ˆèÉ•ÍÑ…ÉÑ}Á¥¹ô¤((€€€€€€€€Œ…¥°±½Í•‰•™½É”­•ä•¹•É…Ñ¥½¸¥˜Í½µ•½¹”ÑÉ¥•ÌÑ¼½±±…ÁÍ”Ñ¡”(€€€€€€€€Œ…ÕÑ¡½É¥Ñä…¹Ý½É­•È‰…¬½¹Ñ¼Ñ¡”Í…µ”Õ¥¸(€€€€€€€‰…€ô‰…Í”€¼€‰Í…µ”µÕ¥µÉ•™ÕÍ…°ˆ(€€€€€€€‰…¹µ­‘¥È¡µ½‘”ôÁ¼ÜÜÜ¤(€€€€€€€½Ì¹¡µ½¡‰…°€Á¼ÜÜÜ¤(€€€€€€€ÉÕ¹}…Ì¡Ý½É­•É}Õ¥°Áåµ¡ÍÑÈ¡\ÄÌÀ¤°€‰¥¹¥ÐµÝ¥Ñ¹•ÍÌˆ°ÍÑÈ¡‰…€¼€‰Ý¥Ñ¹•ÍÌˆ¤¤°(€€€€€€€€€€€€€€•¹Øõ‰…Í•}•¹Ø¡í9Y}U%èÍÑÈ¡Ý½É­•É}Õ¥¥ô¤¤(€€€€€€€‰…‘}À€ôÉÕ¹}…Ì¡Ý½É­•É}Õ¥°Áåµ (€€€€€€€€€€€ÍÑÈ¡\ÄÌÀ¤°€‰¥¹¥Ðµ…¹¡½Èˆ°ÍÑÈ¡‰…€¼€‰…¹¡½Èˆ¤°ÍÑÈ¡‰…€¼€‰Ý¥Ñ¹•ÍÌˆ¤(€€€€€€€€¤°•¹Øõ‰…Í•}•¹Ø¡í9Y}U%èÍÑÈ¡Ý½É­•É}Õ¥¥ô¤°¡•¬õ…±Í”¤(€€€€€€€¹½}ÁÉ¥Ù…Ñ”€ô¹½Ð€¡‰…€¼€‰…¹¡½Èˆ€¼AI%YQ}-d¤¹•á¥ÍÑÌ ¤(€€€€€€€É•ÍÕ±ÑÌ¹…ÁÁ•¹¡ì‰¹…µ”ˆè€‰Í…µ•}Õ¥‘}…ÕÑ¡½É¥Ñå}½¹™¥ÕÉ…Ñ¥½¹}™…¥±Í}‰•™½É•}­•å}•¹•É…Ñ¥½¸ˆ°(€€€€€€€€€€€€€€€€€€€€€€€€‰½¬ˆè‰…‘}À¹É•ÑÕÉ¹½‘”€„ô€À…¹¹½}ÁÉ¥Ù…Ñ”°(€€€€€€€€€€€€€€€€€€€€€€€€‰‘•Ñ…¥°ˆèì‰É•ÑÕÉ¹½‘”ˆè‰…‘}À¹É•ÑÕÉ¹½‘”°(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‰ÍÑ‘•ÉÉ}Ñ…¥°ˆè‰…‘}À¹ÍÑ‘•ÉÉl´ÔÀÀét°(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‰ÁÉ¥Ù…Ñ•}•á¥ÍÑÌˆè¹½Ð¹½}ÁÉ¥Ù…Ñ•õô¤((€€€€€€€Á…ÍÍ•€ôÍÕ´ Ä™½ÈÈ¥¸É•ÍÕ±ÑÌ¥˜Él‰½¬‰t¤(€€€€€€€É•Á½ÉÐ€ôì(€€€€€€€€€€€€‰Í¡•µ„ˆè€‰…á´¹™±½Ý¥¹œµ½µÁÕÑ”¹Ý…Ù”ÄÌÀµ‘•‘¥…Ñ•µÕ¥µ‰½Õ¹‘…ÉäµÍ•±™Ñ•ÍÐ¹ØÄˆ°(€€€€€€€€€€€€‰µ½‘”ˆè€‰½ÁÑ¥µ¥é•ˆ¥˜ÍåÌ¹™±…Ì¹½ÁÑ¥µ¥é”•±Í”€‰¹½Éµ…°ˆ°(€€€€€€€€€€€€‰Ý½É­•É}Õ¥ˆèÝ½É­•É}Õ¥°(€€€€€€€€€€€€‰…¹¡½É}Õ¥ˆè…¹¡½É}Õ¥°(€€€€€€€€€€€€‰Á…ÍÍ•ˆèÁ…ÍÍ•°(€€€€€€€€€€€€‰Ñ½Ñ…°ˆè±•¸¡É•ÍÕ±ÑÌ¤°(€€€€€€€€€€€€‰É•ÍÕ±ÑÌˆèÉ•ÍÕ±ÑÌ°(€€€€€€€€€€€€‰ÑÉÕÑ¡}‰½Õ¹‘…Éäˆè€ (€€€€€€€€€€€€€€€€‰Ñ•ÍÑ•U¹¥àÕ¥½ÁÉ½•ÍÌ¥Í½±…Ñ¥½¸½¹±äìÉ½½Ð½­•É¹•°°…¹¡½ÈµÕ¥½µÁÉ½µ¥Í”°€ˆ(€€€€€€€€€€€€€€€€‰É½ÍÌµ¡½ÍÐ½Á¥•­•åÌ°¥¹Ñ•ÉÉÕÁÑ•µ¥¹¥ÐÉ•½Ù•Éä°É½Ñ…Ñ¥½¸°¡…É‘Ý…É”ÕÍÑ½‘ä°€ˆ(€€€€€€€€€€€€€€€€‰Á•É™½Éµ…¹”…¹Á¡åÍ¥…°½ÁÉ½Ù¥‘•È™¥¹…±¥ÑäÉ•µ…¥¸Õ¹ÁÉ½Ù•ˆ(€€€€€€€€€€€€¤°(€€€€€€€ô(€€€€€€€¥˜É•Á½ÉÑ}Á…Ñ è(€€€€€€€€€€€É•Á½ÉÑ}Á…Ñ ¹Á…É•¹Ð¹µ­‘¥È¡Á…É•¹ÑÌõQÉÕ”°•á¥ÍÑ}½¬õQÉÕ”¤(€€€€€€€€€€€É•Á½ÉÑ}Á…Ñ ¹ÝÉ¥Ñ•}Ñ•áÐ¡©Í½¸¹‘ÕµÁÌ¡É•Á½ÉÐ°¥¹‘•¹ÐôÈ°Í½ÉÑ}­•åÌõQÉÕ”¤€¬€‰q¸ˆ¤(€€€€€€€ÁÉ¥¹Ð¡©Í½¸¹‘ÕµÁÌ¡É•Á½ÉÐ°Í½ÉÑ}­•åÌõQÉÕ”¤¤(€€€€€€€É•ÑÕÉ¸€À¥˜Á…ÍÍ•€ôô±•¸¡É•ÍÕ±ÑÌ¤•±Í”€Ä(€€€™¥¹…±±äè(€€€€€€€™½ÈÁÉ½Œ¥¸€¡™…­•}ÁÉ½Œ°…¹¡½É}ÁÉ½Œ¤è(€€€€€€€€€€€¥˜ÁÉ½Œ¥Ì¹½Ð9½¹”…¹ÁÉ½Œ¹Á½±° ¤¥Ì9½¹”è(€€€€€€€€€€€€€€€ÑÉäè(€€€€€€€€€€€€€€€€€€€½Ì¹­¥±°¡ÁÉ½Œ¹Á¥°Í¥¹…°¹M%-%10¤(€€€€€€€€€€€€€€€•á•ÁÐAÉ½•ÍÍ1½½­ÕÁÉÉ½Èè(€€€€€€€€€€€€€€€€€€€Á…ÍÌ(€€€€€€€€€€€€€€€ÑÉäè(€€€€€€€€€€€€€€€€€€€ÁÉ½Œ¹Ý…¥Ð¡Ñ¥µ•½ÕÐôÌ¤(€€€€€€€€€€€€€€€•á•ÁÐá•ÁÑ¥½¸è(€€€€€€€€€€€€€€€€€€€Á…ÍÌ(€€€€€€€Í¡ÕÑ¥°¹ÉµÑÉ•”¡‰…Í”°¥¹½É•}•ÉÉ½ÉÌõQÉÕ”¤(()‘•˜µ…¥¸ ¤€´ø¥¹Ðè(€€€…À€ô…ÉÁ…ÉÍ”¹ÉÕµ•¹ÑA…ÉÍ•È ¤(€€€…À¹…‘‘}…ÉÕµ•¹Ð ˆ´µÝ½É­•ÈµÕ¥ˆ°ÑåÁ”õ¥¹Ð¤(€€€…À¹…‘‘}…ÉÕµ•¹Ð ˆ´µ…¹¡½ÈµÕ¥ˆ°ÑåÁ”õ¥¹Ð°‘•™…Õ±ÐôÈÌÀÀÄ¤(€€€…À¹…‘‘}…ÉÕµ•¹Ð ˆ´µÉ•Á½ÉÐˆ°ÑåÁ”õA…Ñ ¤(€€€…À¹…‘‘}…ÉÕµ•¹Ð ˆ´µ¡¥±µÉ•…µ­•äˆ°¹…ÉÌôÈ¤(€€€…À¹…‘‘}…ÉÕµ•¹Ð ˆ´µ¡¥±µÁÉ½ŒµÁÉ½‰”ˆ°ÑåÁ”õ¥¹Ð¤(€€€…À¹…‘‘}…ÉÕµ•¹Ð ˆ´µ¡¥±µÁ¥¹œˆ°¹…ÉÌôÌ¤(€€€…À¹…‘‘}…ÉÕµ•¹Ð ˆ´µ¡¥±µÕ¹±¥¹¬ˆ¤(€€€…À¹…‘‘}…ÉÕµ•¹Ð ˆ´µ¡¥±µ™…­”µÍ•ÉÙ•Èˆ°¹…ÉÌôÈ¤(€€€¹Ì€ô…À¹Á…ÉÍ•}…ÉÌ ¤(€€€¥˜¹Ì¹¡¥±‘}É•…‘}­•äè(€€€€€€€É•ÑÕÉ¸¡¥±‘}É•…‘}­•ä¡A…Ñ ¡¹Ì¹¡¥±‘}É•…‘}­•ålÁt¤°A…Ñ ¡¹Ì¹¡¥±‘}É•…‘}­•ålÅt¤¤(€€€¥˜¹Ì¹¡¥±‘}ÁÉ½}ÁÉ½‰”¥Ì¹½Ð9½¹”è(€€€€€€€É•ÑÕÉ¸¡¥±‘}ÁÉ½}ÁÉ½‰”¡¹Ì¹¡¥±‘}ÁÉ½}ÁÉ½‰”¤(€€€¥˜¹Ì¹¡¥±‘}Á¥¹œè(€€€€€€€É•ÑÕÉ¸¡¥±‘}Á¥¹œ¡A…Ñ ¡¹Ì¹¡¥±‘}Á¥¹lÁt¤°¹Ì¹¡¥±‘}Á¥¹lÅt°A…Ñ ¡¹Ì¹¡¥±‘}Á¥¹lÉt¤¤(€€€¥˜¹Ì¹¡¥±‘}Õ¹±¥¹¬è(€€€€€€€É•ÑÕÉ¸¡¥±‘}Õ¹±¥¹¬¡A…Ñ ¡¹Ì¹¡¥±‘}Õ¹±¥¹¬¤¤(€€€¥˜¹Ì¹¡¥±‘}™…­•}Í•ÉÙ•Èè(€€€€€€€É•ÑÕÉ¸¡¥±‘}™…­•}Í•ÉÙ•È¡A…Ñ ¡¹Ì¹¡¥±‘}™…­•}Í•ÉÙ•ÉlÁt¤°A…Ñ ¡¹Ì¹¡¥±‘}™…­•}Í•ÉÙ•ÉlÅt¤¤(€€€Ý½É­•É}Õ¥€ô¹Ì¹Ý½É­•É}Õ¥(€€€¥˜Ý½É­•É}Õ¥¥Ì9½¹”è(€€€€€€€É…¥Í”Y…±Õ•ÉÉ½È ˆ´µÝ½É­•ÈµÕ¥µÉ•ÅÕ¥É•ˆ¤(€€€É•ÑÕÉ¸ÉÕ¹}ÍÕ¥Ñ”¡Ý½É­•É}Õ¥°¹Ì¹…¹¡½É}Õ¥°¹Ì¹É•Á½ÉÐ¤(()¥˜}}¹…µ•}|€ôô€‰}}µ…¥¹}|ˆè(€€€É…¥Í”MåÍÑ•µá¥Ð¡µ…¥¸ ¤¤(
