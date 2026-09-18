@@ -4,7 +4,8 @@
 This is intentionally narrower than the full Wave-127 protocol suite. It tests
 the exact verifier-PR-52 repair boundary: no globally discoverable private-key
 helper, ordinary same-UID /proc fd inspection blocked by non-dumpable anchor
-custody, concurrent signing, hard-kill cleanup, and exact-store restart.
+custody, concurrent client pressure through the anchor's deliberately serial
+signer, hard-kill cleanup, and exact-store restart.
 """
 from __future__ import annotations
 
@@ -211,6 +212,7 @@ def run() -> dict:
             failures: list[str] = []
             results: list[dict] = []
             lock = threading.Lock()
+            worker_count = 12
 
             def ping_worker(i: int) -> None:
                 try:
@@ -223,22 +225,36 @@ def run() -> dict:
                     with lock:
                         failures.append(f"{type(exc).__name__}:{exc}")
 
-            threads = [threading.Thread(target=ping_worker, args=(i,)) for i in range(24)]
+            # The anchor intentionally services one accepted request at a time;
+            # listen(16) queues concurrent clients. Keep this pressure within
+            # that documented queue instead of pretending Wave 128 implements
+            # a parallel signing server.
+            threads = [
+                threading.Thread(target=ping_worker, args=(i,))
+                for i in range(worker_count)
+            ]
             for t in threads:
                 t.start()
             for t in threads:
                 t.join(timeout=8)
 
             concurrent_ok = (
-                len(results) == 24
+                len(results) == worker_count
                 and not failures
+                and all(not t.is_alive() for t in threads)
                 and all(r.get("ok") is True for r in results)
                 and all(r.get("response_public_fingerprint") == response_fp for r in results)
             )
             checks.append({
-                "name": "concurrent_signed_responses_verify_without_key_export",
+                "name": "concurrent_clients_queue_through_serial_signer_without_key_export",
                 "ok": concurrent_ok,
-                "detail": {"responses": len(results), "failures": failures},
+                "detail": {
+                    "worker_count": worker_count,
+                    "responses": len(results),
+                    "alive_after_join": sum(1 for t in threads if t.is_alive()),
+                    "failures": failures,
+                    "parallel_signing_claim": False,
+                },
             })
 
             time.sleep(0.05)
@@ -299,6 +315,7 @@ def run() -> dict:
             "tested Linux same-host/same-uid observer without anchor-store read access or CAP_SYS_PTRACE",
             "PR_SET_DUMPABLE=0 is part of the tested custody contract, not a hostile-kernel boundary",
             "memfd and procfs behavior are Linux-specific",
+            "concurrent clients are queued through a deliberately serial anchor signer; no parallel-signing throughput claim",
             "copied genuine private keys in another namespace/host remain outside this wave",
             "no performance, energy, retained/incremental/dormant-compute or physical-finality claim",
         ],
