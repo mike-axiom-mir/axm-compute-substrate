@@ -1,0 +1,88 @@
+name: Verifier Wave 131 readiness path swap
+
+on:
+  push:
+    branches:
+      - verifier/wave131-ready-gate-path-swap
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Environment identity
+        run: |
+          python --version
+          openssl version
+          uname -a
+          id
+          grep -E '^(Uid|Gid|CapPrm|CapEff|NoNewPrivs):' /proc/self/status || true
+          sudo -n true
+
+      - name: Stage UID-neutral code
+        run: |
+          sudo rm -rf /tmp/axm-w131-verifier
+          sudo mkdir -p /tmp/axm-w131-verifier/tools /tmp/axm-w131-verifier/verification
+          sudo cp -a tools/. /tmp/axm-w131-verifier/tools/
+          sudo cp verification/wave131_ready_gate_path_swap_repro_v2.py /tmp/axm-w131-verifier/verification/
+          sudo find /tmp/axm-w131-verifier -type d -exec chmod 0755 {} +
+          sudo find /tmp/axm-w131-verifier -type f -exec chmod 0644 {} +
+
+      - name: Unchanged Wave 131 control normal
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w131-verifier/tools HOME=/tmp python /tmp/axm-w131-verifier/tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_INIT_RECOVERY_SELFTEST.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave131-control-normal.json' sh "$worker_uid"
+
+      - name: Unchanged Wave 131 control optimized
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w131-verifier/tools HOME=/tmp python -O /tmp/axm-w131-verifier/tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_INIT_RECOVERY_SELFTEST.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave131-control-optimized.json' sh "$worker_uid"
+
+      - name: Adversarial path-swap normal
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w131-verifier/tools HOME=/tmp python /tmp/axm-w131-verifier/verification/wave131_ready_gate_path_swap_repro_v2.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave131-path-swap-normal.json' sh "$worker_uid"
+
+      - name: Adversarial path-swap optimized
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w131-verifier/tools HOME=/tmp python -O /tmp/axm-w131-verifier/verification/wave131_ready_gate_path_swap_repro_v2.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave131-path-swap-optimized.json' sh "$worker_uid"
+
+      - name: Exact provenance
+        run: |
+          printf '%s\n' '72b6cf04e8cbd1a8fc356bb47dca103fa1e39ffe' > /tmp/challenged-builder-head.txt
+          git rev-parse 72b6cf04e8cbd1a8fc356bb47dca103fa1e39ffe:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_INIT_RECOVERY.py > /tmp/wave131-public-tool-blob.txt
+          git rev-parse 72b6cf04e8cbd1a8fc356bb47dca103fa1e39ffe:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_INIT_RECOVERY_IMPL.py > /tmp/wave131-impl-blob.txt
+          git rev-parse 72b6cf04e8cbd1a8fc356bb47dca103fa1e39ffe:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_INIT_RECOVERY_SELFTEST.py > /tmp/wave131-selftest-blob.txt
+          git rev-parse HEAD > /tmp/verifier-head.txt
+          git rev-parse HEAD:verification/wave131_ready_gate_path_swap_repro_v2.py > /tmp/verifier-script-blob.txt
+          git rev-parse HEAD:.github/workflows/verifier-wave131-ready-gate-path-swap.yml > /tmp/verifier-workflow-blob.txt
+
+      - name: Upload verifier evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave131-readiness-path-swap-verifier
+          path: |
+            /tmp/wave131-control-normal.json
+            /tmp/wave131-control-optimized.json
+            /tmp/wave131-path-swap-normal.json
+            /tmp/wave131-path-swap-optimized.json
+            /tmp/challenged-builder-head.txt
+            /tmp/wave131-public-tool-blob.txt
+            /tmp/wave131-impl-blob.txt
+            /tmp/wave131-selftest-blob.txt
+            /tmp/verifier-head.txt
+            /tmp/verifier-script-blob.txt
+            /tmp/verifier-workflow-blob.txt
+          if-no-files-found: error
