@@ -1,0 +1,73 @@
+{
+  "builder_head": "0d97d0dde7f3b72ff1da6ae68315c0e163330f75",
+  "overall_verdict": "FAIL_COMMITTED_TRANSITION_IDENTITY_IS_SUBSTITUTABLE",
+  "primary": {
+    "boundary": {
+      "claim": "The Wave-110 guard proves that one self-consistent sealed body points at the same authority/checkpoint/predecessor. It does not prove that this is the transition actually created/committed for that authority, because no committed object names the expected transition SHA and checkpoint state/registry semantics are not revalidated here.",
+      "credential_forge_used": false,
+      "existing_hash_collision_used": false,
+      "real_transition_body_modified_in_place": false,
+      "replacement_is_new_content_addressed_body": true
+    },
+    "committed_authority_sha": "29c0996ee6613752a9cf6fff5b0ed745b374dd1701a74a6bab2e9b5dbdfb032e",
+    "committed_checkpoint_sha": "678ad0199132814e7b7b3fff39aee1e4c3481b2606b2397fce3923385a1818e0",
+    "legitimate_transition_sha_removed": "0bbb2248794e20652d61b52ed97dcdd0a0527d3c7861412a709ef048ab8de130",
+    "substitute_changed_app_registry_state_identity": true,
+    "substitute_semantics": {
+      "changed_fields": {"not-a-real-remote-slot": ["imaginary_field"]},
+      "changed_slots": ["not-a-real-remote-slot"],
+      "current_generation": 700,
+      "current_registry_sha": "3333333333333333333333333333333333333333333333333333333333333333",
+      "target_app_state_sha": "1111111111111111111111111111111111111111111111111111111111111111",
+      "target_generation": 999,
+      "target_registry_sha": "2222222222222222222222222222222222222222222222222222222222222222",
+      "target_state_sha": "8fd4a03b36da3217d64be40d64ea3cd1f9249d1999000cb645742642f11cdd24",
+      "transition_kind": "VERIFIER_SYNTHETIC_SUBSTITUTION"
+    },
+    "substitute_target_registry_absent_from_registry_store": true,
+    "substitute_target_state_mismatches_committed_checkpoint_state": true,
+    "substitute_transition_sha": "8650ac538ff67e2c061909d2b97d7a4d6fc2137648978ecc7b74613a799f949a",
+    "verdict": "FAIL_COMMITTED_TRANSITION_IDENTITY_IS_SUBSTITUTABLE",
+    "wave110_authority": "AUTHORITATIVE_QUORUM_3_OF_3_MODELED",
+    "wave110_commit_status_state": {
+      "committed_authority_shas": ["29c0996ee6613752a9cf6fff5b0ed745b374dd1701a74a6bab2e9b5dbdfb032e"],
+      "committed_count": 1,
+      "expected_transition_shas": ["8650ac538ff67e2c061909d2b97d7a4d6fc2137648978ecc7b74613a799f949a"],
+      "reason": "markers-retained-transaction-and-transition-evidence-agree",
+      "status": "VALID"
+    }
+  },
+  "schema": "axm.verification.wave110.transition_provenance/v1",
+  "secondary": {
+    "boundary": {
+      "claim": "Wave 110 documents that a valid retained transition not accounted for by the committed marker lineage is unresolved. If HISTORY_NONE bypasses transition inspection and genesis becomes authoritative while the accepted-epoch transition survives, that boundary is too strong.",
+      "lower_authority_state_restored_to_saved_genesis": true,
+      "marker_store_keys_removed": true,
+      "transition_record_erased": false
+    },
+    "retained_transition_names_accepted_epoch1": true,
+    "retained_transition_sha": "0deb293c1d16bc5f7b3e2fd14d6460375fb88a8b96efe67b38f4dc340d6a394d",
+    "verdict": "FAIL_TRANSITION_ONLY_EVIDENCE_IS_IGNORED_WHEN_WAVE109_REPORTS_NONE",
+    "wave108_marker_store_keys_removed": true,
+    "wave110_authority": "AUTHORITATIVE_GENESIS_MODELED",
+    "wave110_commit_status_state": {
+      "reason": "wave109-base-wave108-base-pre-wave108-fresh-state-no-authority-history",
+      "status": "NONE"
+    }
+  },
+  "selftest_blob": "00b0eccac36cf479c81004ceac811a6af1293b85",
+  "tested_source_commit": "dfe22164f853cf1f04f0ae93103e33478ed074fd",
+  "tool_blob": "abc96489922bcf7af64412a8e85cf447796321b1",
+  "ci": {
+    "run": 35209627758,
+    "normal_job": 105163740894,
+    "optimized_job": 105163741071,
+    "normal_conclusion": "success",
+    "optimized_conclusion": "success",
+    "unchanged_wave110_selftest_normal": "20/20 PASS",
+    "normal_artifact_id": 10491453206,
+    "normal_artifact_digest": "sha256:d21a7a6507dede1d0ef6490451763636b3ff974987499b688b93a9f029e480bd",
+    "optimized_artifact_id": 10491167895,
+    "optimized_artifact_digest": "sha256:4333c815799f70c22b0ad1e66b2a6aba602d416badb9937cc6e21eab1689e2f8"
+  }
+}
