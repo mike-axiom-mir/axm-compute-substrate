@@ -31,19 +31,41 @@ This means the independently pinned **anchor identity string** is checked, but t
 
 This test is intentionally same-host/same-filesystem. It does not replace/rollback the anchor directory, witness directory, external anchor fingerprint, host-pin namespace, network namespace, or builder code. It does not forge either HMAC credential, rewrite either durable ledger, use an older writer, exploit a hash collision, or make any speed/energy/retained-compute claim.
 
-This is stronger than the already-disclosed whole witness+anchor rollback counterexample: the independently pinned genuine anchor remains alive and its newer/current durable state remains intact; only its mutable communication pathname is substituted.
+This is stronger than the already-disclosed whole witness+anchor rollback counterexample: the independently pinned genuine anchor remains alive and its current durable state remains intact; only its mutable communication pathname is substituted.
 
 ## Independent execution evidence
 
-Initial verifier run `35298748930`, job `105456673196`:
+Corrected verifier CI-tested head: `04d803a6e1ecc45fc3dc18b6d3aa845c717d3d2b`  
+Run: `35298843623`  
+Job: `105456964908`  
+Conclusion: **success**
 
-- unchanged Wave 126 builder self-test: PASS normal;
-- unchanged Wave 126 builder self-test: PASS under `python -O`;
-- socket-substitution counterexample: reproduced normal;
-- socket-substitution counterexample: reproduced under `python -O`;
-- exact-source metadata step then failed because the verifier workflow used `git rev-parse HEAD^` with the default shallow checkout (`fetch-depth: 1`), so artifact upload was skipped and the overall run was marked failure.
+Artifact: `10529270623` (`wave126-anchor-socket-substitution-verifier`)  
+Artifact SHA-256: `5d80f023e5f88ca89d096fb8ed6029fccca8a3b218b154dfe12bc48cf5f3e774`
 
-That final failure is verifier-workflow provenance plumbing, not a builder or counterexample failure. The workflow has been corrected to fetch two commits and is being rerun before this lane is treated as complete evidence.
+The successful run independently established:
+
+- unchanged Wave 126 builder self-test: **12/12 PASS** normal Python;
+- unchanged Wave 126 builder self-test: **12/12 PASS** under `python -O`;
+- socket-substitution counterexample: **REPRODUCED** normal Python;
+- socket-substitution counterexample: **REPRODUCED** under `python -O`;
+- exact source identity and artifact upload: PASS.
+
+In both attack runs, the fake endpoint received reconcile requests first for one witness record and then for two. It did not possess the anchor secret. The unchanged client nevertheless reported `AUTHORITATIVE_PROCESS_WITNESS_COMMIT`, the genuine anchor process remained alive with durable anchor sequence `1`, and the genuine witness ledger advanced to sequence `2`.
+
+An earlier run, `35298748930` / job `105456673196`, had already reproduced the counterexample in both Python modes and passed both unchanged builder controls, but its final source-metadata step failed because the verifier workflow used `git rev-parse HEAD^` under a depth-1 checkout. That provenance-plumbing false negative is preserved rather than hidden; the workflow was corrected with `fetch-depth: 2` before the successful run above.
+
+## Next adversarial gate
+
+The anchor response needs cryptographic endpoint authentication, not a self-asserted fingerprint. The smallest gate is a nonce/challenge or request digest bound into an anchor-HMAC/signature over the exact reconciliation result, with the verifier checking that proof using a key/public-key identity that a pathname substitute cannot derive. Then attack:
+
+- socket unlink/rebind before witness startup and while witness is live;
+- replay of a genuine old signed reconciliation response;
+- response splicing between two witness heads;
+- wrong sequence/head with a valid old proof;
+- concurrent genuine + fake endpoints;
+- legitimate anchor restart/rotation without accepting an unproved replacement;
+- only after that, cross-network-namespace/second-host clone tests.
 
 ## Verification lane
 
