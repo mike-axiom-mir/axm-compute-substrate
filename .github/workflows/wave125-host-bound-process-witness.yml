@@ -7,6 +7,7 @@ on:
     paths:
       - tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND.py
       - tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND_SELFTEST.py
+      - tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND_SELFTEST_FIXED.py
       - .github/workflows/wave125-host-bound-process-witness.yml
   workflow_dispatch:
 
@@ -27,7 +28,7 @@ jobs:
       - name: Syntax check exact Wave 125 tools
         env:
           PYTHONPATH: ${{ github.workspace }}/tools
-        run: python -m py_compile tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND.py tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND_SELFTEST.py
+        run: python -m py_compile tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND.py tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND_SELFTEST.py tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND_SELFTEST_FIXED.py
       - name: Wave 124 unchanged regression
         env:
           PYTHONPATH: ${{ github.workspace }}/tools
@@ -39,11 +40,11 @@ jobs:
       - name: Wave 125 exact-source self-test
         env:
           PYTHONPATH: ${{ github.workspace }}/tools
-        run: python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND_SELFTEST.py --report wave125-report/wave125.json
+        run: python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND_SELFTEST_FIXED.py --report wave125-report/wave125.json
       - name: Wave 125 optimized-mode self-test
         env:
           PYTHONPATH: ${{ github.workspace }}/tools
-        run: python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND_SELFTEST.py --report wave125-report/wave125-optimized.json
+        run: python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND_SELFTEST_FIXED.py --report wave125-report/wave125-optimized.json
       - name: Record exact source identity
         if: always()
         run: |
@@ -52,6 +53,7 @@ jobs:
           files = [
               'tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND.py',
               'tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND_SELFTEST.py',
+              'tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND_SELFTEST_FIXED.py',
               '.github/workflows/wave125-host-bound-process-witness.yml',
               'tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_EXCLUSIVE.py',
               'tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_EXCLUSIVE_SELFTEST.py',
@@ -66,6 +68,10 @@ jobs:
               'verifier_evidence_head': '45f082097f415151879a9aadb33553118f4a80d3',
               'verifier_tested_head': '8a64415d9d2e93dc405e254fb2bc04be5841093e',
               'verifier_artifact_sha256': '00c75622e0902114fba5acb81c87b0eb24e826a78bd03035fe5a3e407f7a8ad3',
+              'first_failed_harness_run': 35292893987,
+              'first_failed_harness_job': 105439352425,
+              'first_failed_harness_artifact': 10526407948,
+              'first_failed_harness_artifact_sha256': '080eadc9394f6bd92983f5b353df33911ff62feba2e2b85c68c051d80c55791c',
               'truth_boundary': 'same Linux network namespace plus one OS-user host-pin namespace, cooperating Wave 125 servers; bootstrap and whole witness+host-pin rollback remain boundaries; no physical/provider/performance/energy/retained-compute claim',
           }
           with open('wave125-report/source-identity.json','w',encoding='utf-8') as f:
