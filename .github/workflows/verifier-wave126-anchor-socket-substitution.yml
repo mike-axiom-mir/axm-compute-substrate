@@ -1,0 +1,70 @@
+name: verifier-wave126-anchor-socket-substitution
+
+on:
+  push:
+    branches:
+      - chatgpt/verifier-wave126-anchor-socket-substitution
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Unchanged Wave 126 builder self-test normal
+        env:
+          PYTHONPATH: tools
+        run: |
+          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ANCHORED_SELFTEST.py --report /tmp/wave126-builder-normal.json
+
+      - name: Unchanged Wave 126 builder self-test optimized
+        env:
+          PYTHONPATH: tools
+        run: |
+          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ANCHORED_SELFTEST.py --report /tmp/wave126-builder-optimized.json
+
+      - name: Adversarial anchor socket substitution normal
+        env:
+          PYTHONPATH: tools
+        run: |
+          python verification/wave126_anchor_socket_substitution_repro.py | tee /tmp/wave126-verifier-normal.json
+
+      - name: Adversarial anchor socket substitution optimized
+        env:
+          PYTHONPATH: tools
+        run: |
+          python -O verification/wave126_anchor_socket_substitution_repro.py | tee /tmp/wave126-verifier-optimized.json
+
+      - name: Exact source identity
+        run: |
+          git rev-parse HEAD > /tmp/verifier-head.txt
+          git rev-parse HEAD^ > /tmp/builder-base-head.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ANCHORED.py > /tmp/wave126-tool-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ANCHORED_SELFTEST.py > /tmp/wave126-selftest-blob.txt
+          git rev-parse HEAD:verification/wave126_anchor_socket_substitution_repro.py > /tmp/verifier-repro-blob.txt
+          git rev-parse HEAD:.github/workflows/verifier-wave126-anchor-socket-substitution.yml > /tmp/verifier-workflow-blob.txt
+
+      - name: Upload verifier evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave126-anchor-socket-substitution-verifier
+          path: |
+            /tmp/wave126-builder-normal.json
+            /tmp/wave126-builder-optimized.json
+            /tmp/wave126-verifier-normal.json
+            /tmp/wave126-verifier-optimized.json
+            /tmp/verifier-head.txt
+            /tmp/builder-base-head.txt
+            /tmp/wave126-tool-blob.txt
+            /tmp/wave126-selftest-blob.txt
+            /tmp/verifier-repro-blob.txt
+            /tmp/verifier-workflow-blob.txt
+          if-no-files-found: error
