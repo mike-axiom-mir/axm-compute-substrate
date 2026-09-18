@@ -1,0 +1,74 @@
+name: verifier-wave120-post-lower-pre-sync-transition-loss
+
+on:
+  push:
+    branches:
+      - verifier/wave120-post-lower-pre-sync-transition-loss-20260917
+    paths:
+      - verification/wave120_post_lower_prepare_pre_sync_transition_loss_repro.py
+      - verification/wave120_focused_repair_control.py
+      - verification/WAVE120_ADVERSARIAL_VERIFICATION_2026-09-17.md
+      - .github/workflows/verifier-wave120-post-lower-pre-sync-transition-loss.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare report directory
+        run: mkdir -p verifier-wave120-report
+      - name: Focused Wave 120 direct-repair control normal
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python verification/wave120_focused_repair_control.py --json-out verifier-wave120-report/repair-control-normal.json
+      - name: Focused Wave 120 direct-repair control optimized
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python -O verification/wave120_focused_repair_control.py --json-out verifier-wave120-report/repair-control-optimized.json
+      - name: Independent adversarial reproduction normal
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python verification/wave120_post_lower_prepare_pre_sync_transition_loss_repro.py --json-out verifier-wave120-report/verifier-normal.json
+      - name: Independent adversarial reproduction optimized
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python -O verification/wave120_post_lower_prepare_pre_sync_transition_loss_repro.py --json-out verifier-wave120-report/verifier-optimized.json
+      - name: Record exact source identity
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          files = [
+              'tools/AXM_FLOWING_COMPUTE_ROTATION_PREPARE_TRANSACTION.py',
+              'tools/AXM_FLOWING_COMPUTE_ROTATION_PREPARE_TRANSACTION_SELFTEST.py',
+              'verification/wave120_focused_repair_control.py',
+              'verification/wave120_post_lower_prepare_pre_sync_transition_loss_repro.py',
+              'verification/WAVE120_ADVERSARIAL_VERIFICATION_2026-09-17.md',
+              '.github/workflows/verifier-wave120-post-lower-pre-sync-transition-loss.yml',
+          ]
+          out = {
+              'tested_commit': subprocess.check_output(['git','rev-parse','HEAD'], text=True).strip(),
+              'builder_base': 'f0d171e65fcc3d0618915bd7d9d79a4deabda7cb',
+              'blobs': {
+                  path: subprocess.check_output(['git','hash-object',path], text=True).strip()
+                  for path in files
+              },
+              'truth_boundary': 'same-process prepare atomicity/liveness and evidence synchronization only; direct repair control uses full public authority path; no power-loss, process, timing, energy, or retained-compute win claim',
+          }
+          with open('verifier-wave120-report/source-identity.json','w',encoding='utf-8') as f:
+              json.dump(out,f,indent=2,sort_keys=True)
+              f.write('\n')
+          PY
+      - name: Upload verifier evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: verifier-wave120-post-lower-pre-sync-report
+          path: verifier-wave120-report/
+          if-no-files-found: error
