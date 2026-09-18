@@ -1,0 +1,46 @@
+name: verifier-wave111-crash-recovery
+
+on:
+  push:
+    branches:
+      - chatgpt/verifier-wave111-crash-recovery
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        optimized: [false, true]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Re-run unchanged Wave 111 builder self-test
+        run: |
+          if [ "${{ matrix.optimized }}" = "true" ]; then
+            python -O tools/AXM_FLOWING_COMPUTE_TRANSITION_PROVENANCE_LEDGER_SELFTEST.py > wave111-builder-selftest.txt
+          else
+            python tools/AXM_FLOWING_COMPUTE_TRANSITION_PROVENANCE_LEDGER_SELFTEST.py > wave111-builder-selftest.txt
+          fi
+          cat wave111-builder-selftest.txt
+      - name: Run independent Wave 111 adversarial verifier
+        run: |
+          if [ "${{ matrix.optimized }}" = "true" ]; then
+            python -O verification/wave111_crash_recovery_repro.py > wave111-verifier.json
+          else
+            python verification/wave111_crash_recovery_repro.py > wave111-verifier.json
+          fi
+          cat wave111-verifier.json
+      - name: Upload exact verifier evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave111-crash-recovery-${{ matrix.optimized }}
+          path: |
+            wave111-builder-selftest.txt
+            wave111-verifier.json
