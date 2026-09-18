@@ -1,0 +1,59 @@
+name: verifier-wave125-host-pin-namespace-replacement
+
+on:
+  push:
+    branches:
+      - verifier/wave125-host-pin-namespace-replacement
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Unchanged Wave 125 builder suite
+        env:
+          PYTHONPATH: tools
+        run: |
+          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND_SELFTEST_FIXED.py --report /tmp/wave125-builder-normal.json
+      - name: Unchanged Wave 125 builder suite optimized
+        env:
+          PYTHONPATH: tools
+        run: |
+          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND_SELFTEST_FIXED.py --report /tmp/wave125-builder-optimized.json
+      - name: Adversarial verifier normal
+        env:
+          PYTHONPATH: tools
+        run: |
+          set -o pipefail
+          python verification/wave125_host_pin_namespace_replacement_repro.py | tee /tmp/wave125-verifier-normal.json
+      - name: Adversarial verifier optimized
+        env:
+          PYTHONPATH: tools
+        run: |
+          set -o pipefail
+          python -O verification/wave125_host_pin_namespace_replacement_repro.py | tee /tmp/wave125-verifier-optimized.json
+      - name: Source identity
+        run: |
+          git rev-parse HEAD > /tmp/source-head.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND.py > /tmp/wave125-tool-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND_SELFTEST_FIXED.py > /tmp/wave125-selftest-fixed-blob.txt
+          git rev-parse HEAD:verification/wave125_host_pin_namespace_replacement_repro.py > /tmp/verifier-blob.txt
+      - name: Upload exact verifier evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave125-host-pin-namespace-verifier
+          path: |
+            /tmp/wave125-builder-normal.json
+            /tmp/wave125-builder-optimized.json
+            /tmp/wave125-verifier-normal.json
+            /tmp/wave125-verifier-optimized.json
+            /tmp/source-head.txt
+            /tmp/wave125-tool-blob.txt
+            /tmp/wave125-selftest-fixed-blob.txt
+            /tmp/verifier-blob.txt
+          if-no-files-found: error
