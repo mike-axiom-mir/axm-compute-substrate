@@ -46,18 +46,12 @@ jobs:
       - name: Wave 130 dedicated UID authority normal
         run: |
           worker_uid="$(id -u)"
-          sudo env PYTHONPATH="$PWD/tools" HOME=/tmp \
-            python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_AUTHORITY_BOUNDARY_SELFTEST.py \
-            --worker-uid "$worker_uid" --anchor-uid 23001 \
-            --report /tmp/wave130-normal.json
+          sudo sh -c 'umask 000; exec env PYTHONPATH="$1/tools" HOME=/tmp python "$1/tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_AUTHORITY_BOUNDARY_SELFTEST.py" --worker-uid "$2" --anchor-uid 23001 --report /tmp/wave130-normal.json' sh "$PWD" "$worker_uid"
 
       - name: Wave 130 dedicated UID authority optimized
         run: |
           worker_uid="$(id -u)"
-          sudo env PYTHONPATH="$PWD/tools" HOME=/tmp \
-            python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_AUTHORITY_BOUNDARY_SELFTEST.py \
-            --worker-uid "$worker_uid" --anchor-uid 23001 \
-            --report /tmp/wave130-optimized.json
+          sudo sh -c 'umask 000; exec env PYTHONPATH="$1/tools" HOME=/tmp python -O "$1/tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_AUTHORITY_BOUNDARY_SELFTEST.py" --worker-uid "$2" --anchor-uid 23001 --report /tmp/wave130-optimized.json' sh "$PWD" "$worker_uid"
 
       - name: Exact source identity
         run: |
