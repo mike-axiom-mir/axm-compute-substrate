@@ -1,0 +1,156 @@
+{
+  "checks": [
+    {
+      "name": "exact_wave90_commit",
+      "pass": true
+    },
+    {
+      "name": "exact_wave90_blob",
+      "pass": true
+    },
+    {
+      "name": "exact_wave90_sha256",
+      "pass": true
+    },
+    {
+      "name": "stable_current_authoritative",
+      "pass": true
+    },
+    {
+      "name": "current_auth_allows",
+      "pass": true
+    },
+    {
+      "name": "prepared_successor_structurally_valid",
+      "pass": true
+    },
+    {
+      "name": "prepared_successor_zero_authority",
+      "pass": true
+    },
+    {
+      "name": "early_self_admission_zero_authority",
+      "pass": true
+    },
+    {
+      "name": "partial_handoff_created",
+      "pass": true
+    },
+    {
+      "name": "partial_handoff_holds",
+      "pass": true
+    },
+    {
+      "name": "predecessor_auth_holds_during_partial",
+      "pass": true
+    },
+    {
+      "name": "target_auth_holds_during_partial",
+      "pass": true
+    },
+    {
+      "name": "lone_newer_witness_does_not_win",
+      "pass": true
+    },
+    {
+      "name": "missing_witness_holds",
+      "pass": true
+    },
+    {
+      "name": "pointer_ahead_holds",
+      "pass": true
+    },
+    {
+      "name": "competing_histories_hold_no_vote",
+      "pass": true
+    },
+    {
+      "name": "exact_handoff_commits",
+      "pass": true
+    },
+    {
+      "name": "target_authoritative_after_commit",
+      "pass": true
+    },
+    {
+      "name": "target_auth_allows_after_commit",
+      "pass": true
+    },
+    {
+      "name": "old_auth_rejected_after_commit",
+      "pass": true
+    },
+    {
+      "name": "root_hold_still_blocks",
+      "pass": true
+    },
+    {
+      "name": "missing_current_body_holds",
+      "pass": true
+    },
+    {
+      "name": "corrupt_current_body_holds",
+      "pass": true
+    },
+    {
+      "name": "rollback_uses_new_forward_identity",
+      "pass": true
+    },
+    {
+      "name": "old_auth_not_revived_by_rollback",
+      "pass": true
+    },
+    {
+      "name": "fresh_rollback_successor_auth_allows",
+      "pass": true
+    },
+    {
+      "name": "counterexample_unguarded_transition_can_admit_self_evaluator",
+      "pass": true
+    }
+  ],
+  "counterexample": "Current-registry binding blocks prepared-successor authority and early self-admission, but the transition primitive is still not predecessor-root-authorized. If it commits a self-minted evaluator registry, that registry becomes mechanically current and can authorize afterward.",
+  "independent_check_name_match": true,
+  "independent_runs": [
+    {
+      "benchmark_rounds": 100,
+      "passed_checks": 27,
+      "status": "PASS",
+      "synthetic_single_host_current_registry_auth_cpu_us_median": 60.814499999999995,
+      "total_checks": 27
+    },
+    {
+      "benchmark_rounds": 100,
+      "passed_checks": 27,
+      "status": "PASS",
+      "synthetic_single_host_current_registry_auth_cpu_us_median": 58.638000000000005,
+      "total_checks": 27
+    }
+  ],
+  "measurement_note": "Process CPU only for synthetic single-host current-registry authorization bookkeeping; excludes distributed/network/storage latency and is not an energy measurement.",
+  "schema": "axm.flowing-compute-wave91-current-registry-authority/v0.1",
+  "source_provenance": {
+    "wave90_tool_blob_sha": "35f756d023fcbfa1e24fff94a2dcf87b29d8962e",
+    "wave90_tool_commit": "57435f3f21b017b6a532a39c31e0a8a58ca70182",
+    "wave90_tool_file_sha256": "35355bb17ab069cf1de5d32168e2bf8153bf489eda30b27057e82ccab9743679"
+  },
+  "status": "PASS",
+  "tool": {
+    "blob_sha": "f378627bc2f8752fc8e20f73f0737c15f9e2ddff",
+    "commit": "0e275b6ea43c6a8cfbd66266e210bcf93a9ecddb",
+    "file_sha256": "28b7da0d40b53f2ba9ec58161c0531530c2bfaa7e63eada4c5e7cd7eb27ad4f5",
+    "path": "tools/AXM_FLOWING_COMPUTE_CURRENT_REGISTRY_AUTHORITY.py"
+  },
+  "truth_boundary": {
+    "automatic_merge": false,
+    "canonical_root_judgment_claim": false,
+    "compute_efficiency_claim": false,
+    "distributed_consensus_claim": false,
+    "energy_claim": false,
+    "evaluator_registry_transition_authorization_proven": false,
+    "fresh_monolith_audit": false,
+    "moral_evaluator_legitimacy_proven": false,
+    "note": "Synthetic single-host authority-state probe only; no AXM workload or compute-savings claim.",
+    "synthetic_scaling": false
+  }
+}

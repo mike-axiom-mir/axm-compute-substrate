@@ -1,0 +1,96 @@
+name: Wave 128 key custody
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - 'tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY.py'
+      - 'tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY_SELFTEST.py'
+      - 'tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY_ADVERSARIAL_SELFTEST.py'
+      - '.github/workflows/wave128-key-custody.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-wave128:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact builder lane
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Environment and source identity
+        run: |
+          python --version
+          openssl version
+          git rev-parse HEAD | tee /tmp/wave128-head.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY.py | tee /tmp/wave128-tool-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY_SELFTEST.py | tee /tmp/wave128-protocol-selftest-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY_ADVERSARIAL_SELFTEST.py | tee /tmp/wave128-custody-selftest-blob.txt
+
+      - name: Compile Wave 128 tools
+        env:
+          PYTHONPATH: tools
+        run: |
+          python -m py_compile \
+            tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY.py \
+            tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY_SELFTEST.py \
+            tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY_ADVERSARIAL_SELFTEST.py
+
+      - name: Unchanged Wave 127 regression normal
+        env:
+          PYTHONPATH: tools
+        run: |
+          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_AUTHENTICATED_ANCHOR_SELFTEST_FIXED.py --report /tmp/wave127-regression-normal.json
+
+      - name: Unchanged Wave 127 regression optimized
+        env:
+          PYTHONPATH: tools
+        run: |
+          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_AUTHENTICATED_ANCHOR_SELFTEST_FIXED.py --report /tmp/wave127-regression-optimized.json
+
+      - name: Wave 128 full protocol regression normal
+        env:
+          PYTHONPATH: tools
+        run: |
+          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY_SELFTEST.py --report /tmp/wave128-protocol-normal.json
+
+      - name: Wave 128 full protocol regression optimized
+        env:
+          PYTHONPATH: tools
+        run: |
+          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY_SELFTEST.py --report /tmp/wave128-protocol-optimized.json
+
+      - name: Wave 128 custody adversarial normal
+        env:
+          PYTHONPATH: tools
+        run: |
+          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY_ADVERSARIAL_SELFTEST.py --report /tmp/wave128-custody-normal.json
+
+      - name: Wave 128 custody adversarial optimized
+        env:
+          PYTHONPATH: tools
+        run: |
+          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_CUSTODY_ADVERSARIAL_SELFTEST.py --report /tmp/wave128-custody-optimized.json
+
+      - name: Upload exact Wave 128 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave128-key-custody-evidence
+          path: |
+            /tmp/wave128-head.txt
+            /tmp/wave128-tool-blob.txt
+            /tmp/wave128-protocol-selftest-blob.txt
+            /tmp/wave128-custody-selftest-blob.txt
+            /tmp/wave127-regression-normal.json
+            /tmp/wave127-regression-optimized.json
+            /tmp/wave128-protocol-normal.json
+            /tmp/wave128-protocol-optimized.json
+            /tmp/wave128-custody-normal.json
+            /tmp/wave128-custody-optimized.json
+          if-no-files-found: error

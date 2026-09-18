@@ -1,0 +1,69 @@
+name: Wave 108 committed history manifest
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - "tools/AXM_FLOWING_COMPUTE_COMMITTED_HISTORY_MANIFEST.py"
+      - "tools/AXM_FLOWING_COMPUTE_COMMITTED_HISTORY_MANIFEST_SELFTEST.py"
+      - ".github/workflows/wave108-committed-history-manifest.yml"
+      - "tools/AXM_FLOWING_COMPUTE_BOOTSTRAP_PARTIAL_EVIDENCE_GUARD.py"
+      - "tools/AXM_FLOWING_COMPUTE_BOOTSTRAP_PARTIAL_EVIDENCE_GUARD_SELFTEST.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unchanged Wave 107 regression
+        run: python tools/AXM_FLOWING_COMPUTE_BOOTSTRAP_PARTIAL_EVIDENCE_GUARD_SELFTEST.py > /tmp/wave107.json
+      - name: Wave 108 normal Python
+        id: wave108_normal
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          python tools/AXM_FLOWING_COMPUTE_COMMITTED_HISTORY_MANIFEST_SELFTEST.py --json-out /tmp/wave108-normal.json > /tmp/wave108-normal.log 2>&1
+          code=$?
+          cat /tmp/wave108-normal.log
+          echo "$code" > /tmp/wave108-normal.exit
+          exit "$code"
+      - name: Wave 108 optimized Python
+        id: wave108_optimized
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          python -O tools/AXM_FLOWING_COMPUTE_COMMITTED_HISTORY_MANIFEST_SELFTEST.py --json-out /tmp/wave108-optimized.json > /tmp/wave108-optimized.log 2>&1
+          code=$?
+          cat /tmp/wave108-optimized.log
+          echo "$code" > /tmp/wave108-optimized.exit
+          exit "$code"
+      - name: Preserve reports and failure diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave108-exact-source-reports
+          if-no-files-found: ignore
+          path: |
+            /tmp/wave107.json
+            /tmp/wave108-normal.json
+            /tmp/wave108-normal.log
+            /tmp/wave108-normal.exit
+            /tmp/wave108-optimized.json
+            /tmp/wave108-optimized.log
+            /tmp/wave108-optimized.exit
+      - name: Enforce Wave 108 results
+        if: always()
+        shell: bash
+        run: |
+          test "$(cat /tmp/wave108-normal.exit)" = "0"
+          test "$(cat /tmp/wave108-optimized.exit)" = "0"

@@ -1,0 +1,39 @@
+name: Wave 110 transition-evidence guard
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - 'tools/AXM_FLOWING_COMPUTE_TRANSITION_EVIDENCE_GUARD.py'
+      - 'tools/AXM_FLOWING_COMPUTE_TRANSITION_EVIDENCE_GUARD_SELFTEST.py'
+      - '.github/workflows/wave110-transition-evidence-guard.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wave110:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Wave 109 regression
+        run: python tools/AXM_FLOWING_COMPUTE_COMMIT_STATUS_AMBIGUITY_GUARD_SELFTEST.py --json-out evidence/wave110_wave109_regression.json
+      - name: Wave 110 normal Python
+        run: python tools/AXM_FLOWING_COMPUTE_TRANSITION_EVIDENCE_GUARD_SELFTEST.py --json-out evidence/wave110_normal.json
+      - name: Wave 110 optimized Python
+        run: python -O tools/AXM_FLOWING_COMPUTE_TRANSITION_EVIDENCE_GUARD_SELFTEST.py --json-out evidence/wave110_optimized.json
+      - name: Upload exact-run reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave110-transition-evidence-reports
+          path: |
+            evidence/wave110_wave109_regression.json
+            evidence/wave110_normal.json
+            evidence/wave110_optimized.json
+          if-no-files-found: warn

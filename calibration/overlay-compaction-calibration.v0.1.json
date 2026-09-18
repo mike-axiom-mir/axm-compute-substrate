@@ -1,0 +1,29 @@
+{
+  "schema": "axm.flowing-compute-overlay-compaction-calibration/v0.1",
+  "contract_id": "axm.execution-graph.native-packed-overlay/v0.1",
+  "emit": {
+    "full_snapshot_cpu_ns": 3088591.0,
+    "overlay_cpu_ns": 382009.0,
+    "full_snapshot_bytes": 261596.0,
+    "overlay_bytes_median": 2859.0
+  },
+  "depths": [
+    {"depth":1,"compact_wake_cpu_ns":2649957,"overlay_wake_cpu_ns":3777968,"base_plus_overlays_bytes":264936,"compact_snapshot_bytes":261596,"full_history_bytes":523193},
+    {"depth":2,"compact_wake_cpu_ns":2695055,"overlay_wake_cpu_ns":3992357,"base_plus_overlays_bytes":270532,"compact_snapshot_bytes":261596,"full_history_bytes":784790},
+    {"depth":4,"compact_wake_cpu_ns":2823165,"overlay_wake_cpu_ns":4125375,"base_plus_overlays_bytes":277636,"compact_snapshot_bytes":261596,"full_history_bytes":1307978},
+    {"depth":6,"compact_wake_cpu_ns":2778759,"overlay_wake_cpu_ns":4218624,"base_plus_overlays_bytes":281548,"compact_snapshot_bytes":261596,"full_history_bytes":1831161},
+    {"depth":8,"compact_wake_cpu_ns":2837207,"overlay_wake_cpu_ns":4316951,"base_plus_overlays_bytes":285460,"compact_snapshot_bytes":261596,"full_history_bytes":2354353},
+    {"depth":12,"compact_wake_cpu_ns":2801583,"overlay_wake_cpu_ns":4443699,"base_plus_overlays_bytes":293287,"compact_snapshot_bytes":261596,"full_history_bytes":3400737},
+    {"depth":16,"compact_wake_cpu_ns":2990675,"overlay_wake_cpu_ns":4711228,"base_plus_overlays_bytes":301113,"compact_snapshot_bytes":261596,"full_history_bytes":4447121},
+    {"depth":24,"compact_wake_cpu_ns":3003855,"overlay_wake_cpu_ns":5011986,"base_plus_overlays_bytes":316764,"compact_snapshot_bytes":261596,"full_history_bytes":6539889},
+    {"depth":32,"compact_wake_cpu_ns":2974841,"overlay_wake_cpu_ns":5232204,"base_plus_overlays_bytes":332415,"compact_snapshot_bytes":261596,"full_history_bytes":8632657},
+    {"depth":48,"compact_wake_cpu_ns":3039207,"overlay_wake_cpu_ns":5942341,"base_plus_overlays_bytes":363717,"compact_snapshot_bytes":261596,"full_history_bytes":12818193},
+    {"depth":64,"compact_wake_cpu_ns":2961822,"overlay_wake_cpu_ns":6028120,"base_plus_overlays_bytes":395021,"compact_snapshot_bytes":261596,"full_history_bytes":17003729}
+  ],
+  "truth": {
+    "single_host": true,
+    "cpu_time_not_joules": true,
+    "calibrated_depths_only": true,
+    "expected_future_wakes_not_observed_by_calibration": true
+  }
+}

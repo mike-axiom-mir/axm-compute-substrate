@@ -1,0 +1,90 @@
+name: Wave 131 exact init recovery
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wave131:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Environment identity
+        run: |
+          python --version
+          openssl version
+          uname -a
+          id
+          grep -E '^(Uid|Gid|CapPrm|CapEff|NoNewPrivs):' /proc/self/status || true
+          cat /proc/sys/kernel/yama/ptrace_scope || true
+          sysctl kernel.unprivileged_userns_clone 2>/dev/null || true
+          sysctl kernel.apparmor_restrict_unprivileged_userns 2>/dev/null || true
+          sudo -n true
+
+      - name: Stage UID-neutral test code
+        run: |
+          sudo rm -rf /tmp/axm-w131-code
+          sudo mkdir -p /tmp/axm-w131-code
+          sudo cp -a tools/. /tmp/axm-w131-code/
+          sudo find /tmp/axm-w131-code -type d -exec chmod 0755 {} +
+          sudo find /tmp/axm-w131-code -type f -exec chmod 0644 {} +
+
+      - name: Unchanged Wave 130 regression normal
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w131-code HOME=/tmp python /tmp/axm-w131-code/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_AUTHORITY_BOUNDARY_SELFTEST.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave130-normal.json' sh "$worker_uid"
+
+      - name: Unchanged Wave 130 regression optimized
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w131-code HOME=/tmp python -O /tmp/axm-w131-code/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_AUTHORITY_BOUNDARY_SELFTEST.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave130-optimized.json' sh "$worker_uid"
+
+      - name: Wave 131 exact init recovery normal
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w131-code HOME=/tmp python /tmp/axm-w131-code/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_INIT_RECOVERY_SELFTEST.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave131-normal.json' sh "$worker_uid"
+
+      - name: Wave 131 exact init recovery optimized
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w131-code HOME=/tmp python -O /tmp/axm-w131-code/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_INIT_RECOVERY_SELFTEST.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave131-optimized.json' sh "$worker_uid"
+
+      - name: Exact source identity
+        run: |
+          git rev-parse HEAD > /tmp/tested-head.txt
+          git rev-parse HEAD^ > /tmp/tested-parent.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_AUTHORITY_BOUNDARY.py > /tmp/wave130-tool-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_INIT_RECOVERY.py > /tmp/wave131-tool-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_INIT_RECOVERY_IMPL.py > /tmp/wave131-impl-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_INIT_RECOVERY_SELFTEST.py > /tmp/wave131-selftest-blob.txt
+          git rev-parse HEAD:.github/workflows/wave131-exact-init-recovery.yml > /tmp/wave131-workflow-blob.txt
+
+      - name: Upload exact Wave 131 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave131-exact-init-recovery
+          path: |
+            /tmp/wave130-normal.json
+            /tmp/wave130-optimized.json
+            /tmp/wave131-normal.json
+            /tmp/wave131-optimized.json
+            /tmp/tested-head.txt
+            /tmp/tested-parent.txt
+            /tmp/wave130-tool-blob.txt
+            /tmp/wave131-tool-blob.txt
+            /tmp/wave131-impl-blob.txt
+            /tmp/wave131-selftest-blob.txt
+            /tmp/wave131-workflow-blob.txt
+          if-no-files-found: error

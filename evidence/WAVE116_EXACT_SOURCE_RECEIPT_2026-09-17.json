@@ -1,0 +1,102 @@
+{
+  "schema": "axm.flowing-compute.wave116.exact-source-receipt/v1",
+  "wave": 116,
+  "date": "2026-09-17",
+  "repository": "mike-axiom-mir/axm-compute-substrate",
+  "lane": {
+    "branch": "chatgpt/lane-001-platform-extract",
+    "pull_request": 2,
+    "merge_performed": false,
+    "auto_merge_enabled": false,
+    "canon_promotion_performed": false
+  },
+  "predecessor": {
+    "wave": 115,
+    "evidence_head_before_wave116": "8f183d61e9874fd821ec2c03c222f13711d7b8ff",
+    "tested_source_commit": "ad03fc8582a8ac6d8b294c494fa8b2fabb142dc6",
+    "tool_blob": "7279d1aa84df3efec5848ea98fe601a590ffc2a9",
+    "selftest_blob": "f31881af1fa976fa1c125f4d84f613b1af1cd680"
+  },
+  "independent_verifier": {
+    "pull_request": 40,
+    "head_at_wave116_start": "fb478e4b5bdf040250ac1ad950bbd1fc81123e8e",
+    "verdict": "FAIL_CONTRADICTORY_REJECTION_OUTCOMES_ACCEPTED_AS_VALID_HISTORY",
+    "reproduced_against_unchanged_wave115": true,
+    "reproduction_final_status": "VALID",
+    "reproduction_final_authority": "AUTHORITATIVE_QUORUM_3_OF_3_MODELED"
+  },
+  "exact_tested_source": {
+    "commit": "b47136f228679ef72130d5e043e56743d00257f8",
+    "tool": {
+      "path": "tools/AXM_FLOWING_COMPUTE_AUTHENTICATED_REJECTION_OUTCOME.py",
+      "blob_sha": "9b3459d84766cea56e293d4cdf573d8457c51b8f"
+    },
+    "selftest": {
+      "path": "tools/AXM_FLOWING_COMPUTE_AUTHENTICATED_REJECTION_OUTCOME_SELFTEST.py",
+      "blob_sha": "dd3b4d987d78b08ae1136771dcff2d3d4d4c427e"
+    },
+    "workflow": {
+      "path": ".github/workflows/wave116-authenticated-rejection-outcome.yml",
+      "blob_sha": "d5a2caca6918fae7558bb919f3d768ad313fe82c"
+    },
+    "wave115_identity_selftest_blob": "9f85264227a9061c406469720f88ac90378d015d"
+  },
+  "ci": {
+    "run_id": 35242671779,
+    "job_id": 105274825571,
+    "conclusion": "success",
+    "head_sha": "b47136f228679ef72130d5e043e56743d00257f8",
+    "reports": {
+      "wave115_regression": {"passed": 42, "total": 42},
+      "wave115_rejection_identity_regression": {"passed": 9, "total": 9},
+      "wave116_normal": {"passed": 28, "total": 28},
+      "wave116_python_optimized": {"passed": 28, "total": 28}
+    },
+    "artifact": {
+      "id": 10506615108,
+      "name": "wave116-authenticated-rejection-outcome-reports",
+      "size_in_bytes": 12071,
+      "sha256": "9595b9322fe618606e813ed78f44edbe1942a1ab8e1438d04d50ef576c3df8f5",
+      "github_digest_matched_local_download": true
+    }
+  },
+  "repair_contract": {
+    "raw_wave115_rejections_preserved": true,
+    "authenticated_outcome_required_for_terminal_reject": true,
+    "raw_to_authenticated_cardinality": "exactly-one-to-one",
+    "terminal_reject_per_exact_transition": "exactly-one",
+    "commit_and_reject_overlap": "fail-closed",
+    "retriable_hold_terminalized": false,
+    "outcome_credential_model": "same-process HMAC credential",
+    "credential_bound_in_retained_state_by_identity": true
+  },
+  "negative_cases": {
+    "unauthenticated_contradictory_raw_row": "INCOMPLETE_OR_CORRUPT/HOLD_COMMITTED_HISTORY_INCOMPLETE",
+    "authenticated_second_contradictory_reject_for_same_transition": "INCOMPLETE_OR_CORRUPT/HOLD_COMMITTED_HISTORY_INCOMPLETE",
+    "forged_outcome_auth_tag": "INCOMPLETE_OR_CORRUPT",
+    "outcome_credential_substitution": "INCOMPLETE_OR_CORRUPT/HOLD_COMMITTED_HISTORY_INCOMPLETE",
+    "commit_reject_same_transition": "INCOMPLETE_OR_CORRUPT",
+    "retriable_validation_hold": "no raw reject and no authenticated terminal outcome",
+    "crash_after_raw_reject_before_authenticated_outcome": "raw preserved; outcome absent; INCOMPLETE_OR_CORRUPT; authority HOLD"
+  },
+  "truth_boundary": {
+    "same_modeled_python_failure_domain": true,
+    "hmac_is_os_process_independence": false,
+    "hmac_is_hardware_key_security": false,
+    "power_loss_atomicity_proved": false,
+    "physical_monotonicity_proved": false,
+    "provider_independence_proved": false,
+    "real_axm_or_monolith_workload_run": false,
+    "synthetic_scaling_run": false,
+    "performance_claim": false,
+    "energy_claim": false,
+    "retained_incremental_dormant_compute_claim": false,
+    "whole_modeled_domain_rollback_counterexample_inherited": true,
+    "known_failure": "raw rejection can persist while authenticated outcome is missing; Wave 116 fails closed and does not reconstruct it"
+  },
+  "evidence_note": {
+    "path": "evidence/FLOWING_COMPUTE_WAVE116_AUTHENTICATED_REJECTION_OUTCOME_2026-09-17.md",
+    "commit": "6fc33718eaee7e734b450485e8ca8279f347881f"
+  },
+  "receipt_note": "This receipt is appended after the exact tested source. It does not silently rewrite the tested Wave-116 implementation or workflow."
+}

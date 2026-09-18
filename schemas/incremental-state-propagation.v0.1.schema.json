@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://axiom-mir.invalid/schemas/incremental-state-propagation.v0.1.schema.json",
+  "title": "AXM Incremental State Propagation Receipt v0.1",
+  "type": "object",
+  "required": ["schema", "subject", "experiment", "summary", "cases", "truth", "receipt_sha256"],
+  "properties": {
+    "schema": {"const": "axm.incremental-state-propagation-receipt/v0.1"},
+    "subject": {"type": "object", "required": ["source", "source_sha256", "scc_components", "baseline_setup_cpu_ns", "baseline_retained_state_bytes"]},
+    "experiment": {"type": "object", "required": ["mutation_kind", "cases", "trials_per_case", "equivalence_contract"]},
+    "summary": {"type": "object", "required": ["all_equivalence_passed", "all_incremental_faster_than_full", "all_incremental_faster_than_global_propagation"]},
+    "cases": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["edge_id", "affected_components", "total_components", "full_rebuild_cpu_median_ns", "global_propagation_cpu_median_ns", "incremental_cpu_median_ns", "equivalence_passed"]}},
+    "truth": {"type": "object"},
+    "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": true
+}

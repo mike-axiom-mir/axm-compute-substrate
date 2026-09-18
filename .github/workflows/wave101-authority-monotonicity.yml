@@ -1,0 +1,32 @@
+name: Wave 101 authority monotonicity
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - 'tools/AXM_FLOWING_COMPUTE_REMOTE_AUTHORITY_MONOTONICITY.py'
+      - 'tools/AXM_FLOWING_COMPUTE_REMOTE_AUTHORITY_MONOTONICITY_SELFTEST.py'
+      - '.github/workflows/wave101-authority-monotonicity.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Re-run Wave 100 baseline
+        working-directory: tools
+        run: python AXM_FLOWING_COMPUTE_REMOTE_REGISTRY_MONOTONICITY_SELFTEST.py --benchmark-rounds 3
+      - name: Wave 101 normal Python
+        working-directory: tools
+        run: python AXM_FLOWING_COMPUTE_REMOTE_AUTHORITY_MONOTONICITY_SELFTEST.py --benchmark-rounds 5
+      - name: Wave 101 optimized Python
+        working-directory: tools
+        run: python -O AXM_FLOWING_COMPUTE_REMOTE_AUTHORITY_MONOTONICITY_SELFTEST.py --benchmark-rounds 5

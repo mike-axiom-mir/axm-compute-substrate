@@ -1,0 +1,44 @@
+{
+  "carried_control": {
+    "contract_id": "axm.framestate.dormant-mesh/v0.1",
+    "resulting_audit_age_generations": 1
+  },
+  "controls": {
+    "audited_mode_without_receipt_holds": "PASS",
+    "carried_mode_rejects_audit_receipt_ambiguity": "PASS",
+    "changed_artifact_fails_audit_and_cannot_reset_freshness": "PASS",
+    "current_monolith_execution_fabric_matches_capability_proof_source": "PASS",
+    "rehashed_semantic_tamper_rejected": "PASS",
+    "stale_receipt_rejected": "PASS",
+    "valid_audit_plus_other_contract_hold_exposes_no_partial_state": "PASS"
+  },
+  "provenance": {
+    "capability_proof_source_sha256": "2f8f5f306b6790b3e8a4d58b2c00fd60eb5c18a3c4f6b40424000e26aa87ef6e",
+    "execution_fabric_bytes": 39055991,
+    "execution_fabric_member": "AXM_Connected_Monolith_v0.4.30-WALMI-NATIVE-WIRING/EXECUTION_FABRIC.json",
+    "execution_fabric_sha256": "2f8f5f306b6790b3e8a4d58b2c00fd60eb5c18a3c4f6b40424000e26aa87ef6e",
+    "monolith_archive_name": "AXM_Connected_Monolith_v0.4.30-WALMI-NATIVE-WIRING.zip",
+    "monolith_archive_sha256": "fd43bf3b5d94ef4c05b96e7833ce78f38870119912a84faf0ec076095fcef5ce"
+  },
+  "real_audit": {
+    "artifact_bytes": 11255808,
+    "artifact_sha256": "e676fafb2f825d946c10480ccd2184ab69daf9464ae77cf5703dfe59562644da",
+    "audit_cpu_ns": 8543797,
+    "audit_receipt_sha256": "fb65ba5ad5cc0f4c33a851957ccc42a4142c64a3d0815abb1a4f0886dbf4ecf2",
+    "audit_wall_ns": 8543712,
+    "bytes_read": 11255808,
+    "chunks_read": 11,
+    "contract_id": "axm.execution-fabric.capability-index/v0.1",
+    "proof_sha256": "0e90715689e43290371acc3d1608b58d179cd4c6e7bfc288b9bd41b718f353a2",
+    "resulting_audit_age_generations": 0
+  },
+  "schema": "axm.flowing-compute-audit-work-receipt-wave79/v0.1",
+  "truth": {
+    "audit_receipt_is_local_execution_evidence_not_unforgeable_actor_attestation": true,
+    "audited_freshness_reset_requires_validated_receipt_in_this_transition_contract": true,
+    "cpu_time_is_not_joules": true,
+    "no_audit_cadence_is_invented": true,
+    "real_artifact_bytes_were_read_for_the_positive_case": true,
+    "receipt_digest_protects_integrity_not_authentication": true
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "schema": "axm.flowing-compute-overlay-compaction-proven-calibration/v0.1",
+  "contract_id": "axm.execution-graph.native-packed-overlay.proof-carrying/v0.1",
+  "creation": {
+    "full_snapshot_emit_cpu_ns": 3088591,
+    "overlay_emit_cpu_ns": 382009,
+    "semantic_attestation_cpu_ns": 874300,
+    "proof_carrying_overlay_creation_cpu_ns": 1256309,
+    "creation_cpu_saved_vs_full_snapshot_ns": 1832282
+  },
+  "proof_manifest": {
+    "depth_64_bytes": 18738,
+    "individual_depth_64_proof_bytes_before_compaction": 79830
+  },
+  "depths": [
+    {"depth": 1, "proven_compact_wake_cpu_ns": 1639000, "proven_overlay_wake_cpu_ns": 1868000, "estimated_future_wake_break_even": 8.00},
+    {"depth": 6, "proven_compact_wake_cpu_ns": 1779000, "proven_overlay_wake_cpu_ns": 2263000, "estimated_future_wake_break_even": 3.79},
+    {"depth": 24, "proven_compact_wake_cpu_ns": 1799000, "proven_overlay_wake_cpu_ns": 2834000, "estimated_future_wake_break_even": 1.77},
+    {"depth": 64, "proven_compact_wake_cpu_ns": 1733000, "proven_overlay_wake_cpu_ns": 3709000, "estimated_future_wake_break_even": 0.93}
+  ],
+  "truth": {
+    "single_host": true,
+    "proof_creation_cost_is_counted": true,
+    "manifest_persistence_cost_not_separately_measured": true,
+    "semantic_proof_is_reused_not_recomputed_at_wake": true,
+    "external_authentication_not_provided": true,
+    "full_revalidation_remains_available": true,
+    "cpu_time_not_joules": true
+  }
+}

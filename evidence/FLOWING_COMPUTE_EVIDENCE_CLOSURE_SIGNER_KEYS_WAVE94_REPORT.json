@@ -1,0 +1,76 @@
+{
+  "checks": [
+    {"name": "exact_wave93_builder_source", "pass": true},
+    {"name": "exact_wave93_verifier_source", "pass": true},
+    {"name": "genesis_authoritative", "pass": true},
+    {"name": "generation1_valid", "pass": true},
+    {"name": "generation1_commits", "pass": true},
+    {"name": "generation1_authoritative", "pass": true},
+    {"name": "missing_immediate_attestation_holds", "pass": true},
+    {"name": "cannot_extend_missing_immediate_attestation", "pass": true},
+    {"name": "missing_predecessor_history_holds", "pass": true},
+    {"name": "cannot_extend_missing_history", "pass": true},
+    {"name": "restored_closure_authoritative", "pass": true},
+    {"name": "rotation_bundle_valid", "pass": true},
+    {"name": "rotation_commits", "pass": true},
+    {"name": "post_rotation_authoritative", "pass": true},
+    {"name": "key_rotated", "pass": true},
+    {"name": "new_key_descends_from_old", "pass": true},
+    {"name": "old_key_material_rejected_after_rotation", "pass": true},
+    {"name": "new_current_key_valid", "pass": true},
+    {"name": "generation3_commits", "pass": true},
+    {"name": "missing_older_attestation_holds", "pass": true},
+    {"name": "cannot_extend_over_older_gap", "pass": true},
+    {"name": "missing_key_lineage_body_holds", "pass": true},
+    {"name": "restored_key_lineage_authoritative", "pass": true},
+    {"name": "visible_same_sequence_equivocation_holds", "pass": true},
+    {"name": "remove_visible_equivocation_restores_authority", "pass": true},
+    {"name": "counterexample_stolen_current_key_still_validates", "pass": true},
+    {"name": "counterexample_whole_domain_rollback_still_authoritative", "pass": true},
+    {"name": "partial_created", "pass": true},
+    {"name": "partial_not_authoritative", "pass": true},
+    {"name": "partial_exact_recovery_commits", "pass": true},
+    {"name": "missing_witness_holds", "pass": true}
+  ],
+  "closed_counterexamples": [
+    "Current authority traverses the complete retained history chain to genesis; deleting a committed predecessor history body fails closed.",
+    "Current authority traverses every active root attestation chain to sequence 1; deleting immediate or older committed attestation bodies fails closed and blocks extension.",
+    "Attestations carry HMAC-SHA256 test-model key-control proof and must use the exact current root key for new issuance; predecessor-authenticated key rotation advances explicit key lineage and rotated old key material cannot authorize later transitions.",
+    "Current key-lineage bodies are part of authority closure, and visible same-sequence equivocation freezes authority.",
+    "History/attestation/key state moves through exact three-witness tuples; partial fan-out has no authority and resumes only with exact evidence."
+  ],
+  "counterexamples": [
+    "A stolen current symmetric key can still mint structurally valid evidence: this demonstrates modeled key control, not actor identity, moral legitimacy, or correctness of a root judgment.",
+    "Equivocation hidden outside the visible attestation store is not detectable by this single-host model.",
+    "If runtime plus all evidence/key stores roll back together, the old self-consistent snapshot remains internally authoritative; no independent anti-rollback witness is proven.",
+    "Full retained closure means historical bodies cannot be garbage-collected silently; no authority-bound compaction/checkpoint cut exists yet."
+  ],
+  "failed_checks": [],
+  "independent_check_name_match": true,
+  "independent_runs": [
+    {"benchmark_rounds": 100, "passed_checks": 31, "status": "PASS", "synthetic_single_host_closure_and_signer_cpu_us_median": 11662.811000000002, "total_checks": 31},
+    {"benchmark_rounds": 100, "passed_checks": 31, "status": "PASS", "synthetic_single_host_closure_and_signer_cpu_us_median": 10535.927500000002, "total_checks": 31}
+  ],
+  "measurement_note": "Synthetic single-host evidence-closure + HMAC key-lineage bookkeeping only; process CPU, not wall-clock storage/network latency, joules, or a retained/incremental/dormant-state efficiency result.",
+  "next_gate": "Wave 95: make deliberate history/attestation compaction an authority-bound checkpoint operation instead of requiring every body forever, then attack stale checkpoint reuse, omitted pre-cut evidence, malicious cut points, key rotation across a compaction boundary, and rollback of both live state and checkpoint. After that, move anti-rollback witnessing into a genuinely separate failure domain and consider public-key signatures without conflating key identity with root correctness.",
+  "schema": "axm.flowing-compute-wave94-evidence-closure-signer-keys/v0.1",
+  "source_provenance": {
+    "wave93_builder": {"blob_sha": "bd34149b4370973b56a2ab213ae9e1f1adc2ae0e", "builder_head": "24c3597089097d67b5f2972beb11d51a764bee12", "file_sha256": "4ab6553768a23dcbff16255763f92f89f00179eff1fde6915692fc17301522a3", "path": "tools/AXM_FLOWING_COMPUTE_TRANSITION_ATTESTATION_HISTORY.py"},
+    "wave93_verifier": {"blob_sha": "ba10e7b2bfee6eb22975d45b9eaa369d910099a7", "finding": "FAIL_COMMITTED_HISTORY_CAN_EXTEND_OVER_MISSING_PREDECESSOR_BODIES", "head": "9e58b601c39eabcb619b3cb6b784e7d2e95dffac", "path": "verification/WAVE93_ADVERSARIAL_VERIFICATION_2026-09-16.md", "pr": 18, "workflow_run": 35127370580}
+  },
+  "status": "PASS",
+  "truth_boundary": {
+    "actor_identity_claim": false,
+    "automatic_merge": false,
+    "canonical_root_judgment_claim": false,
+    "compute_efficiency_claim": false,
+    "cryptographic_scope": "HMAC-SHA256 symmetric test model demonstrates key possession/control only; secrets are test-fixture material, not production key management.",
+    "distributed_consensus_claim": false,
+    "energy_claim": false,
+    "fresh_monolith_audit": false,
+    "moral_evaluator_legitimacy_proven": false,
+    "public_key_signature_claim": false,
+    "retained_incremental_dormant_win_claim": false,
+    "synthetic_scaling": false
+  }
+}

@@ -1,0 +1,73 @@
+name: wave123-separate-process-witness
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS.py
+      - tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_SELFTEST.py
+      - .github/workflows/wave123-separate-process-witness.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare report directory
+        run: mkdir -p wave123-report
+      - name: Syntax check exact Wave 123 tools
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python -m py_compile tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS.py tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_SELFTEST.py
+      - name: Wave 122 unchanged regression
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python tools/AXM_FLOWING_COMPUTE_TERMINATION_EXCEPTION_ROLLBACK_SELFTEST.py --json-out wave123-report/wave122-regression.json
+      - name: Wave 122 unchanged regression optimized
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python -O tools/AXM_FLOWING_COMPUTE_TERMINATION_EXCEPTION_ROLLBACK_SELFTEST.py --json-out wave123-report/wave122-regression-optimized.json
+      - name: Wave 123 exact-source self-test
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_SELFTEST.py --json-out wave123-report/wave123.json
+      - name: Wave 123 optimized-mode self-test
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tools
+        run: python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_SELFTEST.py --json-out wave123-report/wave123-optimized.json
+      - name: Record exact source identity
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          files = [
+              'tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS.py',
+              'tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_SELFTEST.py',
+              '.github/workflows/wave123-separate-process-witness.yml',
+              'tools/AXM_FLOWING_COMPUTE_TERMINATION_EXCEPTION_ROLLBACK.py',
+              'tools/AXM_FLOWING_COMPUTE_TERMINATION_EXCEPTION_ROLLBACK_SELFTEST.py',
+          ]
+          out = {
+              'tested_source_commit': subprocess.check_output(['git','rev-parse','HEAD'], text=True).strip(),
+              'blobs': {path: subprocess.check_output(['git','hash-object',path], text=True).strip() for path in files},
+              'wave122_evidence_head': '41f1719b48aace2c5db5ae68cadb9ccbce14970d',
+              'wave122_tested_source_commit': '5ebe63488494c6767637b82407be8675d1fcca52',
+              'truth_boundary': 'single-host separate OS process plus own durable store/credential under tested SIGKILL cuts; no power/device/provider independence; whole-domain rollback survives; no performance/energy/retained-compute claim',
+          }
+          with open('wave123-report/source-identity.json','w',encoding='utf-8') as f:
+              json.dump(out,f,indent=2,sort_keys=True); f.write('\n')
+          PY
+      - name: Upload machine-readable run report
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave123-report
+          path: wave123-report/
+          if-no-files-found: error

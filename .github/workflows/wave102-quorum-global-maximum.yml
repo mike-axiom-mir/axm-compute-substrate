@@ -1,0 +1,38 @@
+name: Wave 102 quorum-global maximum
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - 'tools/AXM_FLOWING_COMPUTE_QUORUM_GLOBAL_MAXIMUM.py'
+      - 'tools/AXM_FLOWING_COMPUTE_QUORUM_GLOBAL_MAXIMUM_SELFTEST.py'
+      - '.github/workflows/wave102-quorum-global-maximum.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        mode: [normal, optimized]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run Wave 101 regression
+        working-directory: tools
+        run: python AXM_FLOWING_COMPUTE_REMOTE_AUTHORITY_MONOTONICITY_SELFTEST.py --benchmark-rounds 2
+      - name: Run Wave 102 self-test
+        working-directory: tools
+        shell: bash
+        run: |
+          if [ "${{ matrix.mode }}" = "optimized" ]; then
+            python -O AXM_FLOWING_COMPUTE_QUORUM_GLOBAL_MAXIMUM_SELFTEST.py --benchmark-rounds 3
+          else
+            python AXM_FLOWING_COMPUTE_QUORUM_GLOBAL_MAXIMUM_SELFTEST.py --benchmark-rounds 3
+          fi

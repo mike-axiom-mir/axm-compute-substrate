@@ -1,0 +1,39 @@
+name: Wave 109 commit-status ambiguity guard
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - 'tools/AXM_FLOWING_COMPUTE_COMMIT_STATUS_AMBIGUITY_GUARD.py'
+      - 'tools/AXM_FLOWING_COMPUTE_COMMIT_STATUS_AMBIGUITY_GUARD_SELFTEST.py'
+      - '.github/workflows/wave109-commit-status-ambiguity-guard.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wave109:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Wave 108 regression
+        run: python tools/AXM_FLOWING_COMPUTE_COMMITTED_HISTORY_MANIFEST_SELFTEST.py --json-out evidence/wave109_wave108_regression.json
+      - name: Wave 109 normal Python
+        run: python tools/AXM_FLOWING_COMPUTE_COMMIT_STATUS_AMBIGUITY_GUARD_SELFTEST.py --json-out evidence/wave109_normal.json
+      - name: Wave 109 optimized Python
+        run: python -O tools/AXM_FLOWING_COMPUTE_COMMIT_STATUS_AMBIGUITY_GUARD_SELFTEST.py --json-out evidence/wave109_optimized.json
+      - name: Upload exact-run reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave109-commit-status-ambiguity-reports
+          path: |
+            evidence/wave109_wave108_regression.json
+            evidence/wave109_normal.json
+            evidence/wave109_optimized.json
+          if-no-files-found: warn

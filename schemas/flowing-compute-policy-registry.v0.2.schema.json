@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://axiom-mir.example/schemas/flowing-compute-policy-registry.v0.2.schema.json",
+  "title": "AXM Flowing Compute Policy Registry v0.2",
+  "type": "object",
+  "required": ["schema", "profiles", "selection_rule", "truth"],
+  "properties": {
+    "schema": {"const": "axm.flowing-compute-policy-registry/v0.2"},
+    "profiles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["contract_id", "profile_id", "profile_path", "evaluator_kind"],
+        "properties": {
+          "contract_id": {"type": "string", "minLength": 1},
+          "profile_id": {"type": "string", "minLength": 1},
+          "profile_path": {"type": "string", "minLength": 1},
+          "evaluator_kind": {"enum": ["linear_cpu_models_v1", "retained_work_fraction_v1"]}
+        },
+        "additionalProperties": true
+      }
+    },
+    "selection_rule": {"type": "string", "minLength": 1},
+    "legacy_registries_preserved": {"type": "array", "items": {"type": "string"}},
+    "truth": {"type": "object"}
+  }
+}

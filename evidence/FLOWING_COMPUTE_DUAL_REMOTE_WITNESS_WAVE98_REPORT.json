@@ -1,0 +1,170 @@
+{
+  "controls": {
+    "passed": 29,
+    "rows": [
+      {
+        "name": "exact_sources",
+        "pass": true
+      },
+      {
+        "name": "distinct_remote_credentials",
+        "pass": true
+      },
+      {
+        "name": "genesis_authority",
+        "pass": true
+      },
+      {
+        "name": "candidate1_valid",
+        "pass": true
+      },
+      {
+        "name": "unsealed_wrapper_rejected",
+        "pass": true
+      },
+      {
+        "name": "partial_local_commit",
+        "pass": true
+      },
+      {
+        "name": "partial_local_holds",
+        "pass": true
+      },
+      {
+        "name": "cp1_commit",
+        "pass": true
+      },
+      {
+        "name": "remote_required",
+        "pass": true
+      },
+      {
+        "name": "remote_a_publish",
+        "pass": true
+      },
+      {
+        "name": "partial_remote_holds",
+        "pass": true
+      },
+      {
+        "name": "remote_b_publish",
+        "pass": true
+      },
+      {
+        "name": "cp1_authority",
+        "pass": true
+      },
+      {
+        "name": "tampered_remote_record_rejected",
+        "pass": true
+      },
+      {
+        "name": "cp2_commit",
+        "pass": true
+      },
+      {
+        "name": "one_remote_unavailable_holds",
+        "pass": true
+      },
+      {
+        "name": "publish_a_during_b_outage",
+        "pass": true
+      },
+      {
+        "name": "publish_b_offline_refused",
+        "pass": true
+      },
+      {
+        "name": "reconnect_before_catchup_holds",
+        "pass": true
+      },
+      {
+        "name": "reconnect_catchup",
+        "pass": true
+      },
+      {
+        "name": "cp2_authority",
+        "pass": true
+      },
+      {
+        "name": "dual_remote_detects_local_rollback",
+        "pass": true
+      },
+      {
+        "name": "valid_old_remote_head_replay_holds",
+        "pass": true
+      },
+      {
+        "name": "single_remote_credential_compromise_can_poison",
+        "pass": true
+      },
+      {
+        "name": "single_remote_poison_no_false_authority",
+        "pass": true
+      },
+      {
+        "name": "wrong_remote_credential_rejected",
+        "pass": true
+      },
+      {
+        "name": "both_remote_credentials_can_force_hold_not_false_authority",
+        "pass": true
+      },
+      {
+        "name": "all_current_signer_and_remote_credential_compromise_counterexample",
+        "pass": true
+      },
+      {
+        "name": "whole_domain_rollback_counterexample",
+        "pass": true
+      }
+    ],
+    "total": 29
+  },
+  "counterexamples_preserved": [
+    "The two remote witnesses are separate modeled state/credential domains in one Python process, not physically independent services/devices.",
+    "With only two required witnesses, strict resistance to one arbitrary compromised witness sacrifices availability when either witness is unavailable; this model HOLDs rather than guessing.",
+    "A compromised remote append credential can poison that witness's monotonic head and cause denial of authority until an explicit recovery/credential-rotation protocol exists.",
+    "Compromise of all four current checkpoint signer seeds plus both remote append credentials before first publication can still mint and publish a competing valid world.",
+    "Rolling local state and both modeled remote service states back together remains internally self-consistent.",
+    "Lamport OTS remains a test model and valid signatures/remote records do not prove evaluator legitimacy, consent, root correctness, or canonical AXM authority."
+  ],
+  "next_gate": "Deploy this exact monotonic record contract against at least two genuinely independent failure domains with separate credentials, then measure real partition/reconnect behavior. Add explicit poisoned-witness recovery and credential rotation. If availability with one witness down is required while one witness may also be Byzantine, move to a third independent witness and define a bounded quorum instead of weakening HOLD semantics.",
+  "schema": "axm.flowing_compute.wave98.report/v1",
+  "source": {
+    "verifier_evidence_blob": "2cb814b195a8c53833b169871db1dab606b66c02",
+    "verifier_head": "84cbc21db30540e9cdd2e8973a68573aebd317b3",
+    "verifier_pr": 22,
+    "wave97_head": "20e82977205040168c5fa79b967ee6868aa3f7db",
+    "wave97_report_blob": "9e5fcdba8c6dbac9916c2fefd2c05f78e34ed31b",
+    "wave97_tool_blob": "f5ca09a21e64ec390c15e5825751d0d6977d023d"
+  },
+  "synthetic_scaling": {
+    "label": "SYNTHETIC single-process dual-remote protocol + retained authority-chain verification; not network latency, physical failure-domain, monolith compute-efficiency, energy, or distributed-consensus evidence",
+    "rows": [
+      {
+        "authority_median_cpu_us": 19114.001,
+        "depth": 1,
+        "rounds": 5
+      },
+      {
+        "authority_median_cpu_us": 20117.243,
+        "depth": 4,
+        "rounds": 5
+      },
+      {
+        "authority_median_cpu_us": 19860.163,
+        "depth": 8,
+        "rounds": 5
+      }
+    ]
+  },
+  "truth_boundary": [
+    "Wave 98 first repairs verifier PR #22: local commit accepts only a content-addressed authority SHA and resolves all gating fields from the stored sealed object; remote authority validates each remote record seal and full previous-record chain.",
+    "No fresh AXM/monolith workload is read because the newest verifier exposed authority-boundary failures that had to be repaired before stronger remote claims.",
+    "Remote services here are protocol simulations with separate credentials, not real independent machines/providers or authenticated network APIs.",
+    "No retained, incremental, dormant, energy, joule, network-latency, or compute-efficiency win is claimed.",
+    "No merge, CANON promotion, or silent rewrite is implied."
+  ],
+  "wave": 98
+}

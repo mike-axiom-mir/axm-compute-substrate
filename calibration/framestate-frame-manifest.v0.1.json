@@ -1,0 +1,30 @@
+{
+  "schema": "axm.flowing-compute-policy-profile/v0.1",
+  "profile_id": "framestate-frame-manifest-v0.1",
+  "state_contract": "framestate retained frame-digest manifest with exact layer time-window invalidation",
+  "model_kind": "retained_work_fraction",
+  "features": ["affected_work_units", "total_work_units"],
+  "uncertainty_band_percent": 1.0,
+  "decision_rule": "incremental when affected_work_units < total_work_units; global when all retained frame-work is invalidated",
+  "evidence": {
+    "two_d_calibration_observations": 30,
+    "two_d_route_correct": 28,
+    "two_d_accuracy": 0.9333333333333333,
+    "two_d_holdout_observations": 14,
+    "two_d_holdout_correct": 13,
+    "two_d_holdout_accuracy": 0.9285714285714286,
+    "two_d_max_wrong_route_regret_percent": 0.1286930990132526,
+    "two_d_mean_regret_percent": 0.005599739846350727,
+    "three_d_holdout_observations": 3,
+    "three_d_holdout_correct": 3,
+    "three_d_holdout_accuracy": 1.0
+  },
+  "truth": {
+    "contract_specific": true,
+    "full_invalidation_is_timing_noise_region": true,
+    "policy_can_choose_wrong": true,
+    "two_d_training_does_not_prove_all_framestate_projects": true,
+    "three_d_holdout_is_same_host": true,
+    "free_compute_claim": false
+  }
+}

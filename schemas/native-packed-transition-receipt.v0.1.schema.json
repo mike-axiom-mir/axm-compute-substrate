@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AXM Native Packed Transition Receipt v0.1",
+  "type": "object",
+  "required": [
+    "schema",
+    "from_source_sha256",
+    "to_source_sha256",
+    "delta_sha256",
+    "mode",
+    "affected_components",
+    "result_native_semantic_sha256",
+    "result_artifact_sha256",
+    "receipt_sha256"
+  ],
+  "properties": {
+    "schema": {"const": "axm.flowing-compute-native-packed-transition/v0.1"},
+    "from_source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "to_source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "delta_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "mode": {"enum": ["incremental", "global"]},
+    "affected_components": {"type": "integer", "minimum": 0},
+    "result_native_semantic_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "result_artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

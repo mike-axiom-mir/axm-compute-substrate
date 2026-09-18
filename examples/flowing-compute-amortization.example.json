@@ -1,0 +1,54 @@
+{
+  "schema": "axm.flowing-compute-experiment/v0.1",
+  "id": "persistent-index-example",
+  "title": "Persistent index amortization example",
+  "measurement": {
+    "unit": "normalized-compute-unit",
+    "usefulOutputComparableToCompute": true,
+    "baselineEquivalent": true,
+    "note": "Synthetic accounting fixture only. Values are not hardware measurements."
+  },
+  "setupCompute": 100,
+  "steps": [
+    {
+      "id": "request-01",
+      "maintenanceCompute": 2,
+      "externalCompute": 22,
+      "reclaimedExternalCompute": 8,
+      "usefulOutput": 28,
+      "baselineCompute": 70
+    },
+    {
+      "id": "request-02",
+      "maintenanceCompute": 2,
+      "externalCompute": 22,
+      "reclaimedExternalCompute": 8,
+      "usefulOutput": 28,
+      "baselineCompute": 70
+    },
+    {
+      "id": "request-03",
+      "maintenanceCompute": 2,
+      "externalCompute": 22,
+      "reclaimedExternalCompute": 8,
+      "usefulOutput": 28,
+      "baselineCompute": 70
+    },
+    {
+      "id": "request-04",
+      "maintenanceCompute": 2,
+      "externalCompute": 22,
+      "reclaimedExternalCompute": 8,
+      "usefulOutput": 28,
+      "baselineCompute": 70
+    },
+    {
+      "id": "request-05",
+      "maintenanceCompute": 2,
+      "externalCompute": 22,
+      "reclaimedExternalCompute": 8,
+      "usefulOutput": 28,
+      "baselineCompute": 70
+    }
+  ]
+}

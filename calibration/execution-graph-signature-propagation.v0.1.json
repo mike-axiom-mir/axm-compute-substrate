@@ -1,0 +1,49 @@
+{
+  "calibration_id": "execution-graph-signature-propagation-2026-09-15",
+  "calibration_sha256": "9a02411bf7d930a7f564cfcb687ca464a14135fa8f01aaefda6966fed3fdb4b6",
+  "evaluation": {
+    "accuracy": 0.9545454545454546,
+    "correct_decisions": 21,
+    "holdout_accuracy": 0.9,
+    "holdout_correct": 9,
+    "holdout_decisions": 10,
+    "independent_measurement_runs": 2,
+    "max_regret_percent": 1.4214636490335888,
+    "mean_regret_percent": 0.0646119840469813,
+    "observed_decisions": 22
+  },
+  "features": [
+    "affected_components",
+    "mutated_source_components"
+  ],
+  "global_cost_model": {
+    "intercept": 858328.5239105483,
+    "per_mutated_source": 35750.370318275556
+  },
+  "incremental_cost_model": {
+    "intercept": 366882.43517502304,
+    "per_affected_component": 2119.2445766059245,
+    "per_mutated_source": 38944.83137155884
+  },
+  "schema": "axm.flowing-compute-routing-calibration/v0.1",
+  "source_identity": {
+    "active_edges": 3618,
+    "active_nodes": 160,
+    "scc_components": 127,
+    "source": "EXECUTION_GRAPH.json",
+    "source_bytes": 1282158,
+    "source_sha256": "8a4ec3b92167a57091f63eb17158fe580eff97e84a4a4444b5efdebb749923c4",
+    "state_contract": "component propagated signatures over retained local edge hashes"
+  },
+  "state_contract": "component propagated signatures over retained local edge hashes",
+  "truth": {
+    "contract_specific": true,
+    "free_compute_claim": false,
+    "output_correctness_independent_of_route": true,
+    "policy_can_choose_wrong": true,
+    "same_graph_holdout_not_independent_host": true,
+    "timing_noise_near_crossover_visible": true
+  },
+  "uncertainty_band_percent": 1.0,
+  "uncertainty_semantics": "confidence label only; decision still chooses lower predicted CPU because both strategies are output-equivalent"
+}

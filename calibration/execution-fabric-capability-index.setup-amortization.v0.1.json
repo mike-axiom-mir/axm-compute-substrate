@@ -1,0 +1,10 @@
+{
+  "schema":"axm.flowing-compute-policy-profile/v0.1",
+  "profile_id":"execution-fabric-capability-index-2026-09-16",
+  "contract_id":"axm.execution-fabric.capability-index/v0.1",
+  "features":["expected_fresh_starts","artifact_available","audit_source_each_start"],
+  "costs":{"setup_cpu_ns":724536882,"cold_per_start_cpu_ns":161366634,"dormant_per_start_cpu_ns":475368,"audited_per_start_cpu_ns":25636249},
+  "artifact_bytes":11255808,
+  "evidence":{"source":"Wave51 one-endpoint fresh-process medians","lookup_projection_verified_endpoints":23705,"single_host":true},
+  "truth":{"lookup_not_execution":true,"cpu_only":true,"hardware_joules_unavailable":true}
+}

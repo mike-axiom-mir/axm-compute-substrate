@@ -1,0 +1,50 @@
+{
+  "binding": {
+    "bound_certificate_witness_registry_sha": "101684c1ab9dc9c3ae57197e1c00af394ad3e889618b0ee5ce92c326d7b39729",
+    "epoch1_binding_sha": "050fd32072cdbb8a4fd3f01820a6337bc61812cbc87da5036aa4fe8f60e4348f",
+    "epoch2_binding_sha": "5597b44644c5636a10f8b731715b8989a03a691df0a496128eb5d60f04688cea",
+    "genesis_binding_sha": "e017b1d0be597ad99d2e612f29aba7d39adb7d5dec493cc5a94a6e377e51cb7c",
+    "schema": "axm-certificate-witness-root-binding/w105-v1"
+  },
+  "controls": {
+    "passed": 35,
+    "total": 35
+  },
+  "counterexamples_preserved": [
+    "Bootstrap registry-root selection before the first accepted checkpoint is still an initialization/configuration boundary.",
+    "Stealing a symmetric credential for an already-bound Wave 104 endpoint can authenticate a stale clone in this model.",
+    "Rolling back the local/certificate/remote state and all genuine endpoints together under the same already-bound root can still recreate an internally valid old world.",
+    "All stores, endpoints, credentials, and failure-domain labels still live inside one Python process; this is not OS/device/provider separation.",
+    "Certificate-witness registry rotation remains unsupported; Wave 105 rejects root change rather than inventing a transition policy."
+  ],
+  "pr29_reproduction": {
+    "original_bound_domain_on_stale_world": "HOLD_CERTIFICATE_WITNESS_MAXIMUM_AHEAD",
+    "wave104_fresh_registry_replacement": "AUTHORITATIVE_QUORUM_2_OF_3_MODELED",
+    "wave105_same_replacement": "HOLD_CERTIFICATE_WITNESS_REGISTRY_ROOT_MISMATCH"
+  },
+  "schema": "axm.flowing_compute.wave105.report/v1",
+  "source": {
+    "verifier_evidence_blob": "afbfa47432c29ad41f5c0d56a1904ca94e996e30",
+    "verifier_head": "cc0ecfe2a40b0a39b20b85230578ddc3902c44ad",
+    "verifier_pr": 29,
+    "verifier_repro_blob": "51cc2266f47b4cfaeae32ad6744cead9f9d104b0",
+    "wave104_builder_head": "b0826840723b4d510f396c91e8f0c5de46a05a43",
+    "wave104_selftest_blob": "c2ca76079adfbe9f44fd11c97689be61027a7760",
+    "wave104_tested_source_head": "b33c8e0ae155d8e785b25ab608bdf8a3dbb14e65",
+    "wave104_tool_blob": "64aef8c32e246f396ca8dc67dbf3b0460b077f77",
+    "wave105_tested_source_head": "b12ef029d741a7d60d9ffea7e01c299172977c61",
+    "wave105_tool_blob": "1e0e543c57f880c3e631619fa1859c24ace5ff79",
+    "wave105_selftest_blob": "c6d39f469e98590823af3a576c4efbb18957d00b",
+    "wave105_workflow_blob": "b65aad6c417042ec67f225e2f8e4c5a400481860",
+    "workflow_run_id": 35183374940,
+    "workflow_job_id": 105080144977,
+    "artifact_id": 10480239491,
+    "artifact_zip_sha256": "03a6d08e7aa51e190fe59488b5e9541998586c6ca66cea0c20fd76b18b868c40"
+  },
+  "truth_boundary": [
+    "Wave 105 repairs verifier PR #29 by transitively binding the exact certificate-witness registry SHA into the signed checkpoint state through a content-addressed predecessor-linked binding body.",
+    "Every retained authority checkpoint is cross-checked against its exact binding predecessor; a new parallel root chain cannot silently attach after accepted history.",
+    "No fresh AXM/monolith performance, energy, retained-compute, incremental-compute, dormant-compute, network, process, device, or provider-independence result is claimed."
+  ],
+  "wave": 105
+}

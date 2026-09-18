@@ -1,0 +1,17 @@
+{
+  "schema": "axm.flowing-compute-policy-registry/v0.1",
+  "profiles": {
+    "execution-graph-signature-propagation": {
+      "model_kind": "linear_component_cost",
+      "profile_path": "calibration/execution-graph-signature-propagation.v0.1.json"
+    },
+    "framestate-frame-manifest": {
+      "model_kind": "retained_work_fraction",
+      "profile_path": "calibration/framestate-frame-manifest.v0.1.json"
+    }
+  },
+  "truth": {
+    "one_global_threshold_for_all_contracts": false,
+    "unknown_contract_must_not_silently_reuse_another_profile": true
+  }
+}

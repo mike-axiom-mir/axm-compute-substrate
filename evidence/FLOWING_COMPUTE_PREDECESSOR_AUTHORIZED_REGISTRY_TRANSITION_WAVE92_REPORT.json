@@ -1,0 +1,176 @@
+{
+  "checks": [
+    {
+      "name": "exact_wave91_tool_identity",
+      "pass": true
+    },
+    {
+      "name": "exact_wave91_verifier_identity",
+      "pass": true
+    },
+    {
+      "name": "exact_wave90_verifier_identity",
+      "pass": true
+    },
+    {
+      "name": "stable_current_authoritative",
+      "pass": true
+    },
+    {
+      "name": "predecessor_authorization_valid",
+      "pass": true
+    },
+    {
+      "name": "registry_key_body_substitution_holds",
+      "pass": true
+    },
+    {
+      "name": "evaluator_key_body_substitution_rejected",
+      "pass": true
+    },
+    {
+      "name": "missing_evaluator_body_rejected",
+      "pass": true
+    },
+    {
+      "name": "replacement_missing_predecessor_rejected",
+      "pass": true
+    },
+    {
+      "name": "replacement_wrong_historical_predecessor_rejected",
+      "pass": true
+    },
+    {
+      "name": "root_hold_blocks_transition",
+      "pass": true
+    },
+    {
+      "name": "missing_authorization_blocks_transition",
+      "pass": true
+    },
+    {
+      "name": "target_cannot_authorize_own_admission",
+      "pass": true
+    },
+    {
+      "name": "authorized_partial_fanout_created",
+      "pass": true
+    },
+    {
+      "name": "partial_state_has_no_current_authority",
+      "pass": true
+    },
+    {
+      "name": "partial_recovery_without_exact_auth_holds",
+      "pass": true
+    },
+    {
+      "name": "competing_transition_cannot_take_over_partial",
+      "pass": true
+    },
+    {
+      "name": "partial_recovery_with_exact_auth_commits",
+      "pass": true
+    },
+    {
+      "name": "target_authoritative_after_commit",
+      "pass": true
+    },
+    {
+      "name": "old_auth_not_reusable_for_competing_transition",
+      "pass": true
+    },
+    {
+      "name": "rollback_new_registry_identity",
+      "pass": true
+    },
+    {
+      "name": "rollback_new_evaluator_identity",
+      "pass": true
+    },
+    {
+      "name": "rollback_authorized_by_current_predecessor_commits",
+      "pass": true
+    },
+    {
+      "name": "rollback_target_authoritative",
+      "pass": true
+    },
+    {
+      "name": "counterexample_predecessor_pass_can_mechanically_admit_arbitrary_new_evaluators",
+      "pass": true
+    }
+  ],
+  "closed_counterexamples": [
+    "Wave91 registry lookup key/body substitution rejected before authority use.",
+    "Evaluator lookup key/body substitution rejected by the same resolver.",
+    "Wave90 replacement evaluator must descend from the exact replaced evaluator body.",
+    "Target/new registry cannot authorize its own admission; the exact current predecessor registry authorizes the transition.",
+    "Partial fan-out resumes only with the exact predecessor authorization and transition; competing transition holds."
+  ],
+  "counterexample": "Predecessor-bound PASS remains mechanical provenance, not moral/canonical legitimacy. A currently authoritative predecessor registry can still structurally PASS an arbitrary new evaluator set.",
+  "failed_checks": [],
+  "independent_check_name_match": true,
+  "independent_runs": [
+    {
+      "benchmark_rounds": 120,
+      "passed_checks": 25,
+      "status": "PASS",
+      "synthetic_single_host_transition_authorization_cpu_us_median": 1170.584,
+      "total_checks": 25
+    },
+    {
+      "benchmark_rounds": 120,
+      "passed_checks": 25,
+      "status": "PASS",
+      "synthetic_single_host_transition_authorization_cpu_us_median": 1095.743,
+      "total_checks": 25
+    }
+  ],
+  "measurement_note": "Synthetic single-host content-addressed registry/evaluator transition authorization bookkeeping; process CPU only, not storage/network latency or energy.",
+  "schema": "axm.flowing-compute-wave92-predecessor-authorized-registry-transition/v0.1",
+  "source_provenance": {
+    "wave90_verifier": {
+      "blob_sha": "882141599c09380d264578b643de027281165e7d",
+      "finding": "FAIL_REPLACEMENT_EVALUATOR_PREDECESSOR_NOT_ENFORCED",
+      "head": "5173a1d98a851f53b87b0012e43e43cd917a2006",
+      "path": "verification/WAVE90_ADVERSARIAL_VERIFICATION_2026-09-16.md",
+      "pr": 15
+    },
+    "wave91_tool": {
+      "blob_sha": "f378627bc2f8752fc8e20f73f0737c15f9e2ddff",
+      "builder_head": "3b7ae7ce9751497666d8e85494ca72150c088882",
+      "commit": "0e275b6ea43c6a8cfbd66266e210bcf93a9ecddb",
+      "file_sha256": "28b7da0d40b53f2ba9ec58161c0531530c2bfaa7e63eada4c5e7cd7eb27ad4f5",
+      "path": "tools/AXM_FLOWING_COMPUTE_CURRENT_REGISTRY_AUTHORITY.py"
+    },
+    "wave91_verifier": {
+      "blob_sha": "8c0bd605c8f2be99c1d6c0b3f7b09ad988929ea6",
+      "finding": "FAIL_CURRENT_REGISTRY_KEY_BODY_IDENTITY_NOT_ENFORED",
+      "finding_canonical": "FAIL_CURRENT_REGISTRY_KEY_BODY_IDENTITY_NOT_ENFORCED",
+      "head": "83c5a84d0286b8eadf4f5966e044606a23532fd5",
+      "note": "Tool constant has a spelling-only ENFORED label typo; PR/head/blob/path identity above is exact and canonical finding text is recorded here.",
+      "path": "verification/WAVE91_ADVERSARIAL_VERIFICATION_2026-09-16.md",
+      "pr": 16
+    }
+  },
+  "status": "PASS",
+  "tool": {
+    "blob_sha": "82904139cb532245f241f0bdafaf2ea89cac529c",
+    "commit": "d06988d200315ec8824e18aa31baadf8c1bf7114",
+    "file_sha256": "4d0e73f86086bda5341f9153e2713ac6d65ba82dc2f163e8ba1f8507539bd320",
+    "path": "tools/AXM_FLOWING_COMPUTE_PREDECESSOR_AUTHORIZED_REGISTRY_TRANSITION.py"
+  },
+  "truth_boundary": {
+    "automatic_merge": false,
+    "canonical_root_judgment_claim": false,
+    "compute_efficiency_claim": false,
+    "distributed_consensus_claim": false,
+    "energy_claim": false,
+    "fresh_monolith_audit": false,
+    "moral_evaluator_legitimacy_proven": false,
+    "note": "Infrastructure semantics only; no AXM workload timing or scaling claim.",
+    "retained_incremental_dormant_win_claim": false,
+    "synthetic_scaling": false
+  }
+}
