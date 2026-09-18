@@ -1,0 +1,61 @@
+name: Verifier Wave 107 multi-epoch partial loss
+
+on:
+  pull_request:
+    paths:
+      - "verification/wave107_multiepoch_partial_loss_repro.py"
+      - ".github/workflows/verifier-wave107-multiepoch-partial-loss.yml"
+      - "tools/AXM_FLOWING_COMPUTE_BOOTSTRAP_PARTIAL_EVIDENCE_GUARD.py"
+      - "tools/AXM_FLOWING_COMPUTE_BOOTSTRAP_PARTIAL_EVIDENCE_GUARD_SELFTEST.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  adversarial-reproduction:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [normal, optimized]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Re-run unchanged Wave 107 builder self-test
+        if: matrix.mode == 'normal'
+        run: python tools/AXM_FLOWING_COMPUTE_BOOTSTRAP_PARTIAL_EVIDENCE_GUARD_SELFTEST.py > /tmp/wave107-builder.json
+      - name: Reproduce multi-epoch partial-loss counterexample
+        if: matrix.mode == 'normal'
+        run: python verification/wave107_multiepoch_partial_loss_repro.py | tee /tmp/wave107-verifier-normal.json
+      - name: Bound normal-mode severity
+        if: matrix.mode == 'normal'
+        run: |
+          python - <<'PY'
+          import json
+          r = json.load(open('/tmp/wave107-verifier-normal.json', encoding='utf-8'))
+          assert r['verdict'] == 'FAIL_MULTIEPOCH_AUTHORITY_LINK_LOSS_CLASSIFIED_VALID', r['verdict']
+          for key, verdict in r['full_authority_path'].items():
+              if verdict.startswith('AUTHORITATIVE'):
+                  raise SystemExit(f'unexpected stale-authority acceptance: {key}={verdict}')
+          print(r['verdict'])
+          print(r['full_authority_path'])
+          PY
+      - name: Reproduce multi-epoch partial-loss counterexample under python -O
+        if: matrix.mode == 'optimized'
+        run: python -O verification/wave107_multiepoch_partial_loss_repro.py | tee /tmp/wave107-verifier-optimized.json
+      - name: Bound optimized-mode severity
+        if: matrix.mode == 'optimized'
+        run: |
+          python - <<'PY'
+          import json
+          r = json.load(open('/tmp/wave107-verifier-optimized.json', encoding='utf-8'))
+          assert r['verdict'] == 'FAIL_MULTIEPOCH_AUTHORITY_LINK_LOSS_CLASSIFIED_VALID', r['verdict']
+          for key, verdict in r['full_authority_path'].items():
+              if verdict.startswith('AUTHORITATIVE'):
+                  raise SystemExit(f'unexpected stale-authority acceptance: {key}={verdict}')
+          print(r['verdict'])
+          print(r['full_authority_path'])
+          PY
