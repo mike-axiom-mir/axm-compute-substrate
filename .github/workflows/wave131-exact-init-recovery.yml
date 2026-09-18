@@ -67,6 +67,7 @@ jobs:
           git rev-parse HEAD^ > /tmp/tested-parent.txt
           git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_KEY_AUTHORITY_BOUNDARY.py > /tmp/wave130-tool-blob.txt
           git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_INIT_RECOVERY.py > /tmp/wave131-tool-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_INIT_RECOVERY_IMPL.py > /tmp/wave131-impl-blob.txt
           git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_INIT_RECOVERY_SELFTEST.py > /tmp/wave131-selftest-blob.txt
           git rev-parse HEAD:.github/workflows/wave131-exact-init-recovery.yml > /tmp/wave131-workflow-blob.txt
 
@@ -83,6 +84,7 @@ jobs:
             /tmp/tested-parent.txt
             /tmp/wave130-tool-blob.txt
             /tmp/wave131-tool-blob.txt
+            /tmp/wave131-impl-blob.txt
             /tmp/wave131-selftest-blob.txt
             /tmp/wave131-workflow-blob.txt
           if-no-files-found: error
