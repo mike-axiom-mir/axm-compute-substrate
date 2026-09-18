@@ -50,13 +50,17 @@ STABLE_FIXED = {
     w132.STATE,
 }
 PENDING_NAMES = set(w136.PENDING_TARGETS)
+RECOVERY_MARKERS = (
+    ".axm-w135-stage-",  # Wave 135/136 deterministic recoverable publication.
+    ".axm-stage-",       # Wave 134 bootstrap publication staging.
+    ".tmp-",             # Older exact legacy temp candidates.
+)
 
 
 def _recovery_base(name: str) -> str | None:
-    if ".axm-stage-" in name:
-        return name.split(".axm-stage-", 1)[0]
-    if ".tmp-" in name:
-        return name.split(".tmp-", 1)[0]
+    for marker in RECOVERY_MARKERS:
+        if marker in name:
+            return name.split(marker, 1)[0]
     return None
 
 
