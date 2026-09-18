@@ -1,0 +1,68 @@
+name: Verifier Wave 127 temp-key exfiltration
+
+on:
+  push:
+    branches:
+      - verifier/wave127-temp-key-exfiltration
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-wave127-temp-key:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact verifier lane
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Environment identity
+        run: |
+          python --version
+          openssl version
+          git rev-parse HEAD | tee /tmp/verifier-head.txt
+          git rev-parse HEAD^ | tee /tmp/verifier-base.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_AUTHENTICATED_ANCHOR_FIXED.py | tee /tmp/wave127-fixed-tool-blob.txt
+          git rev-parse HEAD:verification/wave127_temp_private_key_exfiltration_repro.py | tee /tmp/verifier-script-blob.txt
+
+      - name: Unchanged Wave 127 self-test normal
+        env:
+          PYTHONPATH: tools
+        run: |
+          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_AUTHENTICATED_ANCHOR_SELFTEST_FIXED.py --report /tmp/wave127-builder-normal.json
+
+      - name: Unchanged Wave 127 self-test optimized
+        env:
+          PYTHONPATH: tools
+        run: |
+          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_AUTHENTICATED_ANCHOR_SELFTEST_FIXED.py --report /tmp/wave127-builder-optimized.json
+
+      - name: Adversarial temp-key reproducer normal
+        env:
+          PYTHONPATH: tools
+        run: |
+          python verification/wave127_temp_private_key_exfiltration_repro.py --report /tmp/wave127-verifier-normal.json
+
+      - name: Adversarial temp-key reproducer optimized
+        env:
+          PYTHONPATH: tools
+        run: |
+          python -O verification/wave127_temp_private_key_exfiltration_repro.py --report /tmp/wave127-verifier-optimized.json
+
+      - name: Upload exact verifier evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave127-temp-key-exfiltration-verifier
+          path: |
+            /tmp/verifier-head.txt
+            /tmp/verifier-base.txt
+            /tmp/wave127-fixed-tool-blob.txt
+            /tmp/verifier-script-blob.txt
+            /tmp/wave127-builder-normal.json
+            /tmp/wave127-builder-optimized.json
+            /tmp/wave127-verifier-normal.json
+            /tmp/wave127-verifier-optimized.json
+          if-no-files-found: error
