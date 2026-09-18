@@ -133,7 +133,20 @@ class TempPrivateObserver:
 
 def check_proc_fd_denied(pid: int) -> dict:
     proc_fd = Path(f"/proc/{pid}/fd")
-    names = os.listdir(proc_fd)
+    try:
+        names = os.listdir(proc_fd)
+    except PermissionError as exc:
+        # Some Linux procfs/LSM configurations deny the fd directory itself
+        # once the target is non-dumpable. That is a stronger successful
+        # custody result than allowing the listing but denying readlink().
+        return {
+            "fd_directory_listing_denied": True,
+            "fd_entries_seen": 0,
+            "readlink_permission_denied": 0,
+            "resolved_targets": [],
+            "error": f"{type(exc).__name__}:{exc}",
+            "ok": True,
+        }
     resolved: list[str] = []
     denied = 0
     for name in names:
@@ -144,6 +157,7 @@ def check_proc_fd_denied(pid: int) -> dict:
         except FileNotFoundError:
             pass
     return {
+        "fd_directory_listing_denied": False,
         "fd_entries_seen": len(names),
         "readlink_permission_denied": denied,
         "resolved_targets": resolved,
