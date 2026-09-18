@@ -160,6 +160,60 @@ def _ready_fields() -> set[str]:
     }
 
 
+def _validate_wave131_genesis_allow_rotation(anchor_dir: Path) -> dict:
+    """Validate exact Wave-131 genesis while allowing only ROT_DIR as extra."""
+    ad, authority_uid, worker_uid = w131._prepare_anchor_dir(anchor_dir)
+    allowed = set(w131.ANCHOR_INIT_FILES) | {w132.ROT_DIR}
+    unexpected = sorted(p.name for p in ad.iterdir() if p.name not in allowed)
+    if unexpected:
+        raise RuntimeError("wave133-unexpected-anchor-artifact:" + ",".join(unexpected))
+
+    manifest_path = ad / w131.MANIFEST
+    ready_path = ad / w131.READY
+    if not manifest_path.exists() or not ready_path.exists():
+        raise RuntimeError("wave133-wave131-genesis-not-ready")
+    w131._assert_private_path(manifest_path, authority_uid)
+    w131._assert_private_path(ready_path, authority_uid)
+    manifest = w131._load_json_exact(manifest_path, w131.MANIFEST_SCHEMA)
+    if manifest.get("authority_uid") != authority_uid or manifest.get("forbidden_worker_uid") != worker_uid:
+        raise PermissionError("wave133-wave131-uid-boundary-mismatch")
+
+    root, anchor_secret, witness_secret = w126.load_anchor_identity(ad)
+    if root.get("anchor_id") != manifest.get("anchor_id"):
+        raise ValueError("wave133-wave131-anchor-id-mismatch")
+    if root.get("anchor_credential_fingerprint") != w126.anchor_credential_fingerprint(anchor_secret):
+        raise ValueError("wave133-wave131-anchor-secret-mismatch")
+    if root.get("witness_credential_fingerprint") != w.credential_fingerprint(witness_secret):
+        raise ValueError("wave133-wave131-witness-secret-mismatch")
+    if root.get("witness_credential_fingerprint") != manifest.get("witness_credential_fingerprint"):
+        raise ValueError("wave133-wave131-witness-fingerprint-mismatch")
+    if root.get("witness_root_sha") != manifest.get("witness_root_sha"):
+        raise ValueError("wave133-wave131-witness-root-mismatch")
+
+    private_path = ad / w131.PRIVATE_KEY
+    public_path = ad / w131.PUBLIC_KEY
+    w131._assert_private_path(private_path, authority_uid)
+    w131._assert_private_path(public_path, authority_uid)
+    private_pem = private_path.read_bytes()
+    public_pem = public_path.read_bytes()
+    if w131._response_public_from_private(private_pem) != public_pem:
+        raise ValueError("wave133-wave131-response-keypair-mismatch")
+
+    expected_ready = w131._ready_for(manifest, root, public_pem)
+    ready = w131._load_json_exact(ready_path, w131.READY_SCHEMA)
+    if _canon_file(ready) != _canon_file(expected_ready):
+        raise ValueError("wave133-wave131-readiness-receipt-mismatch")
+    w126.load_anchor_ledger(ad, root, anchor_secret, witness_secret)
+    boundary = w130.durable_key_boundary_status(ad)
+    return {
+        "root": root,
+        "manifest": manifest,
+        "ready": ready,
+        "response_public_fingerprint": expected_ready["response_public_fingerprint"],
+        "wave130_durable_key_boundary": boundary,
+    }
+
+
 def _validate_bootstrap_receipt(anchor_dir: Path, witness_dir: Path) -> dict:
     authority_uid, _ = w130._assert_separate_authority_uid()
     rd = anchor_dir / w132.ROT_DIR
@@ -238,8 +292,7 @@ def ensure_rotation_bootstrap(anchor_dir: str | Path, witness_dir: str | Path, *
     if rd.exists() and _pre_ready_has_evolution(rd, wd):
         raise RuntimeError("wave133-bootstrap-receipt-missing-after-evolution")
 
-    # Before rotation evolution, Wave-131 is the exact source of bootstrap truth.
-    base = w131.validate_initialized_anchor(ad)
+    base = _validate_wave131_genesis_allow_rotation(ad)
     root, _, _ = w126.load_anchor_identity(ad)
     genesis = (ad / protocol.PUBLIC_KEY).read_bytes()
     if protocol._public_fingerprint(genesis) != base["response_public_fingerprint"]:
