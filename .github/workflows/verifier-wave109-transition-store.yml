@@ -1,0 +1,29 @@
+name: Verifier Wave 109 transition-store gap
+
+on:
+  push:
+    branches:
+      - chatgpt/verifier-wave109-transition-store
+    paths:
+      - 'verification/wave109_transition_store_repro.py'
+      - 'verification/WAVE109_ADVERSARIAL_VERIFICATION_2026-09-17.md'
+      - '.github/workflows/verifier-wave109-transition-store.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verifier-wave109:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Unchanged Wave 109 builder self-test
+        run: python tools/AXM_FLOWING_COMPUTE_COMMIT_STATUS_AMBIGUITY_GUARD_SELFTEST.py
+      - name: Reproduce surviving transition-store evidence gap
+        run: python verification/wave109_transition_store_repro.py
+      - name: Reproduce under optimized Python
+        run: python -O verification/wave109_transition_store_repro.py
