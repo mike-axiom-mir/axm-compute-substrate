@@ -1,0 +1,49 @@
+{
+  "schema": "axm.flowing_compute.wave105.final_source_ci_receipt/v1",
+  "date": "2026-09-17",
+  "repository": "mike-axiom-mir/axm-compute-substrate",
+  "branch": "chatgpt/lane-001-platform-extract",
+  "tested_source_head": "b12ef029d741a7d60d9ffea7e01c299172977c61",
+  "source_blobs": {
+    "tool": {
+      "path": "tools/AXM_FLOWING_COMPUTE_CERTIFICATE_WITNESS_ROOT_BINDING.py",
+      "sha": "1e0e543c57f880c3e631619fa1859c24ace5ff79"
+    },
+    "selftest": {
+      "path": "tools/AXM_FLOWING_COMPUTE_CERTIFICATE_WITNESS_ROOT_BINDING_SELFTEST.py",
+      "sha": "c6d39f469e98590823af3a576c4efbb18957d00b"
+    },
+    "workflow": {
+      "path": ".github/workflows/wave105-certificate-witness-root-binding.yml",
+      "sha": "b65aad6c417042ec67f225e2f8e4c5a400481860"
+    }
+  },
+  "upstream_identity": {
+    "wave104_builder_head": "b0826840723b4d510f396c91e8f0c5de46a05a43",
+    "wave104_tested_source_head": "b33c8e0ae155d8e785b25ab608bdf8a3dbb14e65",
+    "wave104_tool_blob": "64aef8c32e246f396ca8dc67dbf3b0460b077f77",
+    "wave104_selftest_blob": "c2ca76079adfbe9f44fd11c97689be61027a7760",
+    "verifier_pr": 29,
+    "verifier_head": "cc0ecfe2a40b0a39b20b85230578ddc3902c44ad",
+    "verifier_evidence_blob": "afbfa47432c29ad41f5c0d56a1904ca94e996e30",
+    "verifier_repro_blob": "51cc2266f47b4cfaeae32ad6744cead9f9d104b0"
+  },
+  "ci": {
+    "workflow_run_id": 35183374940,
+    "job_id": 105080144977,
+    "conclusion": "success",
+    "wave104_regression": "46/46",
+    "wave105_normal": "35/35",
+    "wave105_python_O": "35/35",
+    "artifact_id": 10480239491,
+    "artifact_name": "wave105-report",
+    "artifact_zip_sha256": "03a6d08e7aa51e190fe59488b5e9541998586c6ca66cea0c20fd76b18b868c40"
+  },
+  "evidence_policy": {
+    "append_only": true,
+    "source_rewritten_after_test": false,
+    "automatic_merge": false,
+    "canon_promotion": false,
+    "note": "Later evidence commits do not change the tested Wave 105 tool, self-test, or workflow blobs named above."
+  }
+}

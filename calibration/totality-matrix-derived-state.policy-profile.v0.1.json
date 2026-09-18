@@ -1,0 +1,16 @@
+{
+  "schema": "axm.flowing-compute-policy-profile/v0.1",
+  "profile_id": "totality-matrix-derived-state-2026-09-15",
+  "contract_id": "axm.monolith.totality-test-matrix/v0.1",
+  "state_contract": "resident parsed evidence maps -> per-module truth rows + delta-maintained summary",
+  "features": ["affected_modules"],
+  "models": {
+    "global_cpu_ns": {"intercept": 387682.06328554, "affected_modules": 1507.41150696},
+    "incremental_cpu_ns": {"intercept": 594.17856887, "affected_modules": 12696.53954502}
+  },
+  "uncertainty_band_percent": 6.985364784262753,
+  "training": {"measurement_run": 1, "affected_module_counts": [1, 4, 12, 24, 34, 38]},
+  "evaluation": {"decisions": 16, "correct": 16, "accuracy": 1.0, "max_regret_percent": 0.0},
+  "source_identity": {"module_count": 38, "production_contract": "AXM_TOTALITY_COVERAGE_MATRIX.py"},
+  "truth": {"contract_specific": true, "policy_can_choose_wrong": true, "same_host": true, "same_snapshot": true, "output_equivalence_required": true}
+}

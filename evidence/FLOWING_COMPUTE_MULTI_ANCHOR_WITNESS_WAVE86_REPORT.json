@@ -1,0 +1,60 @@
+{
+  "checks": [
+    {"name": "genesis_exact_wave81", "passed": true},
+    {"name": "three_witness_genesis_consistent", "passed": true},
+    {"name": "three_witness_forward_commits", "passed": true},
+    {"name": "intentional_rollback_preserved", "passed": true},
+    {"name": "epoch2_three_witness_consistent", "passed": true},
+    {"name": "primary_only_rewind_detected", "passed": true},
+    {"name": "primary_plus_one_witness_rewind_detected", "passed": true},
+    {"name": "single_newer_witness_exposes_rewind_without_authority", "passed": true},
+    {"name": "counterexample_all_domains_rollback_not_detected", "passed": true},
+    {"name": "valid_two_vs_one_fork_fails_closed_no_majority", "passed": true},
+    {"name": "newest_witness_does_not_win", "passed": true},
+    {"name": "corrupt_witness_holds", "passed": true},
+    {"name": "truncated_witness_holds_without_silent_repair", "passed": true},
+    {"name": "missing_witness_holds_no_two_of_three_quorum", "passed": true},
+    {"name": "pre_witness_crash_zero_authority", "passed": true},
+    {"name": "partial_witness_fanout_fails_closed", "passed": true},
+    {"name": "partial_fanout_blocks_new_commit", "passed": true},
+    {"name": "unanimous_witness_pending_detected", "passed": true},
+    {"name": "unanimous_witness_pending_recoverable", "passed": true}
+  ],
+  "date": "2026-09-16",
+  "known_failure": "A crash during witness fan-out leaves valid witnesses divergent and intentionally fails closed; Wave86 does not silently repair or vote through that partial fan-out.",
+  "next_gate": "Wave87: bind one exact multi-witness commit-set identity before fan-out and test safe completion of a partial witness fan-out only when advanced witnesses share that exact commit-set and lagging witnesses are exactly at its predecessor. Any competing commit-set must remain HOLD; no voting/newest-wins.",
+  "positive_result": "One surviving newer valid witness exposes a rollback of the primary plus the other witnesses, while no single witness is promoted to authority. Exact unanimous one-epoch-ahead witnesses can recover a pointer move after all witness appends completed.",
+  "preserved_counterexample": "If the primary and every configured software witness are rolled back together to one mutually consistent old snapshot, this software-only contract cannot prove the lost future.",
+  "provenance": {
+    "fresh_monolith_audit": false,
+    "wave81_retention_sha256": "53d91b18e1a12eb27bd503bcfa70b4cd74add598ceaef522c88d7c075fdee4d4",
+    "wave83_drop_retention_sha256": "4078169dce33c5816c7dd1073eaff5920bcfb07284a023726322e67970378dd1",
+    "wave83_keep_retention_sha256": "0f918393dc9d4dfb33fe150bbdca9bd4ecbdca8fab0317becdf94fb9296b1721"
+  },
+  "runs": [
+    {
+      "benchmark": {"kind": "synthetic single-host infrastructure fanout", "max_process_cpu_us": 1941.132, "median_process_cpu_us": 1106.538, "min_process_cpu_us": 1044.667, "rounds": 100, "truth": "Process CPU for local JSON/hash/fsync orchestration; not wall-clock latency, joules, monolith workload timing, or a compute-efficiency result.", "witnesses": 3},
+      "checks_passed": 19,
+      "checks_total": 19,
+      "status": "PASS"
+    },
+    {
+      "benchmark": {"kind": "synthetic single-host infrastructure fanout", "max_process_cpu_us": 1777.397, "median_process_cpu_us": 1179.3875, "min_process_cpu_us": 1063.394, "rounds": 100, "truth": "Process CPU for local JSON/hash/fsync orchestration; not wall-clock latency, joules, monolith workload timing, or a compute-efficiency result.", "witnesses": 3},
+      "checks_passed": 19,
+      "checks_total": 19,
+      "status": "PASS"
+    }
+  ],
+  "schema": "axm.flowing-compute-wave86-evidence/v0.1",
+  "status": "EXPERIMENTAL_SINGLE_HOST_MULTI_WITNESS_EVIDENCE",
+  "tool_commit_sha": "23870591e0a8fae2e1bbf9b5b598ffbb3bac9eea",
+  "tool_path": "tools/AXM_FLOWING_COMPUTE_MULTI_ANCHOR_WITNESS.py",
+  "truth_boundary": [
+    "This is single-host software persistence evidence, not distributed consensus or trusted hardware.",
+    "Separate directories model independent witness histories but do not prove independent physical failure domains.",
+    "No fresh monolith audit ran and no compute-efficiency result is claimed.",
+    "Process CPU timing is not wall-clock storage latency and not joules.",
+    "Hashes bind exact modeled content; they do not establish actor identity, evaluator legitimacy, or constitutional authority."
+  ],
+  "witness_model": {"count": 3, "majority_vote_used": false, "newest_witness_wins": false, "physical_independence_proven": false, "placement": "three separate directories on one host"}
+}

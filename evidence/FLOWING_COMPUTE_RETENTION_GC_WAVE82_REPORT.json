@@ -1,0 +1,55 @@
+{
+  "benchmark": {
+    "includes_receipt_body_revalidation": false,
+    "includes_underlying_artifact_reread": false,
+    "iterations": 1000,
+    "median_cpu_us": 150.489,
+    "operation": "GC mark planning against exact current retention generation with two receipt-key envelopes"
+  },
+  "controls": {
+    "committed_sweep_recovers_by_completing_purge": {"detail": "committed sweep completed exact candidate purge under unchanged G1 retention", "status": "PASS"},
+    "crash_after_stage_before_sweep_commit_restores_receipt": {"detail": "staged Wave79 receipt restored because no sweep commit existed", "status": "PASS"},
+    "crash_before_retention_pointer_move_keeps_wave81_roots": {"detail": "53d91b18e1a12eb27bd503bcfa70b4cd74add598ceaef522c88d7c075fdee4d4", "status": "PASS"},
+    "drop_receipt_wrong_predecessor_rejected": {"detail": "drop receipt predecessor mismatch", "status": "PASS"},
+    "gc_mark_bound_to_g1_finds_only_dropped_wave79_receipt": {"detail": "candidate=fb65ba5a...; reachable=27dc30eb...", "status": "PASS"},
+    "gc_mark_rejected_if_receipt_inventory_changes_before_stage": {"detail": "stale GC mark: receipt inventory changed", "status": "PASS"},
+    "missing_referenced_drop_receipt_rejected_after_restart": {"detail": "referenced drop receipt missing", "status": "PASS"},
+    "predecessor_bound_drop_receipt_allows_explicit_root_removal": {"detail": "f9cb087d701268b4f7eb660161776f37d46d312f0e46c1fbc883c46a452d3eb5", "status": "PASS"},
+    "published_wave81_retention_identity_reconstructed": {"detail": "53d91b18e1a12eb27bd503bcfa70b4cd74add598ceaef522c88d7c075fdee4d4", "status": "PASS"},
+    "readd_after_completed_purge_rejected_due_missing_receipt": {"detail": "retention pointer refused because Wave79 receipt evidence was missing", "status": "PASS"},
+    "retained_wave81_second_receipt_survives_g1_gc": {"detail": "27dc30ebd1172695c8873cb919efc59de9adde8a546533b64f6b7d6199c4ca1b", "status": "PASS"},
+    "retention_body_tamper_rejected_after_restart": {"detail": "retention integrity mismatch", "status": "PASS"},
+    "silent_root_drop_without_receipt_rejected": {"detail": "every removed rollback root requires exactly one drop receipt", "status": "PASS"},
+    "skipped_retention_predecessor_rejected": {"detail": "retention predecessor identity mismatch", "status": "PASS"},
+    "stale_g1_mark_rejected_after_g2_readds_old_root": {"detail": "stale GC mark: current retention pointer changed", "status": "PASS"}
+  },
+  "controls_passed": 15,
+  "controls_total": 15,
+  "next_gate": "Bind rollback-root drop intent to an explicit authorization/root-evaluation receipt and use compare-and-swap on the current retention pointer so concurrent writers cannot both advance from the same predecessor.",
+  "positive_case": {
+    "drop_receipt_sha256": "9a60bbfb8302bbdc4e06eb39fd7898366b5fc1ef3963978dd857b845946b31a0",
+    "dropped_checkpoint_sha256": "a28948258187a3e43e3b7841d71494e065894bacb79e70493df459aa47514799",
+    "dropped_real_wave79_receipt_sha256": "fb65ba5ad5cc0f4c33a851957ccc42a4142c64a3d0815abb1a4f0886dbf4ecf2",
+    "g1_predecessor_retention_sha256": "53d91b18e1a12eb27bd503bcfa70b4cd74add598ceaef522c88d7c075fdee4d4",
+    "g1_retention_sha256": "f9cb087d701268b4f7eb660161776f37d46d312f0e46c1fbc883c46a452d3eb5",
+    "g2_readd_retention_sha256": "d697a8efa3c93d3f0de5e6a19b329bebb7d9f045d4772d7428291409be9fec40",
+    "gc_mark_sha256": "46969233dc5a139c20e0b6acaa384518a819d564ee2692f063b6136ce691f01a",
+    "gc_sweep_sha256": "7f85a330bc031eb09f0577460c8b47476381d720ef9c71e97c2c4af8a6a1eed0",
+    "retained_checkpoint_sha256": "43a63855b44b5a4983abc4cde38633550a6b36dc64c615c49bc924eeb63b0826",
+    "retained_wave81_second_receipt_sha256": "27dc30ebd1172695c8873cb919efc59de9adde8a546533b64f6b7d6199c4ca1b",
+    "wave81_retention_sha256": "53d91b18e1a12eb27bd503bcfa70b4cd74add598ceaef522c88d7c075fdee4d4"
+  },
+  "schema": "axm.flowing-compute-retention-gc-wave82/v0.1",
+  "status": "PASS",
+  "truth": {
+    "cpu_time_is_not_joules": true,
+    "drop_receipt_is_explicit_intent_evidence_not_actor_authentication_or_constitutional_authority": true,
+    "gc_requires_exact_current_retention_generation": true,
+    "no_auto_merge": true,
+    "receipt_body_integrity_remains_wave81_contract": true,
+    "sweep_commit_precedes_irreversible_purge": true,
+    "wave79_receipt_identity_is_real_prior_monolith_audit_evidence": true,
+    "wave81_retention_identity_is_exact_published_state": true,
+    "wave82_receipt_files_are_key_envelopes_for_transaction_testing_not_receipt_body_revalidation": true
+  }
+}

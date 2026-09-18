@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://axiom-mir.example/schemas/retained-state-envelope.v0.1.schema.json",
+  "title": "AXM Retained State Envelope v0.1",
+  "type": "object",
+  "required": ["schema", "producer", "semantic_contract", "source_set_sha256", "state_payload", "state_payload_sha256", "state_payload_bytes", "envelope_sha256"],
+  "properties": {
+    "schema": {"const": "axm.retained-state-envelope/v0.1"},
+    "producer": {"type": "string", "minLength": 1},
+    "semantic_contract": {"type": "string", "minLength": 1},
+    "source_set_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "state_payload": {},
+    "state_payload_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "state_payload_bytes": {"type": "integer", "minimum": 0},
+    "envelope_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

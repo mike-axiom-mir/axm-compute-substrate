@@ -1,0 +1,78 @@
+{
+  "controls": {
+    "passed": 41,
+    "rows": [
+      {"name": "exact_sources", "pass": true},
+      {"name": "registry_genesis_valid", "pass": true},
+      {"name": "duplicate_credential_registry_rejected", "pass": true},
+      {"name": "duplicate_failure_domain_registry_rejected", "pass": true},
+      {"name": "genesis_authority", "pass": true},
+      {"name": "candidate1_registry_bound", "pass": true},
+      {"name": "partial_local_commit", "pass": true},
+      {"name": "partial_local_holds", "pass": true},
+      {"name": "complete_local_commit", "pass": true},
+      {"name": "no_remote_quorum_holds", "pass": true},
+      {"name": "publish_a", "pass": true},
+      {"name": "one_remote_not_quorum", "pass": true},
+      {"name": "publish_b", "pass": true},
+      {"name": "two_of_three_authoritative", "pass": true},
+      {"name": "publish_c", "pass": true},
+      {"name": "three_of_three_authoritative", "pass": true},
+      {"name": "pr23_duplicate_service_alias_rejected", "pass": true},
+      {"name": "service_slot_swap_rejected", "pass": true},
+      {"name": "unsigned_runtime_registry_swap_holds", "pass": true},
+      {"name": "epoch2_commit", "pass": true},
+      {"name": "publish_a_epoch2", "pass": true},
+      {"name": "publish_b_epoch2", "pass": true},
+      {"name": "one_remote_offline_still_authoritative", "pass": true},
+      {"name": "reconnected_stale_third_still_quorum", "pass": true},
+      {"name": "reconnect_catchup", "pass": true},
+      {"name": "reconnect_restores_three", "pass": true},
+      {"name": "pr23_mutable_head_rewind_rejected", "pass": true},
+      {"name": "local_rollback_detected", "pass": true},
+      {"name": "one_compromised_remote_can_poison_its_head", "pass": true},
+      {"name": "one_poisoned_remote_no_false_authority", "pass": true},
+      {"name": "one_offline_plus_one_poisoned_holds", "pass": true},
+      {"name": "wrong_credential_rejected", "pass": true},
+      {"name": "recovery_fixture_poisoned", "pass": true},
+      {"name": "credential_rotation_checkpoint_commit", "pass": true},
+      {"name": "rotation_publish_a", "pass": true},
+      {"name": "rotation_publish_b", "pass": true},
+      {"name": "poisoned_recovery_requires_rotated_credential", "pass": true},
+      {"name": "poisoned_recovery_restores_three", "pass": true},
+      {"name": "retired_remote_credential_rejected", "pass": true},
+      {"name": "whole_modeled_domain_rollback_counterexample", "pass": true},
+      {"name": "inherited_all_current_signer_compromise_counterexample", "pass": true}
+    ],
+    "total": 41
+  },
+  "counterexamples_preserved": [
+    "All three remote witnesses are still modeled inside one Python process. Distinct service/credential/failure-domain identities are mechanically checked, but physical independence is not demonstrated.",
+    "Two-of-three keeps authority with one unavailable OR one poisoned/stale witness, but one unavailable plus one non-current witness correctly loses quorum and HOLDs.",
+    "Remote append credentials are symmetric test access-control tokens; historical remote records are content-addressed but are not independently public-key signed remote attestations.",
+    "Compromise of enough local checkpoint signer secrets plus a remote quorum can still create a competing structurally valid world; quorum does not prove root judgment legitimacy or canonical authority.",
+    "Rolling the local runtime, all three modeled remote stores, and registry state back together remains internally self-consistent.",
+    "The registry transition here proves predecessor linkage and local-checkpoint binding for credential rotation; it does not yet prove a physically independent registry authority or real-provider credential lifecycle."
+  ],
+  "date": "2026-09-17",
+  "environment": {"platform": "Linux-6.18.44-x86_64-with-glibc2.41", "python": "3.13.5"},
+  "next_gate": "Wave 100: deploy the exact registry/record/quorum contract across three genuinely separate processes/providers or devices with independently held credentials. Test real partition/reconnect, credential rotation, poisoned-witness recovery, stale-store restoration, two-provider compromise, and durable anti-rollback of each provider's maximal head. Keep whole-domain rollback and signer-compromise counterexamples visible; do not call modeled identity fields physical independence.",
+  "runs": [
+    {"benchmark_rounds": 5, "mode": "python", "passed": 41, "synthetic_scaling": [{"authority_median_cpu_us": 13981.456, "depth": 1, "rounds": 5}, {"authority_median_cpu_us": 14714.818, "depth": 4, "rounds": 5}, {"authority_median_cpu_us": 14957.8, "depth": 8, "rounds": 5}], "total": 41},
+    {"benchmark_rounds": 5, "mode": "python -O", "passed": 41, "synthetic_scaling": [{"authority_median_cpu_us": 13956.488, "depth": 1, "rounds": 5}, {"authority_median_cpu_us": 15831.16, "depth": 4, "rounds": 5}, {"authority_median_cpu_us": 15215.223, "depth": 8, "rounds": 5}], "total": 41}
+  ],
+  "schema": "axm.flowing_compute.wave99.evidence/v1",
+  "source": {"verifier_evidence_blob": "5933c0c720507e4a760b2166eedfe07973942632", "verifier_head": "ac4929e3404a14b6fe6d902f4c923b16a31427b5", "verifier_pr": 23, "wave98_head": "56bb92218f9af62aceacee1ee625755b8ef54789", "wave98_report_blob": "397e1023f1ec1e233e3b0a6943d4b6e62854512b", "wave98_tool_blob": "bc4347a75f04f6d9ff97e58128d2f5f0a16c85a1"},
+  "tools": [
+    {"bytes": 20496, "git_blob_sha1": "3a0c1145b8ff9d66cd7cc75ceec0a17b53806b47", "path": "tools/AXM_FLOWING_COMPUTE_REMOTE_WITNESS_REGISTRY_QUORUM.py", "sha256": "2ffede675ff664a733f06b245c00b8710452988d6ce840e92863df7e26c80bea"},
+    {"bytes": 12814, "git_blob_sha1": "6efa792265c4fd3b54e7cfb192f5e1440402010a", "path": "tools/AXM_FLOWING_COMPUTE_REMOTE_WITNESS_REGISTRY_QUORUM_SELFTEST.py", "sha256": "bef0d855ae2849242701107af16bf60b44e4a5910e830dfa887ce9058f6a8e45"}
+  ],
+  "truth_boundary": [
+    "Wave 99 directly repairs verifier PR #23 before physical deployment: slot->service->credential->failure-domain identity is registry-bound and unique, duplicate service aliasing is rejected, and a selected remote head must be the maximal record in the complete retained store.",
+    "The current registry SHA is included in the Wave 98 signed checkpoint state binding, so changing only runtime registry metadata cannot silently retarget a committed checkpoint.",
+    "A predecessor-linked registry successor can rotate one remote credential; after the new registry is signed into local authority, a poisoned witness can append an explicit recovery record without deleting the bad record.",
+    "No fresh AXM/monolith workload is read because the newest verifier found authority-boundary defects that must be closed before stronger failure-domain claims.",
+    "No merge, CANON promotion, automatic aesthetic/root judgment, energy, network, retained, incremental, or dormant-compute win is claimed."
+  ],
+  "wave": 99
+}

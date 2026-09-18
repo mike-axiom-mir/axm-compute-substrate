@@ -1,0 +1,151 @@
+{
+  "checks": [
+    {
+      "name": "exact_wave88_source_commit",
+      "pass": true
+    },
+    {
+      "name": "exact_wave88_source_blob",
+      "pass": true
+    },
+    {
+      "name": "four_root_authorization_allows_exact_reconfiguration",
+      "pass": true
+    },
+    {
+      "name": "missing_authorization_blocks_before_mutation",
+      "pass": true
+    },
+    {
+      "name": "authorized_replacement_commits",
+      "pass": true
+    },
+    {
+      "name": "committed_state_is_exact_target_membership",
+      "pass": true
+    },
+    {
+      "name": "removed_witness_has_zero_current_authority",
+      "pass": true
+    },
+    {
+      "name": "root_hold_blocks_transition",
+      "pass": true
+    },
+    {
+      "name": "root_fail_blocks_transition",
+      "pass": true
+    },
+    {
+      "name": "missing_root_rejected",
+      "pass": true
+    },
+    {
+      "name": "extra_root_rejected",
+      "pass": true
+    },
+    {
+      "name": "wrong_predecessor_membership_sha256_binding_rejected",
+      "pass": true
+    },
+    {
+      "name": "wrong_target_membership_sha256_binding_rejected",
+      "pass": true
+    },
+    {
+      "name": "wrong_predecessor_pointer_sha256_binding_rejected",
+      "pass": true
+    },
+    {
+      "name": "wrong_target_pointer_sha256_binding_rejected",
+      "pass": true
+    },
+    {
+      "name": "wrong_reconfiguration_sha256_binding_rejected",
+      "pass": true
+    },
+    {
+      "name": "wrong_witness_set_binding_rejected",
+      "pass": true
+    },
+    {
+      "name": "wrong_transition_kind_binding_rejected",
+      "pass": true
+    },
+    {
+      "name": "nested_root_evidence_tamper_rejected",
+      "pass": true
+    },
+    {
+      "name": "top_level_tamper_rejected",
+      "pass": true
+    },
+    {
+      "name": "stale_authorization_cannot_cross_reconfiguration",
+      "pass": true
+    },
+    {
+      "name": "prepared_authorization_zero_authority_without_execution",
+      "pass": true
+    },
+    {
+      "name": "authorized_partial_fanout_recorded",
+      "pass": true
+    },
+    {
+      "name": "missing_authorization_after_crash_holds_recovery",
+      "pass": true
+    },
+    {
+      "name": "restored_exact_authorization_allows_recovery",
+      "pass": true
+    },
+    {
+      "name": "stored_body_corruption_rejected",
+      "pass": true
+    },
+    {
+      "name": "counterexample_structural_pass_does_not_prove_legitimacy",
+      "pass": true
+    }
+  ],
+  "counterexample": "The structural gate accepts a fully self-consistent rehashed PASS receipt. This is intentionally preserved as an unresolved counterexample: content integrity and exact binding do not prove who evaluated the four roots or whether that evaluator had legitimate authority.",
+  "independent_runs": [
+    {
+      "benchmark_rounds": 100,
+      "passed_checks": 27,
+      "status": "PASS",
+      "synthetic_single_host_authorization_cpu_us_median": 95.1615,
+      "total_checks": 27
+    },
+    {
+      "benchmark_rounds": 100,
+      "passed_checks": 27,
+      "status": "PASS",
+      "synthetic_single_host_authorization_cpu_us_median": 94.31,
+      "total_checks": 27
+    }
+  ],
+  "schema": "axm.flowing-compute-wave89-evidence/v0.1",
+  "source_provenance": {
+    "wave88_tool_blob_sha": "efabee7b9c9724e1bd23f37cfc909cc9ed54cf1a",
+    "wave88_tool_commit": "76ed78a64825a5c71ff2017ef9383d389b878192"
+  },
+  "status": "PASS",
+  "tool": {
+    "blob_sha": "71b62f37911a5c2c53a32ddf2a29bf5610833181",
+    "commit": "22182ef762be05835d912ae48da40c6043fb81dc",
+    "file_sha256": "eef82f3db83954d97f15b4f7bda53cc01b75d63c0f289c9a94b4b2eff00d8066",
+    "path": "tools/AXM_FLOWING_COMPUTE_WITNESS_MEMBERSHIP_AUTH.py"
+  },
+  "truth_boundary": {
+    "actor_or_evaluator_identity_proven": false,
+    "automatic_merge": false,
+    "canonical_root_judgment_claim": false,
+    "compute_efficiency_claim": false,
+    "distributed_consensus_claim": false,
+    "energy_claim": false,
+    "fresh_monolith_audit": false,
+    "note": "Authorization binding/recovery mechanics only. Root evaluations are test-only structural evidence, not proof of evaluator legitimacy."
+  }
+}

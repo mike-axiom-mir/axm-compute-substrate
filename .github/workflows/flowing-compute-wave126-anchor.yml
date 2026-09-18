@@ -1,0 +1,67 @@
+name: flowing-compute-wave126-anchor
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Unchanged Wave 125 regression normal
+        env:
+          PYTHONPATH: tools
+        run: |
+          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND_SELFTEST_FIXED.py --report /tmp/wave125-normal.json
+
+      - name: Unchanged Wave 125 regression optimized
+        env:
+          PYTHONPATH: tools
+        run: |
+          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND_SELFTEST_FIXED.py --report /tmp/wave125-optimized.json
+
+      - name: Wave 126 anchored witness normal
+        env:
+          PYTHONPATH: tools
+        run: |
+          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ANCHORED_SELFTEST.py --report /tmp/wave126-normal.json
+
+      - name: Wave 126 anchored witness optimized
+        env:
+          PYTHONPATH: tools
+        run: |
+          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ANCHORED_SELFTEST.py --report /tmp/wave126-optimized.json
+
+      - name: Exact source identity
+        run: |
+          git rev-parse HEAD > /tmp/source-head.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND.py > /tmp/wave125-tool-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_HOSTBOUND_SELFTEST_FIXED.py > /tmp/wave125-selftest-fixed-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ANCHORED.py > /tmp/wave126-tool-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ANCHORED_SELFTEST.py > /tmp/wave126-selftest-blob.txt
+          git rev-parse HEAD:.github/workflows/flowing-compute-wave126-anchor.yml > /tmp/wave126-workflow-blob.txt
+
+      - name: Upload exact Wave 126 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: flowing-compute-wave126-anchor-evidence
+          path: |
+            /tmp/wave125-normal.json
+            /tmp/wave125-optimized.json
+            /tmp/wave126-normal.json
+            /tmp/wave126-optimized.json
+            /tmp/source-head.txt
+            /tmp/wave125-tool-blob.txt
+            /tmp/wave125-selftest-fixed-blob.txt
+            /tmp/wave126-tool-blob.txt
+            /tmp/wave126-selftest-blob.txt
+            /tmp/wave126-workflow-blob.txt
+          if-no-files-found: error

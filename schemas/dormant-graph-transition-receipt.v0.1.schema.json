@@ -1,0 +1,8 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://axiom-mir.example/schemas/dormant-graph-transition-receipt.v0.1.schema.json",
+  "title":"AXM Dormant Graph Transition Receipt v0.1",
+  "type":"object",
+  "required":["schema","from_source_sha256","to_source_sha256","delta_sha256","mode","rehash_current_source","changed_components","affected_components","total_components","recomputed_components","result_state_sha256","equivalence_required","receipt_sha256"],
+  "properties":{"schema":{"const":"axm.flowing-compute-dormant-transition-receipt/v0.1"},"mode":{"enum":["incremental","global"]},"rehash_current_source":{"type":"boolean"},"from_source_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},"to_source_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},"delta_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},"result_state_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},"changed_components":{"type":"integer","minimum":0},"affected_components":{"type":"integer","minimum":0},"total_components":{"type":"integer","minimum":1},"recomputed_components":{"type":"integer","minimum":0},"equivalence_required":{"const":true},"receipt_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"}}
+}

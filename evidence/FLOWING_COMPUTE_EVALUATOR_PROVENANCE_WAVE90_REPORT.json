@@ -1,0 +1,65 @@
+{
+  "checks": [
+    {"name": "exact_wave89_source_commit", "pass": true},
+    {"name": "exact_wave89_source_blob", "pass": true},
+    {"name": "exact_wave89_source_file_sha256", "pass": true},
+    {"name": "genesis_evaluator_registry_valid", "pass": true},
+    {"name": "registered_evaluators_allow_exact_four_root_authorization", "pass": true},
+    {"name": "unregistered_evaluator_fails_closed", "pass": true},
+    {"name": "wrong_evaluation_tool_digest_rejected", "pass": true},
+    {"name": "wrong_evaluation_source_digest_rejected", "pass": true},
+    {"name": "wrong_registered_evaluator_record_digest_rejected", "pass": true},
+    {"name": "missing_evaluator_body_rejected", "pass": true},
+    {"name": "corrupt_registry_body_rejected", "pass": true},
+    {"name": "evaluator_add_transition_predecessor_bound", "pass": true},
+    {"name": "evaluator_remove_transition_predecessor_bound", "pass": true},
+    {"name": "evaluator_replace_transition_predecessor_bound", "pass": true},
+    {"name": "wrong_registry_predecessor_rejected", "pass": true},
+    {"name": "rehashed_transition_semantic_tamper_rejected", "pass": true},
+    {"name": "consistent_registry_views_are_accepted", "pass": true},
+    {"name": "partial_registry_handoff_recorded", "pass": true},
+    {"name": "partial_registry_disagreement_holds_not_votes", "pass": true},
+    {"name": "two_vs_one_registry_split_holds", "pass": true},
+    {"name": "exact_transition_recovers_partial_handoff", "pass": true},
+    {"name": "target_registry_views_consistent_after_commit", "pass": true},
+    {"name": "lone_newer_registry_view_holds", "pass": true},
+    {"name": "competing_registry_histories_hold_instead_of_vote", "pass": true},
+    {"name": "missing_registry_witness_holds", "pass": true},
+    {"name": "prepared_registry_target_has_zero_current_authority", "pass": true},
+    {"name": "new_registry_exact_evaluator_provenance_allows", "pass": true},
+    {"name": "old_evaluator_record_differs_after_replacement", "pass": true},
+    {"name": "stale_old_evaluator_evaluation_cannot_cross_registry_generation", "pass": true},
+    {"name": "registered_root_hold_blocks_transition", "pass": true},
+    {"name": "registered_root_fail_blocks_transition", "pass": true},
+    {"name": "counterexample_registered_provenance_still_not_moral_legitimacy", "pass": true}
+  ],
+  "counterexample": "A self-minted evaluator can be made structurally valid if an explicit registry lineage registers it. Wave 90 therefore proves inspectable provenance/lineage and rejects unregistered or stale identities, but registry membership plus exact hashes still do not prove moral legitimacy or canonical AXM authority.",
+  "independent_check_name_match": true,
+  "independent_runs": [
+    {"benchmark_rounds": 100, "passed_checks": 32, "status": "PASS", "synthetic_single_host_registry_auth_cpu_us_median": 1316.1315, "total_checks": 32},
+    {"benchmark_rounds": 100, "passed_checks": 32, "status": "PASS", "synthetic_single_host_registry_auth_cpu_us_median": 1229.092, "total_checks": 32}
+  ],
+  "schema": "axm.flowing-compute-wave90-report/v0.1",
+  "source_provenance": {
+    "wave89_tool_blob_sha": "71b62f37911a5c2c53a32ddf2a29bf5610833181",
+    "wave89_tool_commit": "22182ef762be05835d912ae48da40c6043fb81dc",
+    "wave89_tool_file_sha256": "eef82f3db83954d97f15b4f7bda53cc01b75d63c0f289c9a94b4b2eff00d8066"
+  },
+  "status": "PASS",
+  "tool": {
+    "blob_sha": "35f756d023fcbfa1e24fff94a2dcf87b29d8962e",
+    "commit": "57435f3f21b017b6a532a39c31e0a8a58ca70182",
+    "file_sha256": "35355bb17ab069cf1de5d32168e2bf8153bf489eda30b27057e82ccab9743679",
+    "path": "tools/AXM_FLOWING_COMPUTE_EVALUATOR_PROVENANCE.py"
+  },
+  "truth_boundary": {
+    "automatic_merge": false,
+    "canonical_root_judgment_claim": false,
+    "compute_efficiency_claim": false,
+    "distributed_consensus_claim": false,
+    "energy_claim": false,
+    "fresh_monolith_audit": false,
+    "moral_evaluator_legitimacy_proven": false,
+    "note": "Evaluator provenance/registry lineage mechanics only. All evaluators and roots in this probe are test-only structural evidence."
+  }
+}

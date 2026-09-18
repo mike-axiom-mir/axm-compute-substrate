@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://axiom-mir.invalid/schemas/incremental-state-generation-transition.v0.1.schema.json",
+  "title": "AXM Incremental State Generation Transition Receipt v0.1",
+  "type": "object",
+  "required": ["schema", "edge_id", "source_generation_before", "source_generation_after", "incremental_equals_full_rebuild", "old_envelope_rejected_against_new_generation", "new_envelope_validates_against_new_generation", "receipt_sha256"],
+  "properties": {
+    "schema": {"const": "axm.incremental-state-generation-transition/v0.1"},
+    "edge_id": {"type": "string"},
+    "source_generation_before": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_generation_after": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "incremental_equals_full_rebuild": {"const": true},
+    "old_envelope_rejected_against_new_generation": {"const": true},
+    "new_envelope_validates_against_new_generation": {"const": true},
+    "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": true
+}

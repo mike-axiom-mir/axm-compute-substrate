@@ -1,0 +1,29 @@
+name: Wave 100 registry monotonicity
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - 'tools/AXM_FLOWING_COMPUTE_REMOTE_REGISTRY_MONOTONICITY.py'
+      - 'tools/AXM_FLOWING_COMPUTE_REMOTE_REGISTRY_MONOTONICITY_SELFTEST.py'
+      - '.github/workflows/wave100-registry-monotonicity.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Normal Python
+        working-directory: tools
+        run: python AXM_FLOWING_COMPUTE_REMOTE_REGISTRY_MONOTONICITY_SELFTEST.py --benchmark-rounds 5
+      - name: Optimized Python
+        working-directory: tools
+        run: python -O AXM_FLOWING_COMPUTE_REMOTE_REGISTRY_MONOTONICITY_SELFTEST.py --benchmark-rounds 5

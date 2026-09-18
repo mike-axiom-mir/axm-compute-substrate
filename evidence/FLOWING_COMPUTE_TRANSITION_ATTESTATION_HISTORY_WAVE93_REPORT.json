@@ -1,0 +1,171 @@
+{
+  "checks": [
+    {
+      "name": "wave92_exact_source",
+      "pass": true
+    },
+    {
+      "name": "wave92_verifier_exact_source",
+      "pass": true
+    },
+    {
+      "name": "genesis_authoritative",
+      "pass": true
+    },
+    {
+      "name": "history_registry_cross_binding_holds",
+      "pass": true
+    },
+    {
+      "name": "attested_transition_valid",
+      "pass": true
+    },
+    {
+      "name": "bridge_commit",
+      "pass": true
+    },
+    {
+      "name": "bridge_authoritative",
+      "pass": true
+    },
+    {
+      "name": "removed_id_tombstoned",
+      "pass": true
+    },
+    {
+      "name": "truth_sequence_recorded",
+      "pass": true
+    },
+    {
+      "name": "exact_old_identity_resurrection_rejected",
+      "pass": true
+    },
+    {
+      "name": "fresh_same_id_resurrection_rejected",
+      "pass": true
+    },
+    {
+      "name": "continuous_replace_valid",
+      "pass": true
+    },
+    {
+      "name": "continuous_replace_commits",
+      "pass": true
+    },
+    {
+      "name": "bridge_sequence_starts_at_one_after_admission",
+      "pass": true
+    },
+    {
+      "name": "stale_replay_rejected",
+      "pass": true
+    },
+    {
+      "name": "same_sequence_competition_holds",
+      "pass": true
+    },
+    {
+      "name": "cross_root_copy_rejected",
+      "pass": true
+    },
+    {
+      "name": "tool_substitution_rejected",
+      "pass": true
+    },
+    {
+      "name": "hold_verdict_blocks",
+      "pass": true
+    },
+    {
+      "name": "missing_attestation_rejected",
+      "pass": true
+    },
+    {
+      "name": "partial_created",
+      "pass": true
+    },
+    {
+      "name": "partial_not_authoritative",
+      "pass": true
+    },
+    {
+      "name": "partial_exact_recovery_commits",
+      "pass": true
+    },
+    {
+      "name": "counterexample_mechanical_pass_still_admits_arbitrary_new_evaluator",
+      "pass": true
+    }
+  ],
+  "closed_counterexamples": [
+    "Wave92 removed evaluator IDs remain tombstoned in append-only evaluator-ID history, so exact-old and fresh-predecessorless same-ID resurrection are rejected.",
+    "Each root PASS is a content-addressed transition-specific attestation binding evaluator, exact tool/source, registry generation, sequence and predecessor attestation.",
+    "Stale replay, cross-root copy, tool substitution, HOLD, missing bodies and visible same-sequence competition fail closed.",
+    "Registry + evaluator-ID history + attestation state move as one witnessed authority tuple; partial fan-out has no current authority and exact evidence can resume it."
+  ],
+  "counterexample": "Mechanical provenance is still not moral/canonical legitimacy: mechanically current evaluators can mint structurally valid PASS attestations and admit an arbitrary genuinely new evaluator ID.",
+  "failed_checks": [],
+  "independent_check_name_match": true,
+  "independent_runs": [
+    {
+      "benchmark_rounds": 120,
+      "passed_checks": 24,
+      "status": "PASS",
+      "synthetic_single_host_attestation_history_cpu_us_median": 1935.714,
+      "total_checks": 24
+    },
+    {
+      "benchmark_rounds": 120,
+      "passed_checks": 24,
+      "status": "PASS",
+      "synthetic_single_host_attestation_history_cpu_us_median": 1825.295,
+      "total_checks": 24
+    }
+  ],
+  "known_limitations": [
+    "This wave conservatively forbids reusing a retired evaluator ID; legitimate same-ID reactivation is not yet supported.",
+    "Same-sequence equivocation is detected only when competing attestation objects are visible in the local attestation store.",
+    "No cryptographic signer/key-control proof exists yet; evaluator/tool/source hashes are provenance identities, not actor authentication.",
+    "Whole-failure-domain rollback of registry+history+attestation stores is not proven detectable."
+  ],
+  "measurement_note": "Synthetic single-host authorization/history validation only; process CPU, not wall-clock storage/network latency, joules, or a retained/incremental/dormant-state efficiency result.",
+  "next_gate": "Wave 94: add explicit signer/key provenance and key-rotation lineage for attestation issuance, then attack stolen/rotated keys, hidden equivocation and whole-store rollback. Keep proof-of-key-control separate from proof that a root judgment is correct; only after that reconsider an explicitly authorized same-ID reactivation path.",
+  "schema": "axm.flowing-compute-wave93-transition-attestation-history/v0.1",
+  "source_provenance": {
+    "wave92_tool": {
+      "blob_sha": "82904139cb532245f241f0bdafaf2ea89cac529c",
+      "builder_head": "f94d563fe5339316e3362bccf988e83c950f161d",
+      "commit": "d06988d200315ec8824e18aa31baadf8c1bf7114",
+      "file_sha256": "4d0e73f86086bda5341f9153e2713ac6d65ba82dc2f163e8ba1f8507539bd320",
+      "path": "tools/AXM_FLOWING_COMPUTE_PREDECESSOR_AUTHORIZED_REGISTRY_TRANSITION.py"
+    },
+    "wave92_verifier": {
+      "blob_sha": "d06a64dced1c30a7278491a1e0f7847248a8300a",
+      "finding": "FAIL_REMOVED_EVALUATOR_IDENTITY_CAN_BE_RESURRECTED_AS_ADD",
+      "head": "b59bd5e9d58250f204d81a4ae93a74d1aa597a9d",
+      "path": "verification/WAVE92_ADVERSARIAL_VERIFICATION_2026-09-16.md",
+      "pr": 17,
+      "workflow_run": 35120821858
+    }
+  },
+  "status": "PASS",
+  "tool": {
+    "blob_sha": "bd34149b4370973b56a2ab213ae9e1f1adc2ae0e",
+    "commit": "e85cafebd8845f88707e96c9e84bcc97095a169c",
+    "file_sha256": "4ab6553768a23dcbff16255763f92f89f00179eff1fde6915692fc17301522a3",
+    "path": "tools/AXM_FLOWING_COMPUTE_TRANSITION_ATTESTATION_HISTORY.py"
+  },
+  "truth_boundary": {
+    "automatic_merge": false,
+    "canonical_root_judgment_claim": false,
+    "compute_efficiency_claim": false,
+    "cryptographic_signer_claim": false,
+    "distributed_consensus_claim": false,
+    "energy_claim": false,
+    "fresh_monolith_audit": false,
+    "moral_evaluator_legitimacy_proven": false,
+    "note": "Infrastructure semantics only; no fresh AXM/monolith workload timing or scaling result in Wave 93.",
+    "retained_incremental_dormant_win_claim": false,
+    "synthetic_scaling": false
+  }
+}

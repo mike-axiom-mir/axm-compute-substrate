@@ -1,0 +1,96 @@
+{
+  "schema": "axm.flowing-compute.wave115.exact-source-receipt/v1",
+  "date": "2026-09-17",
+  "lane": "chatgpt/lane-001-platform-extract",
+  "status": "experimental-unmerged",
+  "tested_source_commit": "ad03fc8582a8ac6d8b294c494fa8b2fabb142dc6",
+  "source_blobs": {
+    "tool": {
+      "path": "tools/AXM_FLOWING_COMPUTE_PREVALIDATED_COMMIT_DECISION.py",
+      "blob_sha": "7279d1aa84df3efec5848ea98fe601a590ffc2a9"
+    },
+    "broad_selftest": {
+      "path": "tools/AXM_FLOWING_COMPUTE_PREVALIDATED_COMMIT_DECISION_SELFTEST.py",
+      "blob_sha": "f31881af1fa976fa1c125f4d84f613b1af1cd680"
+    },
+    "focused_identity_selftest": {
+      "path": "tools/AXM_FLOWING_COMPUTE_PREVALIDATED_COMMIT_DECISION_IDENTITY_SELFTEST.py",
+      "blob_sha": "9f85264227a9061c406469720f88ac90378d015d"
+    },
+    "workflow": {
+      "path": ".github/workflows/wave115-prevalidated-commit-decision.yml",
+      "blob_sha": "13f5e7cdb9eba3f071526d7315fb967132c5dd86"
+    }
+  },
+  "predecessor": {
+    "wave": 114,
+    "builder_head_before_wave115": "e9b48d8e6b090ad73fe6f9d4443e741c308a70e6",
+    "tested_source_commit": "cd946978f2c01ce719307c5bc025beccbcb1ec4f",
+    "tool_blob": "2520a80b17624ac198d1e02999ef8ea906f246c5",
+    "selftest_blob": "98afe1f6725f4c69f54639b1fd9c773d076bc976"
+  },
+  "verifier": {
+    "pr": 39,
+    "head_at_wave115_start": "8bf3003ed765210cbbfbfc5cd0bc3ef044777987",
+    "tested_source_workflow_head": "1769f6fc1b17ea0f3cd749c581473806528882d8",
+    "verdict": "FAIL_SEMANTICALLY_INVALID_TRANSITION_IS_DURABLY_COMMIT_DECIDED_BEFORE_LOWER_VALIDATION",
+    "run_id": 35232714178,
+    "job_id": 105240688233,
+    "artifact_id": 10501523595,
+    "artifact_sha256": "3a9122f3e759319dcbcea1faa1d22bcbb6e3579dc5628a4b79c7c185a310ab69"
+  },
+  "preserved_failed_repair": {
+    "credited": false,
+    "run_id": 35236136821,
+    "job_id": 105252409348,
+    "artifact_id": 10503004371,
+    "artifact_sha256": "c381e9bafc4c895676b7395466db1dd3613b4171c34a365bfc39b3008d661be9",
+    "failure": "committed-authority-transition-match-not-unique",
+    "note": "Prevalidation avoided poisoning the COMMIT decision but leaving the rejected raw transition unexplained still made retained history ambiguous. Rejected evidence was not deleted; the final design added an append-only exact rejection ledger."
+  },
+  "final_ci": {
+    "run_id": 35237020219,
+    "job_id": 105255433344,
+    "conclusion": "success",
+    "artifact_id": 10503696423,
+    "artifact_name": "wave115-prevalidated-commit-decision-reports",
+    "artifact_size_bytes": 8803,
+    "artifact_sha256": "a92d7ac96fe0879f75ed314b48b25708428433cf57e7503f632df2350632ffbb",
+    "results": {
+      "wave114_regression": "20/20 PASS",
+      "wave115_broad_normal": "42/42 PASS",
+      "wave115_broad_python_O": "42/42 PASS",
+      "wave115_identity_normal": "9/9 PASS",
+      "wave115_identity_python_O": "9/9 PASS"
+    }
+  },
+  "focused_identity_normal": {
+    "genuine_transition_sha": "699b4c3786f8fdbf16ecbf7778057d7347caf0d9bb90934a8d2f0cc0d9b94a41",
+    "commit_decision_transition_sha": "699b4c3786f8fdbf16ecbf7778057d7347caf0d9bb90934a8d2f0cc0d9b94a41",
+    "rejected_transition_sha": "dc5ce5df422374e01c73bc32f69ee408f0f019df2748e9f1a30a53c2b49f359d",
+    "rejection_receipt_transition_sha": "dc5ce5df422374e01c73bc32f69ee408f0f019df2748e9f1a30a53c2b49f359d"
+  },
+  "focused_identity_python_O": {
+    "genuine_transition_sha": "6957e77d79148c59fa779e0f5fc06cc0830ea0c84ec80b6f7d9177078c241771",
+    "commit_decision_transition_sha": "6957e77d79148c59fa779e0f5fc06cc0830ea0c84ec80b6f7d9177078c241771",
+    "rejected_transition_sha": "c3937f5c3593493ca170526c9775c5571f1df7c99fd57ede210508f5996fa17c",
+    "rejection_receipt_transition_sha": "c3937f5c3593493ca170526c9775c5571f1df7c99fd57ede210508f5996fa17c"
+  },
+  "truth_boundary": {
+    "same_modeled_python_failure_domain": true,
+    "deepcopy_preflight_is_process_independence": false,
+    "concurrent_mutation_proved": false,
+    "power_loss_atomicity_proved": false,
+    "physical_or_provider_independence_proved": false,
+    "real_axm_or_monolith_workload_run": false,
+    "synthetic_scaling_run": false,
+    "performance_claim": false,
+    "energy_claim": false,
+    "retained_incremental_dormant_compute_claim": false
+  },
+  "counterexample": {
+    "whole_modeled_domain_rollback_preserved": true,
+    "older_snapshot_result": "AUTHORITATIVE_QUORUM_3_OF_3_MODELED"
+  },
+  "next_gate": "Wave 116: separate durable OS-process outcome witness distinguishing COMMIT, stable REJECT, and retriable HOLD; attack publication crash windows, local rollback with newer witness, stale/cloned disks, witness outage/restart/loss/tamper, credential substitution, partitions/reconnects, simultaneous old/new views, and HOLD misclassification."
+}

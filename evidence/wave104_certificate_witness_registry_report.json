@@ -1,0 +1,102 @@
+{
+  "controls": {
+    "passed": 46,
+    "rows": [
+      {"name": "exact_sources", "pass": true},
+      {"name": "registry_content_addressed", "pass": true},
+      {"name": "registry_exact_membership", "pass": true},
+      {"name": "registry_distinct_instances", "pass": true},
+      {"name": "registry_distinct_credentials", "pass": true},
+      {"name": "registry_distinct_modeled_domains", "pass": true},
+      {"name": "genesis_authority", "pass": true},
+      {"name": "epoch1_registered_endpoints_synced", "pass": true},
+      {"name": "epoch1_legacy_witnesses_synced", "pass": true},
+      {"name": "epoch1_authoritative", "pass": true},
+      {"name": "epoch2_local_commit", "pass": true},
+      {"name": "epoch2_publish_a", "pass": true},
+      {"name": "epoch2_publish_b", "pass": true},
+      {"name": "epoch2_remote_c_lags", "pass": true},
+      {"name": "epoch2_certificate", "pass": true},
+      {"name": "epoch2_sync_cert_a", "pass": true},
+      {"name": "epoch2_sync_cert_b", "pass": true},
+      {"name": "epoch2_sync_legacy_a", "pass": true},
+      {"name": "epoch2_sync_legacy_b", "pass": true},
+      {"name": "epoch2_cert_c_still_lags", "pass": true},
+      {"name": "epoch2_two_of_three_authority", "pass": true},
+      {"name": "real_newer_cert_a_still_online", "pass": true},
+      {"name": "real_newer_cert_a_retains_two", "pass": true},
+      {"name": "honest_registered_endpoint_blocks_stale_world", "pass": true},
+      {"name": "pr28_wave103_false_authority_reproduced", "pass": true},
+      {"name": "pr28_plain_same_id_snapshot_substitution_blocked", "pass": true},
+      {"name": "pr28_attack_did_not_modify_real_cert_a", "pass": true},
+      {"name": "same_visible_instance_wrong_credential_blocked", "pass": true},
+      {"name": "resolver_membership_shrink_blocked", "pass": true},
+      {"name": "one_registered_endpoint_offline_two_current_authoritative", "pass": true},
+      {"name": "one_registered_endpoint_stale_two_current_authoritative", "pass": true},
+      {"name": "registry_body_tamper_holds", "pass": true},
+      {"name": "registry_restored_after_test", "pass": true},
+      {"name": "epoch3_local_commit", "pass": true},
+      {"name": "epoch3_publish_a", "pass": true},
+      {"name": "epoch3_publish_b", "pass": true},
+      {"name": "epoch3_certificate", "pass": true},
+      {"name": "epoch3_only_cert_a_synced", "pass": true},
+      {"name": "epoch3_one_endpoint_not_enough", "pass": true},
+      {"name": "epoch3_second_endpoint_synced", "pass": true},
+      {"name": "epoch3_two_endpoints_restore_authority", "pass": true},
+      {"name": "epoch3_third_endpoint_catches_up", "pass": true},
+      {"name": "explicit_reconstruction_exact_head", "pass": true},
+      {"name": "stolen_credential_stale_clone_counterexample_preserved", "pass": true},
+      {"name": "whole_registered_domain_rollback_counterexample_preserved", "pass": true},
+      {"name": "latest_state_restored_explicitly", "pass": true}
+    ],
+    "total": 46
+  },
+  "counterexamples_preserved": [
+    "Stealing a registered Wave 104 symmetric witness credential lets a stale clone authenticate as that registered instance in this model.",
+    "Restoring all genuine registered certificate-witness ledgers together with local/certificate/remote state can recreate an internally valid old world because no store is physically monotonic yet.",
+    "All three witness endpoints, registry state, credential verifier material, and remote stores still exist in one Python process; modeled failure-domain labels are not process/device/provider independence.",
+    "Wave 104 deliberately has no witness-registry rotation/replacement path; recovery/reconfiguration must become an explicit authority-bound transition instead of a mutable registry rewrite.",
+    "HMAC-SHA256 challenge proofs authenticate possession of test credentials only; they do not prove hardware identity, operator legitimacy, moral/root correctness, consent, or CANON authority."
+  ],
+  "next_gate": "Wave 105: move the repaired registered endpoint contract into three real OS processes with separate durable stores and separately held credentials, then attack stale process images, cloned disks, credential rollback/theft, kill-restart, partition-reconnect, one outage plus one stale clone, two-process restore, registry rollback, and explicit credential/instance rotation as an authority-bound transition.",
+  "pr28_reproduction": {
+    "honest_real_newer_endpoint": "HOLD_CERTIFICATE_WITNESS_MAXIMUM_AHEAD",
+    "wave103_same_id_substitution": "AUTHORITATIVE_QUORUM_2_OF_3_MODELED",
+    "wave104_same_plain_snapshot_substitution": "HOLD_CERTIFICATE_WITNESS_IDENTITY_OR_CREDENTIAL_INVALID"
+  },
+  "registry": {
+    "distinct_credentials": 3,
+    "distinct_instances": 3,
+    "distinct_modeled_failure_domains": 3,
+    "generation": 0,
+    "registry_sha": "f1bd429de224f82be746e2bbb875d0b3256dba84c9856d3dc5738664b4af2d17",
+    "slots": ["cert-a", "cert-b", "cert-c"]
+  },
+  "schema": "axm.flowing_compute.wave104.report/v1",
+  "source": {
+    "verifier_evidence_blob": "5b75cf95aa2203e9a5c57f529fdfcad00fa96aea",
+    "verifier_head": "2384c08109e0c1414921029e7f4f29577838a0da",
+    "verifier_pr": 28,
+    "verifier_repro_blob": "9031bcfaf13afaee4628db0c8d486d066c6efd04",
+    "wave103_builder_head": "8239c401a9d7ca1a330f76a7f537437fd141bbc6",
+    "wave103_selftest_blob": "6bf8df3d03dd189cfe700ac0f8fbf862593dd7c9",
+    "wave103_tool_blob": "0a5d6f09189719d705808fe1746c2f032688fd01"
+  },
+  "truth_boundary": [
+    "Wave 104 directly repairs verifier PR #28 before OS-process separation.",
+    "Every authority read requires the exact three-slot registered resolver set; an outage is represented by the registered endpoint remaining present but explicitly offline, not by replacing or deleting its slot.",
+    "Fresh per-read HMAC challenge proofs plus registry-bound instance IDs prevent a caller from substituting a plain stale same-ID disk snapshot while the real newer endpoint remains online.",
+    "Every Wave 104 retained witness row binds the immutable witness-registry SHA, instance identity, credential identity, and modeled failure-domain identity.",
+    "No performance, energy, networking, retained-state, incremental-state, dormant-state, physical-independence, merge, or CANON claim is made."
+  ],
+  "wave": 104,
+  "ci": {
+    "run_id": 35179665157,
+    "tested_head": "8c4ffb13f3a0f3f2847af37de882b76890bcab9a",
+    "artifact_id": 10479946113,
+    "artifact_zip_sha256": "63307f4756f8265965509ad84405b5a3e4a50ad2b3fd9632fb2140f58ea7efa9",
+    "python_3_12_normal": "46/46",
+    "python_3_12_optimized": "46/46",
+    "wave103_regression": "40/40"
+  }
+}

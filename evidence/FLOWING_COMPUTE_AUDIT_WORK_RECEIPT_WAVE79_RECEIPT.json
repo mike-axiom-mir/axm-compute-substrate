@@ -1,0 +1,24 @@
+{
+  "audit_cpu_ns": 8543797,
+  "audit_wall_ns": 8543712,
+  "bytes_read": 11255808,
+  "challenge_sha256": "50fc7dc88f497c3a555e5a67e0a542107ac6af596ebdfedfd828963f8d9fd8b0",
+  "chunk_bytes": 1048576,
+  "chunks_read": 11,
+  "contract_id": "axm.execution-fabric.capability-index/v0.1",
+  "expected_artifact_bytes": 11255808,
+  "expected_artifact_sha256": "e676fafb2f825d946c10480ccd2184ab69daf9464ae77cf5703dfe59562644da",
+  "mode": "audited_reuse",
+  "observed_artifact_sha256": "e676fafb2f825d946c10480ccd2184ab69daf9464ae77cf5703dfe59562644da",
+  "predecessor_state_sha256": "58959e3053fe81c2686894296e542859a3a6d86a5591dfddde19110786bc7a01",
+  "proof_sha256": "0e90715689e43290371acc3d1608b58d179cd4c6e7bfc288b9bd41b718f353a2",
+  "receipt_sha256": "fb65ba5ad5cc0f4c33a851957ccc42a4142c64a3d0815abb1a4f0886dbf4ecf2",
+  "schema": "axm.flowing-compute-audit-work-receipt/v0.1",
+  "sequence": 1,
+  "status": "AUDIT_PASS",
+  "truth": {
+    "cpu_time_is_not_joules": true,
+    "receipt_created_after_full_local_byte_read": true,
+    "receipt_digest_is_integrity_not_actor_authentication": true
+  }
+}

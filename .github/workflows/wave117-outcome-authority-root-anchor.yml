@@ -1,0 +1,43 @@
+name: wave117-outcome-authority-root-anchor
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - 'tools/AXM_FLOWING_COMPUTE_OUTCOME_AUTHORITY_ROOT_ANCHOR.py'
+      - 'tools/AXM_FLOWING_COMPUTE_OUTCOME_AUTHORITY_ROOT_ANCHOR_SELFTEST.py'
+      - '.github/workflows/wave117-outcome-authority-root-anchor.yml'
+      - 'evidence/FLOWING_COMPUTE_WAVE117_OUTCOME_AUTHORITY_ROOT_ANCHOR_2026-09-17.md'
+      - 'evidence/WAVE117_EXACT_SOURCE_RECEIPT_2026-09-17.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Wave 116 regression
+        working-directory: tools
+        run: python AXM_FLOWING_COMPUTE_AUTHENTICATED_REJECTION_OUTCOME_SELFTEST.py
+      - name: Wave 116 optimized regression
+        working-directory: tools
+        run: python -O AXM_FLOWING_COMPUTE_AUTHENTICATED_REJECTION_OUTCOME_SELFTEST.py
+      - name: Wave 117 exact-source self-test
+        working-directory: tools
+        run: python AXM_FLOWING_COMPUTE_OUTCOME_AUTHORITY_ROOT_ANCHOR_SELFTEST.py --json-out /tmp/wave117-report.json
+      - name: Wave 117 optimized-mode self-test
+        working-directory: tools
+        run: python -O AXM_FLOWING_COMPUTE_OUTCOME_AUTHORITY_ROOT_ANCHOR_SELFTEST.py
+      - name: Upload machine-readable run report
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave117-report
+          path: /tmp/wave117-report.json
+          if-no-files-found: error

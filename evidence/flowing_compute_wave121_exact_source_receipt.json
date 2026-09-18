@@ -1,0 +1,52 @@
+{
+  "schema": "axm.flowing-compute.wave121.exact-source-receipt/v1",
+  "wave": 121,
+  "status": "experimental_verified_no_merge",
+  "tested_source_commit": "a3c763a106bc5aea6245816de67f220f2b8695bc",
+  "source_blobs": {
+    "tools/AXM_FLOWING_COMPUTE_ROTATION_PREPARE_PUBLICATION_ATOMICITY.py": "b0909097c6af1d6aa5dd522664aa9f8caaade587",
+    "tools/AXM_FLOWING_COMPUTE_ROTATION_PREPARE_PUBLICATION_ATOMICITY_SELFTEST.py": "c73fc1b19f517927643ebb771bc8cd17d873776f",
+    ".github/workflows/wave121-rotation-prepare-publication-atomicity.yml": "d5b1a4fa17c330aa988093c48b0a721b20e2fd17",
+    "tools/AXM_FLOWING_COMPUTE_ROTATION_PREPARE_TRANSACTION.py": "cdf87ee52abb1c9381af38807cea73509ce9cd40",
+    "tools/AXM_FLOWING_COMPUTE_ROTATION_PREPARE_TRANSACTION_SELFTEST.py": "51ee96c8a629ef696ce0abcc84f01e80b0a9b20d"
+  },
+  "predecessor": {
+    "wave": 120,
+    "source_head": "d8d466181ffc80554549899c1dcafa115a27e7ec",
+    "full_green_workflow_run": 35269779977
+  },
+  "independent_verifier": {
+    "pr": 45,
+    "head": "ad230a162462fba3636b6e2a264b83a4d10a7295",
+    "verdict": "FAIL_LOWER_PREPARE_SUCCEEDS_BUT_TRANSITION_IS_LOST_BEFORE_SYNC_AND_PUBLIC_RETRY_HOLDS",
+    "workflow_run": 35269713222,
+    "job": 105365655523,
+    "artifact": 10517938412,
+    "artifact_sha256": "c3cb43b205a442f124d7578414ba50f61a53a6300582467931a29e37439f7b44",
+    "stale_authority_accepted": false
+  },
+  "verification": {
+    "workflow_run": 35273822562,
+    "job": 105379427177,
+    "artifact": 10518619363,
+    "artifact_sha256": "6b983953f0cd6513da6b68ea6192bd2ee1159bf7d505d0ed6cd8c4bd1d3e6339",
+    "bounded_wave120_predecessor_control": "PASS",
+    "wave121_normal": {"passed": 8, "failed": 0},
+    "wave121_python_O": {"passed": 8, "failed": 0}
+  },
+  "truth_boundary": {
+    "same_process_exception_transactionality": true,
+    "hard_process_kill_or_power_loss_atomicity": false,
+    "separate_os_process_or_durable_external_witness": false,
+    "whole_domain_rollback_counterexample_removed": false,
+    "real_axm_or_monolith_performance_run": false,
+    "synthetic_scaling_run": false,
+    "timing_or_energy_claim": false,
+    "retained_incremental_dormant_compute_win_claim": false,
+    "physical_or_provider_independent_finality_claim": false
+  },
+  "merge": {
+    "automatic_merge": false,
+    "canon_promotion": false
+  }
+}

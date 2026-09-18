@@ -1,0 +1,8 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://axiom-mir.example/schemas/dormant-graph-state.v0.1.schema.json",
+  "title":"AXM Dormant Execution Graph Signature State v0.1",
+  "type":"object",
+  "required":["schema","source_sha256","component_members","component_edges","edge_hashes","edge_topology_hashes","local_hashes","signatures","predecessors","successors","topological_order","counts","state_sha256"],
+  "properties":{"schema":{"const":"axm.execution-graph.dormant-signature-state/v0.1"},"source_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},"component_members":{"type":"array"},"component_edges":{"type":"object"},"edge_hashes":{"type":"object"},"edge_topology_hashes":{"type":"object"},"local_hashes":{"type":"object"},"signatures":{"type":"object"},"predecessors":{"type":"object"},"successors":{"type":"object"},"topological_order":{"type":"array"},"counts":{"type":"object"},"state_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"}}
+}

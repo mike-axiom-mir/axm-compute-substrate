@@ -1,0 +1,15 @@
+{
+  "schema": "axm.flowing_compute.wave104.ci_receipt/v1",
+  "wave": 104,
+  "tested_head": "b33c8e0ae155d8e785b25ab608bdf8a3dbb14e65",
+  "tool_blob": "64aef8c32e246f396ca8dc67dbf3b0460b077f77",
+  "selftest_blob": "c2ca76079adfbe9f44fd11c97689be61027a7760",
+  "workflow_run_id": 35179760427,
+  "workflow_conclusion": "success",
+  "wave103_regression": "success (40/40)",
+  "wave104_normal": "success (46/46)",
+  "wave104_python_O": "success (46/46)",
+  "artifact_id": 10478954438,
+  "artifact_zip_sha256": "c244d79fa88f21d002bb6b539d9cf577961ecb7d8dd0c3e2d663ba20da4c89c0",
+  "note": "Append-only receipt. The receipt commit changes metadata only; the tested Wave 104 tool and self-test blobs are unchanged. No merge or CANON promotion."
+}

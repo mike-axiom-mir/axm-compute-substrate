@@ -1,0 +1,32 @@
+{
+  "schema":"axm.flowing-compute-contract-dependency-registry/v0.1",
+  "registry_id":"axm-four-contract-research-body-2026-09-16",
+  "accepted_source_namespaces":["monolith:","asset:"],
+  "contracts":[
+    {
+      "contract_id":"axm.execution-graph.component-propagated-signatures/v0.1",
+      "source_selectors":["monolith:EXECUTION_GRAPH.json"],
+      "unknown_input_policy":"not_affected_if_no_selector_match"
+    },
+    {
+      "contract_id":"axm.snapshot.file-identity/v0.1",
+      "source_selectors":["monolith:*"],
+      "unknown_input_policy":"not_affected_if_no_selector_match"
+    },
+    {
+      "contract_id":"axm.framestate.dormant-mesh/v0.1",
+      "source_selectors":["asset:relay_offline.obj"],
+      "unknown_input_policy":"not_affected_if_no_selector_match"
+    },
+    {
+      "contract_id":"axm.execution-fabric.capability-index/v0.1",
+      "source_selectors":["monolith:EXECUTION_FABRIC.json"],
+      "unknown_input_policy":"not_affected_if_no_selector_match"
+    }
+  ],
+  "truth":{
+    "registry_scope":"only these four experimental state contracts",
+    "absence_of_match_is_not_global_software_knowledge":true,
+    "new_contracts_require_registry_extension":true
+  }
+}
