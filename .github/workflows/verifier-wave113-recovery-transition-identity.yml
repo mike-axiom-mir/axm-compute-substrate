@@ -1,0 +1,38 @@
+name: Verifier Wave 113 recovery transition identity
+
+on:
+  pull_request:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - 'verification/wave113_recovery_transition_identity_repro.py'
+      - '.github/workflows/verifier-wave113-recovery-transition-identity.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Re-run unchanged Wave 113 builder self-test
+        run: python tools/AXM_FLOWING_COMPUTE_RECOVERY_ATOMICITY_SELFTEST.py --json-out /tmp/wave113-builder.json
+      - name: Reproduce transition-identity substitution
+        run: python verification/wave113_recovery_transition_identity_repro.py --json-out /tmp/wave113-verifier-normal.json
+      - name: Reproduce under python -O
+        run: python -O verification/wave113_recovery_transition_identity_repro.py --json-out /tmp/wave113-verifier-optimized.json
+      - name: Upload verifier evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verifier-wave113-recovery-transition-identity
+          path: |
+            /tmp/wave113-builder.json
+            /tmp/wave113-verifier-normal.json
+            /tmp/wave113-verifier-optimized.json
+          if-no-files-found: warn
