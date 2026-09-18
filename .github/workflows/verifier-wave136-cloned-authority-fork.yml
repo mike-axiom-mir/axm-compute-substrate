@@ -1,0 +1,86 @@
+name: Verifier Wave 136 cloned current authority fork
+
+on:
+  push:
+    branches:
+      - verifier/wave136-cloned-authority-fork
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Environment identity
+        run: |
+          python --version
+          openssl version
+          uname -a
+          id
+          grep -E '^(Uid|Gid|CapPrm|CapEff|NoNewPrivs):' /proc/self/status || true
+          sudo -n true
+
+      - name: Stage UID-neutral test code
+        run: |
+          sudo rm -rf /tmp/axm-w136v-code
+          sudo mkdir -p /tmp/axm-w136v-code/tools /tmp/axm-w136v-code/verification
+          sudo cp -a tools/. /tmp/axm-w136v-code/tools/
+          sudo cp verification/wave136_cloned_current_authority_fork_repro.py /tmp/axm-w136v-code/verification/
+          sudo find /tmp/axm-w136v-code -type d -exec chmod 0755 {} +
+          sudo find /tmp/axm-w136v-code -type f -exec chmod 0644 {} +
+
+      - name: Unchanged Wave 136 control normal
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w136v-code/tools HOME=/tmp python /tmp/axm-w136v-code/tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ROTATION_TRANSACTION_RECOVERY_SELFTEST.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave136-control-normal.json' sh "$worker_uid"
+
+      - name: Unchanged Wave 136 control optimized
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w136v-code/tools HOME=/tmp python -O /tmp/axm-w136v-code/tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ROTATION_TRANSACTION_RECOVERY_SELFTEST.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave136-control-optimized.json' sh "$worker_uid"
+
+      - name: Cloned-current-authority fork normal
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w136v-code/tools HOME=/tmp python /tmp/axm-w136v-code/verification/wave136_cloned_current_authority_fork_repro.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave136-clone-fork-normal.json' sh "$worker_uid"
+
+      - name: Cloned-current-authority fork optimized
+        run: |
+          worker_uid="$(id -u)"
+          sudo sh -c 'umask 000; exec env PYTHONPATH=/tmp/axm-w136v-code/tools HOME=/tmp python -O /tmp/axm-w136v-code/verification/wave136_cloned_current_authority_fork_repro.py --worker-uid "$1" --anchor-uid 23001 --report /tmp/wave136-clone-fork-optimized.json' sh "$worker_uid"
+
+      - name: Exact source identity
+        run: |
+          git rev-parse HEAD > /tmp/verifier-head.txt
+          git rev-parse HEAD^ > /tmp/verifier-parent.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ROTATION_TRANSACTION_RECOVERY.py > /tmp/wave136-tool-blob.txt
+          git rev-parse HEAD:tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_ROTATION_TRANSACTION_RECOVERY_SELFTEST.py > /tmp/wave136-selftest-blob.txt
+          git rev-parse HEAD:verification/wave136_cloned_current_authority_fork_repro.py > /tmp/verifier-script-blob.txt
+          git rev-parse HEAD:.github/workflows/verifier-wave136-cloned-authority-fork.yml > /tmp/verifier-workflow-blob.txt
+
+      - name: Upload exact verifier evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave136-cloned-current-authority-fork-verifier
+          path: |
+            /tmp/wave136-control-normal.json
+            /tmp/wave136-control-optimized.json
+            /tmp/wave136-clone-fork-normal.json
+            /tmp/wave136-clone-fork-optimized.json
+            /tmp/verifier-head.txt
+            /tmp/verifier-parent.txt
+            /tmp/wave136-tool-blob.txt
+            /tmp/wave136-selftest-blob.txt
+            /tmp/verifier-script-blob.txt
+            /tmp/verifier-workflow-blob.txt
+          if-no-files-found: error
