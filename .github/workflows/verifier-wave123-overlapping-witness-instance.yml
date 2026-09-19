@@ -1,0 +1,52 @@
+name: Verifier Wave 123 Overlapping Witness Instance
+
+on:
+  push:
+    branches:
+      - verifier/wave123-overlapping-witness-instance
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Re-run untouched Wave 123 builder self-test
+        run: |
+          python tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_SELFTEST.py --json-out /tmp/wave123-builder-normal.json
+
+      - name: Re-run untouched Wave 123 builder self-test under python -O
+        run: |
+          python -O tools/AXM_FLOWING_COMPUTE_PROCESS_WITNESS_SELFTEST.py --json-out /tmp/wave123-builder-optimized.json
+
+      - name: Reproduce overlapping witness-instance counterexample
+        env:
+          PYTHONPATH: tools
+        run: |
+          python verification/WAVE123_OVERLAPPING_WITNESS_INSTANCE_ADVERSARIAL.py --report /tmp/wave123-overlap-normal.json
+
+      - name: Reproduce counterexample under python -O
+        env:
+          PYTHONPATH: tools
+        run: |
+          python -O verification/WAVE123_OVERLAPPING_WITNESS_INSTANCE_ADVERSARIAL.py --report /tmp/wave123-overlap-optimized.json
+
+      - name: Preserve machine-readable verifier reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave123-overlapping-witness-verifier
+          path: |
+            /tmp/wave123-builder-normal.json
+            /tmp/wave123-builder-optimized.json
+            /tmp/wave123-overlap-normal.json
+            /tmp/wave123-overlap-optimized.json
+          if-no-files-found: warn
