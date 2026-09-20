@@ -112,3 +112,48 @@ test('missing current artifact fails recovery even when pointer and runtime obje
     cleanup(dir);
   }
 });
+
+
+test('process-kill crash matrix exposes only old or fully prepared new generation', () => {
+  const cases = [
+    { point: 'after_artifacts', sequence: 0, target: 'old' },
+    { point: 'after_runtime_object', sequence: 0, target: 'old' },
+    { point: 'after_pointer_temp_fsync', sequence: 0, target: 'old' },
+    { point: 'after_pointer_rename', sequence: 1, target: 'new' },
+    { point: 'after_pointer_dir_fsync', sequence: 1, target: 'new' },
+  ];
+
+  for (const item of cases) {
+    const dir = temp();
+    try {
+      const s = initialize(dir);
+      const child = runWorker(dir, item.point);
+      assert.notEqual(child.status, 99, item.point + ' worker never reached crash marker');
+      assert.notEqual(child.status, 0, item.point + ' worker unexpectedly exited cleanly');
+
+      const recovered = Host.recoverHost(dir);
+      assert.equal(recovered.status, 'RECOVERED', item.point);
+      assert.equal(recovered.head.sequence, item.sequence, item.point);
+      assert.equal(
+        recovered.head.generation_sha256,
+        item.target === 'old' ? s.baseGeneration : s.targetGeneration,
+        item.point,
+      );
+
+      const audit = Host.inspectHost(dir);
+      assert.equal(audit.current_sequence, item.sequence, item.point);
+      if (item.point === 'after_pointer_temp_fsync') {
+        assert.ok(audit.pending_pointer_files.length >= 1, 'crashed temp pointer remains visible evidence');
+      }
+
+      if (item.target === 'new') {
+        assert.deepEqual(recovered.runtime.hot, {});
+        assert.equal(recovered.head.contracts.graph.decision, 'UPDATED');
+        assert.equal(recovered.head.contracts.snapshot.decision, 'UPDATED');
+        assert.equal(recovered.head.contracts.mesh.decision, 'REUSED_EXACT');
+      }
+    } finally {
+      cleanup(dir);
+    }
+  }
+});
