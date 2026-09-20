@@ -134,6 +134,39 @@ The adapter deliberately preserves pre-commit orphan objects without promoting t
 
 This is **not** a physical power-loss/controller/filesystem-journal proof. Other hosts may instead use a database transaction, compare-and-swap service, embedded store, etc. See `docs/FILESYSTEM_HOST.md` and `evidence/DURABLE_FS_HOST_V01.md`.
 
+## Linear history-spine host
+
+The v0.1 filesystem host is intentionally simple but rewrites a complete sealed runtime snapshot every generation. A 256-generation tiny-state probe measured **39.57 MB** of total host files for a final logical runtime of about **307 KB**.
+
+`src/fs-spine-host.js` is the experimental v0.2 physical format:
+
+```text
+META
+ +
+immutable generation objects
+ +
+immutable receipt objects
+ +
+append-only hash-chained HISTORY
+ +
+tiny CURRENT pointer
+```
+
+On the same 256-generation fixture it reconstructed the **exact same logical runtime SHA-256** while using **473,196 bytes** total: **98.804% fewer file bytes / 83.614× smaller** than the whole-runtime-snapshot host.
+
+Its separate SIGKILL matrix covers seven durability boundaries, including a fully durable history record that remains non-current until CURRENT moves.
+
+The history scanner also distinguishes a valid committed prefix from a broken uncommitted tail. The tail remains visible; it is never auto-truncated or promoted.
+
+Run:
+
+```bash
+npm run spine-crash-matrix
+npm run storage-compare
+```
+
+This fixes the measured persistent-byte amplification. It does **not** make recovery constant-time: v0.2 currently scans/verifies the valid history prefix. See `docs/FILESYSTEM_SPINE_HOST.md` and `evidence/FS_SPINE_HOST_V02.md`.
+
 ## Conformance kit
 
 `conformance/vectors.json` is the portable v0.1 behavioral contract.
