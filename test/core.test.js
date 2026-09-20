@@ -31,6 +31,7 @@ test('selector matching supports exact, prefix, recursive prefix and global', ()
   assert.equal(Core.selectorMatches('a:*', 'a:thing'), true);
   assert.equal(Core.selectorMatches('a/**', 'a'), true);
   assert.equal(Core.selectorMatches('a/**', 'a/b/c'), true);
+  assert.equal(Core.selectorMatches('source:**', 'source:graph/node-7'), true);
   assert.equal(Core.selectorMatches('**', 'anything'), true);
   assert.equal(Core.selectorMatches('a/**', 'ab/c'), false);
 });
