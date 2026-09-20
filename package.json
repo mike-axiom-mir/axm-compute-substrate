@@ -7,6 +7,7 @@
   "main": "index.js",
   "scripts": {
     "test": "node --test test/*.test.js",
-    "conformance": "node tools/conformance.js --check"
+    "conformance": "node tools/conformance.js --check",
+    "crash-matrix": "node tools/fs-host-crash-matrix.js"
   }
 }
