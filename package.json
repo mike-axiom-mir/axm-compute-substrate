@@ -6,6 +6,7 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "conformance": "node tools/conformance.js --check"
   }
 }
