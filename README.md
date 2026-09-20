@@ -124,6 +124,23 @@ For filesystem/database durability, a host should:
 
 The core does not call `fsync` and does not pretend memory mutation is a durable commit.
 
+## Conformance kit
+
+`conformance/vectors.json` is the portable v0.1 behavioral contract.
+
+Run the reference implementation against it:
+
+```bash
+npm test
+npm run conformance
+```
+
+An independent implementation does **not** need this package internally. It may pin the vector file, write a small native adapter/test, and prove the same observable results.
+
+The first independent consumer is MorphTile PR #5. It keeps its own native Flow runtime and passed the exact pinned Neutral Compute v0.1 vector bytes after the vectors exposed and forced repairs to byte identity, recursive selector routing, and descendant reactivation. See `evidence/CONFORMANCE_V01.md`.
+
+Expected HOLD/refusal outcomes are part of conformance. An implementation does not pass by guessing past an unknown mutation or incompatible route.
+
 ## Relationship to MorphTile
 
 MorphTile has its own native experimental integration because it already had sleeping capabilities, sparse waking and Cold Matter. MorphTile should depend on this neutral package only if doing so remains simpler and preserves its standalone/no-dependency direction; equivalence can also be kept at the contract level instead.
