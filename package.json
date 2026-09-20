@@ -1,0 +1,11 @@
+{
+  "name": "@axm/compute-substrate",
+  "version": "0.1.0",
+  "description": "Neutral deterministic retained-state runtime core",
+  "license": "MPL-2.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}
