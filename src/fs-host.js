@@ -26,7 +26,7 @@ function objectPath(root, kind, sha) {
 }
 
 function crashIf(label, requested) {
-  if (requested !== label) return;
+  if (!requested || !label || requested !== label) return;
   const marker = process.env.AXM_FS_HOST_PAUSE_MARKER;
   if (marker) {
     const fd = fs.openSync(marker, 'w', 0o600);
