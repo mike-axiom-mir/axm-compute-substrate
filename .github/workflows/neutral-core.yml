@@ -19,5 +19,7 @@ jobs:
           node-version: 22
       - run: npm test
       - run: npm run crash-matrix
+      - run: npm run spine-crash-matrix
       - run: npm run conformance
       - run: npm run storage-probe
+      - run: npm run storage-compare
