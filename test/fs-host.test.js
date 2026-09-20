@@ -18,7 +18,27 @@ function runWorker(dir, point) {
   delete env.NODE_TEST_CONTEXT;
   delete env.NODE_TEST_REPORTER;
   delete env.NODE_TEST_REPORTER_DESTINATION;
-  return spawnSync(process.execPath, [worker, dir, point], { encoding: 'utf8', env });
+  if (point === 'none') return spawnSync(process.execPath, [worker, dir, point], { encoding: 'utf8', env });
+
+  const marker = dir + '.crash-marker-' + point;
+  fs.rmSync(marker, { force: true });
+  env.AXM_FS_HOST_PAUSE_MARKER = marker;
+  const script = [
+    '"$1" "$2" "$3" "$4" &',
+    'pid=$!',
+    'found=0',
+    'for i in $(seq 1 1000); do',
+    '  if [ -f "$5" ]; then found=1; break; fi',
+    '  sleep 0.01',
+    'done',
+    'if [ "$found" -ne 1 ]; then kill -9 "$pid" 2>/dev/null; wait "$pid" 2>/dev/null; exit 99; fi',
+    'kill -9 "$pid"',
+    'wait "$pid"',
+    'exit $?'
+  ].join('\n');
+  const result = spawnSync('bash', ['-c', script, '--', process.execPath, worker, dir, point, marker], { encoding: 'utf8', env });
+  fs.rmSync(marker, { force: true });
+  return result;
 }
 
 function initialize(dir) {
@@ -59,7 +79,7 @@ for (const [point, expectedSequence] of [
     try {
       const s = initialize(dir);
       const child = runWorker(dir, point);
-      assert.equal(child.signal, 'SIGKILL', 'child should die by SIGKILL at ' + point + ': ' + child.stderr);
+      assert.equal(child.status, 137, 'worker should be externally SIGKILLed at ' + point + ': ' + child.stderr);
       const recovered = Host.recoverHost(dir);
       assert.equal(recovered.head.sequence, expectedSequence);
       assert.equal(
@@ -128,7 +148,7 @@ test('pre-pointer crash may leave orphan objects but never promotes them', () =>
   try {
     const s = initialize(dir);
     const child = runWorker(dir, 'after_runtime_object');
-    assert.equal(child.signal, 'SIGKILL');
+    assert.equal(child.status, 137);
     const inspected = Host.inspectHost(dir);
     assert.equal(inspected.current_sequence, 0);
     assert.ok(inspected.runtime_objects.length >= 2, 'old current + orphan new runtime object should both remain');
