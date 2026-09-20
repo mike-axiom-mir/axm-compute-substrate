@@ -8,6 +8,7 @@
   "scripts": {
     "test": "node --test test/*.test.js",
     "conformance": "node tools/conformance.js --check",
-    "crash-matrix": "node tools/fs-host-crash-matrix.js"
+    "crash-matrix": "node tools/fs-host-crash-matrix.js",
+    "storage-probe": "node tools/fs-host-storage-probe.js 256"
   }
 }
