@@ -157,3 +157,24 @@ test('process-kill crash matrix exposes only old or fully prepared new generatio
     }
   }
 });
+
+
+test('stale caller cannot steer durable CURRENT after another commit', () => {
+  const dir = temp();
+  try {
+    const s = initialize(dir);
+    const first = Host.commitDurable(dir, s.runtime, s.stage, s.updatedArtifacts);
+    assert.equal(first.status, 'DURABLE_COMMITTED');
+    const recovered = Host.recoverHost(dir);
+    assert.equal(recovered.head.sequence, 1);
+
+    const replay = Host.commitDurable(dir, s.runtime, s.stage, s.updatedArtifacts);
+    assert.equal(replay.status, 'HOLD_HOST_RUNTIME_MISMATCH');
+
+    const still = Host.recoverHost(dir);
+    assert.equal(still.head.sequence, 1);
+    assert.equal(still.head.generation_sha256, s.targetGeneration);
+  } finally {
+    cleanup(dir);
+  }
+});
