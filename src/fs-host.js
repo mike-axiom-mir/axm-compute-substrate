@@ -26,7 +26,20 @@ function objectPath(root, kind, sha) {
 }
 
 function crashIf(label, requested) {
-  if (requested === label) process.kill(process.pid, 'SIGKILL');
+  if (requested !== label) return;
+  const marker = process.env.AXM_FS_HOST_PAUSE_MARKER;
+  if (marker) {
+    const fd = fs.openSync(marker, 'w', 0o600);
+    try {
+      fs.writeFileSync(fd, label + '\n');
+      fs.fsyncSync(fd);
+    } finally {
+      fs.closeSync(fd);
+    }
+    const wait = new Int32Array(new SharedArrayBuffer(4));
+    while (true) Atomics.wait(wait, 0, 0, 1000);
+  }
+  process.kill(process.pid, 'SIGKILL');
 }
 
 function writeImmutable(root, kind, sha, bytes, crashAt, crashLabel) {
