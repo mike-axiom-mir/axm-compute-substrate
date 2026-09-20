@@ -114,15 +114,25 @@ A generation stores **artifact identity**, not necessarily loaded artifact bytes
 
 `commitGeneration` is atomic only inside the in-memory runtime object.
 
-For filesystem/database durability, a host should:
+This repo now also contains an **optional local filesystem host** in `src/fs-host.js`. It keeps immutable content-addressed artifact/runtime objects behind one mutable `CURRENT.json` pointer and uses file fsync + atomic rename + directory fsync.
 
-1. persist all new artifact bodies;
-2. persist the sealed staged generation / history as needed;
-3. obtain `commitRecord(stage)`;
-4. publish that pointer with the host's own atomic primitive (rename, transaction, compare-and-swap, etc.);
-5. recover/verify from durable state after restart.
+Its real-SIGKILL matrix proves the tested Linux process-crash boundary:
 
-The core does not call `fsync` and does not pretend memory mutation is a durable commit.
+- crash after artifacts are durable -> recover old generation;
+- crash after runtime object is durable -> recover old generation;
+- crash after temporary pointer fsync -> recover old generation;
+- crash after atomic pointer rename -> recover new generation;
+- crash after directory fsync -> recover new generation.
+
+Run it with:
+
+```bash
+npm run crash-matrix
+```
+
+The adapter deliberately preserves pre-commit orphan objects without promoting them. Recovery follows only the verified `CURRENT` pointer.
+
+This is **not** a physical power-loss/controller/filesystem-journal proof. Other hosts may instead use a database transaction, compare-and-swap service, embedded store, etc. See `docs/FILESYSTEM_HOST.md` and `evidence/DURABLE_FS_HOST_V01.md`.
 
 ## Conformance kit
 
@@ -137,7 +147,17 @@ npm run conformance
 
 An independent implementation does **not** need this package internally. It may pin the vector file, write a small native adapter/test, and prove the same observable results.
 
-The first independent consumer is MorphTile PR #5. It keeps its own native Flow runtime and passed the exact pinned Neutral Compute v0.1 vector bytes after the vectors exposed and forced repairs to byte identity, recursive selector routing, and descendant reactivation. See `evidence/CONFORMANCE_V01.md`.
+The first independent consumer is **MorphTile PR #5**. It keeps its own native Flow runtime and passed the exact pinned Neutral Compute v0.1 vector bytes after the vectors exposed and forced repairs to byte identity, recursive selector routing, and descendant reactivation.
+
+The second independent consumer is **Universal Creation PR #223**. It implements the contract natively in Python, passes the same pinned vectors under Python 3.11 and 3.13, and uses real UC shape-recipe/material-response state: changing a retained shape recipe updates source + compiled realization while an unrelated material-response catalog is exact-reused. The same PR passed UC's full 1201-test Python 3.11 suite.
+
+So v0.1 currently has three tested shapes:
+
+1. neutral JavaScript reference runtime;
+2. MorphTile-native JavaScript runtime;
+3. UC-native Python runtime.
+
+See `evidence/CONFORMANCE_V01.md` and `evidence/THIRD_CONSUMER_UC_V01.md`.
 
 Expected HOLD/refusal outcomes are part of conformance. An implementation does not pass by guessing past an unknown mutation or incompatible route.
 
