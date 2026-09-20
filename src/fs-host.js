@@ -166,7 +166,24 @@ function initializeHost(root, runtime, artifactValues, options) {
 
 function commitDurable(root, runtime, stage, updatedArtifactValues, options) {
   options = options || {};
-  const candidate = Core.importRuntime(JSON.parse(JSON.stringify(Core.exportRuntime(runtime))));
+  const durable = recoverHost(root);
+  const suppliedHead = Core.currentHead(runtime);
+  if (!suppliedHead || suppliedHead.generation_sha256 !== durable.head.generation_sha256) {
+    return {
+      status: 'HOLD_HOST_RUNTIME_MISMATCH',
+      durable_generation_sha256: durable.head.generation_sha256,
+      supplied_generation_sha256: suppliedHead ? suppliedHead.generation_sha256 : null,
+    };
+  }
+  if (stage.base_generation_sha256 !== durable.head.generation_sha256) {
+    return {
+      status: 'HOLD_STALE_STAGE',
+      staged_base: stage.base_generation_sha256,
+      durable_generation_sha256: durable.head.generation_sha256,
+    };
+  }
+
+  const candidate = Core.importRuntime(JSON.parse(JSON.stringify(Core.exportRuntime(durable.runtime))));
   const result = Core.commitGeneration(candidate, stage, options.actor || 'fs-host');
   if (result.status !== 'COMMITTED') return result;
 
