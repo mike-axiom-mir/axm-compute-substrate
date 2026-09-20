@@ -174,3 +174,30 @@ The later witness/key-rotation/security research remains valuable evidence but i
 ## Status
 
 Experimental v0.1. Not CANON. No merge implied by green tests.
+
+
+## Durable filesystem host
+
+`src/fs-host.js` is the first host adapter that turns the core's logical generation pointer into a Linux filesystem commit:
+
+```text
+artifact objects -> fsync
+runtime object   -> fsync
+CURRENT temp     -> fsync
+CURRENT rename
+directory fsync
+```
+
+`npm run crash-matrix` kills a real child process with SIGKILL at five boundaries and requires recovery to expose either the old or the fully prepared new generation, never a mixed one.
+
+Current tested boundary: process death on Linux. This is not a literal hardware power-cut claim. See `evidence/FS_HOST_V01.md`.
+
+## Independent consumers
+
+Neutral Compute v0.1 currently has:
+
+1. the JavaScript reference runtime in this repository;
+2. MorphTile's independent native Flow runtime;
+3. Universal Creation's independent Python runtime.
+
+MorphTile and UC pin the vector data but do not import this runtime implementation. See `evidence/CONFORMANCE_V01.md` and `evidence/UC_CONSUMER_V01.md`.
