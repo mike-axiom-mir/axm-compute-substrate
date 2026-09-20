@@ -13,6 +13,14 @@ const temp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'axm-neutral-fs-'));
 const cleanup = (dir) => fs.rmSync(dir, { recursive: true, force: true });
 const worker = path.join(__dirname, '../tools/fs-host-worker.js');
 
+function runWorker(dir, point) {
+  const env = Object.assign({}, process.env);
+  delete env.NODE_TEST_CONTEXT;
+  delete env.NODE_TEST_REPORTER;
+  delete env.NODE_TEST_REPORTER_DESTINATION;
+  return spawnSync(process.execPath, [worker, dir, point], { encoding: 'utf8', env });
+}
+
 function initialize(dir) {
   const s = buildScenario();
   const result = Host.initializeHost(dir, s.runtime, s.baseArtifacts);
@@ -27,7 +35,7 @@ test('clean durable commit survives a fresh-process recovery', () => {
   const dir = temp();
   try {
     const s = initialize(dir);
-    const child = spawnSync(process.execPath, [worker, dir, 'none'], { encoding: 'utf8' });
+    const child = runWorker(dir, 'none');
     assert.equal(child.status, 0, child.stderr);
     const recovered = Host.recoverHost(dir);
     assert.equal(recovered.status, 'RECOVERED');
@@ -50,7 +58,7 @@ for (const [point, expectedSequence] of [
     const dir = temp();
     try {
       const s = initialize(dir);
-      const child = spawnSync(process.execPath, [worker, dir, point], { encoding: 'utf8' });
+      const child = runWorker(dir, point);
       assert.equal(child.signal, 'SIGKILL', 'child should die by SIGKILL at ' + point + ': ' + child.stderr);
       const recovered = Host.recoverHost(dir);
       assert.equal(recovered.head.sequence, expectedSequence);
@@ -119,7 +127,7 @@ test('pre-pointer crash may leave orphan objects but never promotes them', () =>
   const dir = temp();
   try {
     const s = initialize(dir);
-    const child = spawnSync(process.execPath, [worker, dir, 'after_runtime_object'], { encoding: 'utf8' });
+    const child = runWorker(dir, 'after_runtime_object');
     assert.equal(child.signal, 'SIGKILL');
     const inspected = Host.inspectHost(dir);
     assert.equal(inspected.current_sequence, 0);
