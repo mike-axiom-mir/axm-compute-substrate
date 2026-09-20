@@ -9,6 +9,8 @@
     "test": "node --test test/*.test.js",
     "conformance": "node tools/conformance.js --check",
     "crash-matrix": "node tools/fs-host-crash-matrix.js",
-    "storage-probe": "node tools/fs-host-storage-probe.js 256"
+    "storage-probe": "node tools/fs-host-storage-probe.js 256",
+    "spine-crash-matrix": "node tools/fs-spine-host-crash-matrix.js",
+    "storage-compare": "node tools/fs-host-storage-compare.js 256"
   }
 }
