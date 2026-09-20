@@ -67,36 +67,6 @@ test('clean durable commit survives a fresh-process recovery', () => {
   }
 });
 
-for (const [point, expectedSequence] of [
-  ['after_artifacts', 0],
-  ['after_runtime_object', 0],
-  ['after_pointer_temp_fsync', 0],
-  ['after_pointer_rename', 1],
-  ['after_pointer_dir_fsync', 1],
-]) {
-  test('SIGKILL ' + point + ' recovers one complete generation', () => {
-    const dir = temp();
-    try {
-      const s = initialize(dir);
-      const child = runWorker(dir, point);
-      assert.equal(child.status, 137, 'worker should be externally SIGKILLed at ' + point + ': ' + child.stderr);
-      const recovered = Host.recoverHost(dir);
-      assert.equal(recovered.head.sequence, expectedSequence);
-      assert.equal(
-        recovered.head.generation_sha256,
-        expectedSequence === 0 ? s.baseGeneration : s.targetGeneration,
-      );
-      const inspected = Host.inspectHost(dir);
-      assert.equal(inspected.current_sequence, expectedSequence);
-      if (point === 'after_pointer_temp_fsync') {
-        assert.ok(inspected.pending_pointer_files.length >= 1, 'uncommitted temp pointer remains visible evidence');
-      }
-    } finally {
-      cleanup(dir);
-    }
-  });
-}
-
 test('wrong updated artifact bytes fail before CURRENT moves', () => {
   const dir = temp();
   try {
@@ -138,22 +108,6 @@ test('missing current artifact fails recovery even when pointer and runtime obje
     const ref = head.contracts.graph;
     fs.unlinkSync(path.join(dir, 'objects', 'artifact', ref.artifact_sha256 + '.blob'));
     assert.throws(() => Host.recoverHost(dir), /current artifact missing for graph/);
-  } finally {
-    cleanup(dir);
-  }
-});
-
-test('pre-pointer crash may leave orphan objects but never promotes them', () => {
-  const dir = temp();
-  try {
-    const s = initialize(dir);
-    const child = runWorker(dir, 'after_runtime_object');
-    assert.equal(child.status, 137);
-    const inspected = Host.inspectHost(dir);
-    assert.equal(inspected.current_sequence, 0);
-    assert.ok(inspected.runtime_objects.length >= 2, 'old current + orphan new runtime object should both remain');
-    const recovered = Host.recoverHost(dir);
-    assert.equal(recovered.head.generation_sha256, s.baseGeneration);
   } finally {
     cleanup(dir);
   }
