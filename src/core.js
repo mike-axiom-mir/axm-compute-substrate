@@ -65,6 +65,7 @@ function selectorMatches(pattern, selector) {
     const prefix = pattern.slice(0, -3);
     return selector === prefix || selector.startsWith(prefix + '/');
   }
+  if (pattern.endsWith('**')) return selector.startsWith(pattern.slice(0, -2));
   if (pattern.endsWith('*')) return selector.startsWith(pattern.slice(0, -1));
   return false;
 }
