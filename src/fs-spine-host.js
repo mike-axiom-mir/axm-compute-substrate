@@ -351,7 +351,12 @@ function readPointer(root) {
 
 function reconstructRuntime(root, meta, history, pointer) {
   const record = history.records[pointer.append_index];
-  if (!record) throw new Error('CURRENT points beyond valid history prefix');
+  if (!record) {
+    if (history.invalid_tail) {
+      throw new Error('CURRENT depends on invalid history tail: ' + history.invalid_tail.reason);
+    }
+    throw new Error('CURRENT points beyond valid history prefix');
+  }
   if (record.record_sha256 !== pointer.history_record_sha256) throw new Error('CURRENT/history record mismatch');
   if (record.generation_sha256 !== pointer.current_generation_sha256) throw new Error('CURRENT/history generation mismatch');
 
