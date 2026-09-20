@@ -118,7 +118,7 @@ test('CURRENT that depends on tampered history record fails closed', () => {
     second.generation_sha256 = 'f'.repeat(64);
     lines[1] = JSON.stringify(second);
     fs.writeFileSync(history, lines.join('\n') + '\n');
-    assert.throws(() => Host.recoverSpineHost(dir), /CURRENT points beyond valid history prefix|CURRENT\\/history/);
+    assert.throws(() => Host.recoverSpineHost(dir), /CURRENT points beyond valid history prefix|CURRENT.*history/);
   } finally {
     cleanup(dir);
   }
