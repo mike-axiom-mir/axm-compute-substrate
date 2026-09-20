@@ -58,6 +58,7 @@ function runSnapshot(root, generations) {
     sequence: recovered.head.sequence,
     total_file_bytes: recursiveBytes(root),
     logical_runtime_bytes: Buffer.byteLength(Core.canonicalize(Core.exportRuntime(recovered.runtime)), 'utf8'),
+    logical_runtime_sha256: Core.hashCanonical(Core.exportRuntime(recovered.runtime)),
     inspect: SnapshotHost.inspectHost(root),
   };
 }
@@ -77,6 +78,7 @@ function runSpine(root, generations) {
     sequence: recovered.head.sequence,
     total_file_bytes: recursiveBytes(root),
     logical_runtime_bytes: Buffer.byteLength(Core.canonicalize(Core.exportRuntime(recovered.runtime)), 'utf8'),
+    logical_runtime_sha256: Core.hashCanonical(Core.exportRuntime(recovered.runtime)),
     history_bytes: fs.statSync(path.join(root, 'HISTORY.log')).size,
     inspect,
   };
@@ -93,6 +95,9 @@ function run(generations = 256) {
     if (snapshot.sequence !== generations || spine.sequence !== generations) throw new Error('sequence mismatch');
     if (snapshot.logical_runtime_bytes !== spine.logical_runtime_bytes) {
       throw new Error('reconstructed logical runtime byte size mismatch');
+    }
+    if (snapshot.logical_runtime_sha256 !== spine.logical_runtime_sha256) {
+      throw new Error('reconstructed logical runtime identity mismatch');
     }
     const report = {
       format: 'axm-neutral-fs-storage-compare/v0.1',
