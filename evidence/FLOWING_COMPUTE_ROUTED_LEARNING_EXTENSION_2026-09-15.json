@@ -1,0 +1,38 @@
+{
+  "schema": "axm.flowing-compute-routed-learning-extension/v0.1",
+  "status": "EXPERIMENTAL_RUNTIME_EVIDENCE",
+  "new_tools": [
+    "tools/AXM_FLOWING_COMPUTE_ROUTED_RECEIPT.py",
+    "tools/AXM_FLOWING_COMPUTE_PROFILE_GENERATIONS.py",
+    "tools/AXM_FLOWING_COMPUTE_CALIBRATION_MODE.py",
+    "tools/AXM_FLOWING_COMPUTE_PROFILE_POINTER.py"
+  ],
+  "local_checks": {
+    "routed_receipt_selftest": "PASS",
+    "end_to_end_receipt_ledger_generation": "PASS",
+    "runtime_calibration_and_pointer_guards": "PASS",
+    "ledger_tamper_rejection": "PASS",
+    "generation_tamper_rejection": "PASS",
+    "worse_candidate_promotion_refusal": "PASS",
+    "non_child_promotion_rejection": "PASS",
+    "ancestor_rollback": "PASS"
+  },
+  "learning_rule": "verified experience may propose a child generation; it does not rewrite the current profile or promote itself",
+  "shadow_measurement_rule": "measure both routes only in explicit calibration mode, with remaining budget, when the current prediction is uncertain",
+  "prior_safe_learning_result": {
+    "accepted_observations": 55,
+    "rejected_observations": 2,
+    "current_holdout_correct": "11/11",
+    "candidate_holdout_correct": "10/11",
+    "promotion": "REJECTED_PROMOTION"
+  },
+  "probe_pack_sha256": "3b4d13a3d16228f59e57730a7b8d00300f30e59027bfbb23769f48e46745483c",
+  "truth": {
+    "old_receipt_semantics_preserved": true,
+    "automatic_profile_promotion": false,
+    "counterfactual_measurement_has_compute_cost": true,
+    "rollback_history_preserved": true,
+    "policy_models_remain_contract_specific": true,
+    "physical_overunity_claim": false
+  }
+}

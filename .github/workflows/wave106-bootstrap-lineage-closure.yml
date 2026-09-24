@@ -1,0 +1,38 @@
+name: wave106-bootstrap-lineage-closure
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - 'tools/AXM_FLOWING_COMPUTE_BOOTSTRAP_LINEAGE_CLOSURE.py'
+      - 'tools/AXM_FLOWING_COMPUTE_BOOTSTRAP_LINEAGE_CLOSURE_SELFTEST.py'
+      - '.github/workflows/wave106-bootstrap-lineage-closure.yml'
+      - 'evidence/WAVE106_BOOTSTRAP_LINEAGE_CLOSURE_2026-09-17.md'
+      - 'evidence/wave106_bootstrap_lineage_closure_report.json'
+      - 'evidence/receipts/wave106_final_source_ci_2026-09-17.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Wave 105 regression
+        run: python tools/AXM_FLOWING_COMPUTE_CERTIFICATE_WITNESS_ROOT_BINDING_SELFTEST.py
+      - name: Wave 106 exact-source self-test
+        run: python tools/AXM_FLOWING_COMPUTE_BOOTSTRAP_LINEAGE_CLOSURE_SELFTEST.py --json-out /tmp/wave106-report.json
+      - name: Wave 106 optimized-mode self-test
+        run: python -O tools/AXM_FLOWING_COMPUTE_BOOTSTRAP_LINEAGE_CLOSURE_SELFTEST.py
+      - name: Upload machine-readable run report
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave106-report
+          path: /tmp/wave106-report.json
+          if-no-files-found: error

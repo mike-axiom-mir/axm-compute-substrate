@@ -1,0 +1,82 @@
+{
+  "benchmark": {
+    "includes_underlying_artifact_reread": false,
+    "iterations": 1000,
+    "median_cpu_us": 116.303,
+    "operation": "disk-backed recovery of 2 retained checkpoints + 2 reachable receipt bodies"
+  },
+  "controls": {
+    "delete_reachable_wave79_receipt_blocked": {
+      "detail": "refusing to delete receipt reachable from retained checkpoint",
+      "status": "PASS"
+    },
+    "explicit_root_drop_can_make_old_receipt_collectible": {
+      "detail": "collectible=['fb65ba5ad5cc0f4c33a851957ccc42a4142c64a3d0815abb1a4f0886dbf4ecf2']",
+      "status": "PASS"
+    },
+    "gc_removes_only_provably_unreachable_receipt": {
+      "detail": "candidates=['07d7b74d22c1919e0bd6fc06ee1f69ba1cf97a4fee279595833362d5d7f00c14']",
+      "status": "PASS"
+    },
+    "missing_reachable_receipt_after_restart_rejected": {
+      "detail": "reachable audit receipt body missing",
+      "status": "PASS"
+    },
+    "real_wave79_receipt_recovers_after_restart": {
+      "detail": "fb65ba5ad5cc0f4c33a851957ccc42a4142c64a3d0815abb1a4f0886dbf4ecf2",
+      "status": "PASS"
+    },
+    "retained_checkpoint_tamper_rejected": {
+      "detail": "checkpoint integrity mismatch",
+      "status": "PASS"
+    },
+    "second_full_byte_audit_receipt_recovers": {
+      "detail": "27dc30ebd1172695c8873cb919efc59de9adde8a546533b64f6b7d6199c4ca1b; bytes=1095",
+      "status": "PASS"
+    },
+    "unreferenced_receipt_presence_grants_no_authority": {
+      "detail": "stored=True reachable=False",
+      "status": "PASS"
+    },
+    "wrong_body_under_correct_key_rejected": {
+      "detail": "audit receipt integrity mismatch",
+      "status": "PASS"
+    }
+  },
+  "controls_passed": 9,
+  "controls_total": 9,
+  "next_gate": "Bind retention-manifest evolution to an append-only predecessor chain and require an explicit drop receipt before a rollback root can disappear; then test crash-safe mark/sweep GC against one exact retention generation.",
+  "positive_case": {
+    "reachable_receipt_count": 2,
+    "real_wave79_monolith_receipt_sha256": "fb65ba5ad5cc0f4c33a851957ccc42a4142c64a3d0815abb1a4f0886dbf4ecf2",
+    "retained_checkpoint_count": 2,
+    "retention_sha256": "53d91b18e1a12eb27bd503bcfa70b4cd74add598ceaef522c88d7c075fdee4d4",
+    "second_audit_receipt_sha256": "27dc30ebd1172695c8873cb919efc59de9adde8a546533b64f6b7d6199c4ca1b",
+    "unreferenced_receipt_sha256": "07d7b74d22c1919e0bd6fc06ee1f69ba1cf97a4fee279595833362d5d7f00c14"
+  },
+  "real_evidence_reused": {
+    "wave79_audited_monolith_artifact_bytes": 11255808,
+    "wave79_audited_monolith_artifact_sha256": "e676fafb2f825d946c10480ccd2184ab69daf9464ae77cf5703dfe59562644da",
+    "wave79_contract_id": "axm.execution-fabric.capability-index/v0.1",
+    "wave79_receipt_sha256": "fb65ba5ad5cc0f4c33a851957ccc42a4142c64a3d0815abb1a4f0886dbf4ecf2",
+    "wave80_g1_pointer_sha256": "1b93525216e04d20e4b5556f8ada44aeefcbb8168b33c9d01c723dfcc6117c58"
+  },
+  "schema": "axm.flowing-compute-receipt-store-wave81/v0.1",
+  "second_audit": {
+    "artifact_bytes": 1095,
+    "artifact_sha256": "323f9090bad4371f8d383b3e4593d75e86682c00bb0e0908632e4647de327aa0",
+    "kind": "real local full-byte audit of fetched AXM Wave79 evidence-file text; not a monolith workload",
+    "receipt_sha256": "27dc30ebd1172695c8873cb919efc59de9adde8a546533b64f6b7d6199c4ca1b"
+  },
+  "status": "PASS",
+  "truth": {
+    "cpu_time_is_not_joules": true,
+    "no_auto_merge": true,
+    "orphan_artifact_is_synthetic_control_only": true,
+    "receipt_presence_alone_grants_no_authority": true,
+    "receipt_store_integrity_is_not_actor_authentication": true,
+    "retention_manifest_is_explicit_policy_state": true,
+    "second_audit_is_axm_evidence_file_not_monolith_workload": true,
+    "wave79_receipt_is_real_prior_monolith_audit_evidence": true
+  }
+}

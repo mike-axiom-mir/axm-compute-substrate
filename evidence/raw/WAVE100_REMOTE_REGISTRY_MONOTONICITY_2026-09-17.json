@@ -1,0 +1,110 @@
+{
+  "controls": {
+    "passed": 39,
+    "rows": [
+      {"name":"exact_sources","pass":true},
+      {"name":"genesis_authority","pass":true},
+      {"name":"sealed_transition_created","pass":true},
+      {"name":"partial_commit","pass":true},
+      {"name":"partial_state_holds","pass":true},
+      {"name":"partial_resume_exact_transition","pass":true},
+      {"name":"publish_a_base","pass":true},
+      {"name":"publish_b_base","pass":true},
+      {"name":"two_of_three_base_authority","pass":true},
+      {"name":"publish_c_base","pass":true},
+      {"name":"three_of_three_base_authority","pass":true},
+      {"name":"tampered_transition_body_rejected","pass":true},
+      {"name":"noop_registry_successor_rejected","pass":true},
+      {"name":"direct_credential_successor_valid","pass":true},
+      {"name":"skipped_generation_target_rejected","pass":true},
+      {"name":"sibling_registry_jump_rejected","pass":true},
+      {"name":"rotation_transition_bound","pass":true},
+      {"name":"rotation_local_commit","pass":true},
+      {"name":"rotation_publish_a","pass":true},
+      {"name":"one_current_remote_not_quorum","pass":true},
+      {"name":"rotation_publish_b","pass":true},
+      {"name":"partial_registry_fanout_two_of_three","pass":true},
+      {"name":"rotation_publish_c","pass":true},
+      {"name":"registry_rotation_three_of_three","pass":true},
+      {"name":"direct_generation_rollback_from_valid_current_rejected","pass":true},
+      {"name":"retired_credential_rejected","pass":true},
+      {"name":"one_witness_stale_restore_still_two_of_three","pass":true},
+      {"name":"one_offline_plus_one_stale_loses_quorum","pass":true},
+      {"name":"raw_sibling_remote_append_old_primitive_accepts","pass":true},
+      {"name":"sibling_remote_history_fails_closed","pass":true},
+      {"name":"wave100_prepare_blocks_pr24_registry_rewind","pass":true},
+      {"name":"pr24_old_prepare_still_reproducible","pass":true},
+      {"name":"pr24_old_commit_still_reproducible","pass":true},
+      {"name":"pr24_old_publish_a","pass":true},
+      {"name":"pr24_old_publish_b","pass":true},
+      {"name":"pr24_wave99_false_authority_reproduced","pass":true},
+      {"name":"pr24_wave100_remote_lineage_rejects_reproduced_world","pass":true},
+      {"name":"whole_modeled_domain_rollback_counterexample","pass":true},
+      {"name":"inherited_current_signer_compromise_counterexample","pass":true}
+    ],
+    "total": 39
+  },
+  "counterexamples_preserved": [
+    "Three remote witnesses remain modeled Python objects in one process; Wave 100 does not demonstrate physical failure-domain independence.",
+    "Rolling local runtime, all modeled remote stores, registry store, and transition store back together remains internally self-consistent.",
+    "A restored stale witness cannot outvote two exact current witnesses, but there is still no independent durable maximum that proves the restored provider itself was rolled back.",
+    "Remote append credentials are symmetric test tokens, not independent public-key service attestations.",
+    "Enough current local signer compromise plus a remote quorum can still create a competing structurally valid world.",
+    "Mechanically valid registry/signer/quorum evidence does not prove moral/root judgment correctness, consent, evaluator legitimacy, or canonical AXM authority."
+  ],
+  "date": "2026-09-17",
+  "environment": {
+    "python": "3.13.15",
+    "runner": "GitHub Actions ubuntu-24.04"
+  },
+  "lane": "chatgpt/lane-001-platform-extract",
+  "next_gate": "Wave 101: run the monotonic registry/record/quorum contract across at least three real OS processes with separate durable stores and separately held credentials. Test kill/restart, partition/reconnect, stale file-store restoration, credential rotation/recovery, two-process compromise, and whether an independent durable maximum survives provider-local rollback. Do not call OS-process separation physical/provider independence.",
+  "runs": [
+    {
+      "mode": "python",
+      "passed": 39,
+      "synthetic_scaling": [
+        {"authority_median_cpu_us":21541.487,"depth":1,"rounds":5},
+        {"authority_median_cpu_us":23599.95,"depth":4,"rounds":5},
+        {"authority_median_cpu_us":25648.874,"depth":8,"rounds":5}
+      ],
+      "total": 39
+    },
+    {
+      "mode": "python -O",
+      "passed": 39,
+      "synthetic_scaling": [
+        {"authority_median_cpu_us":21760.285,"depth":1,"rounds":5},
+        {"authority_median_cpu_us":23704.084,"depth":4,"rounds":5},
+        {"authority_median_cpu_us":25425.098,"depth":8,"rounds":5}
+      ],
+      "total": 39
+    }
+  ],
+  "schema": "axm.flowing_compute.wave100.evidence/v1",
+  "source": {
+    "ci_tested_commit": "c235f8f0682a98f9d5777df12ef97dce8ca0560d",
+    "verifier_evidence_blob": "367d8627679e76114a1dd767e95b4b92090447ad",
+    "verifier_head": "0c13b87882df2a6a18bd3dff032b47b92a36a3a6",
+    "verifier_pr": 24,
+    "wave99_builder_head": "0c3ea28b4d731cde942d337c87a046f363d496c2",
+    "wave99_selftest_blob": "6efa792265c4fd3b54e7cfb192f5e1440402010a",
+    "wave99_tool_blob": "c4c0a6bcabeafcf19502303857d1fc4da6fe8ea5",
+    "workflow_job_id": 105020940012,
+    "workflow_run_id": 35164019543
+  },
+  "status": "experimental evidence only; no merge or CANON promotion",
+  "tools": [
+    {"git_blob_sha1":"9fc2dc55c2d3973010b1804ad766cc632b89fa1f","path":"tools/AXM_FLOWING_COMPUTE_REMOTE_REGISTRY_MONOTONICITY.py"},
+    {"git_blob_sha1":"12491f9996bd7bada33ea742dacbb186dfd037c8","path":"tools/AXM_FLOWING_COMPUTE_REMOTE_REGISTRY_MONOTONICITY_SELFTEST.py"}
+  ],
+  "truth_boundary": [
+    "Wave 100 directly addresses verifier PR #24 before physical deployment.",
+    "Normal state-only checkpoints keep the exact current registry SHA; registry-changing checkpoints require the exact direct successor at current generation+1.",
+    "The only authorized registry mutation in this wave is exactly one slot credential_hash change; no-op, sibling, skipped-generation, service-identity, and failure-domain migrations fail closed.",
+    "Remote retained histories must keep registry identity unchanged or move to the exact direct successor; lower/sibling/stale registry replay after a newer registry produces HOLD.",
+    "The PR #24 failure remains reproducible through the unchanged Wave 99 API and is rejected by the Wave 100 authority path.",
+    "Synthetic timing is single-process protocol bookkeeping only; no fresh monolith, network, energy, retained, incremental, or dormant-compute win is claimed."
+  ],
+  "wave": 100
+}

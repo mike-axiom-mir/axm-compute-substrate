@@ -1,0 +1,59 @@
+{
+  "schema": "axm.flowing_compute.wave101.ci-evidence/v1",
+  "date": "2026-09-17",
+  "lane": "chatgpt/lane-001-platform-extract",
+  "status": "experimental-unmerged",
+  "source_identity": {
+    "wave100_builder_head": "0fb2caa805cebf29185d0b40c9f1bbd46199263b",
+    "wave100_ci_tested_source_commit": "c235f8f0682a98f9d5777df12ef97dce8ca0560d",
+    "wave100_protocol_blob": "9fc2dc55c2d3973010b1804ad766cc632b89fa1f",
+    "wave100_selftest_blob": "12491f9996bd7bada33ea742dacbb186dfd037c8",
+    "verifier_pr": 25,
+    "verifier_head": "100e45fb18f7cfc52663af3ad53753eeab4c8365",
+    "verifier_evidence_blob": "246138d4a3a1e8757ef1044e4e7a0928536870f5",
+    "wave101_protocol_blob": "9283b748aefcc1914eb763748674ee83a5ec3b15",
+    "wave101_selftest_blob": "4bddbd849319b7475ac399dd96cd72ceb498545a",
+    "wave101_workflow_blob": "8198fd5c7c6c3605c760878a0f445124be5b645a",
+    "ci_head": "9ef7fd00ea5e06591a98eef038c6816f7d6fdc3d",
+    "github_actions_run_id": 35167884262,
+    "github_actions_job_id": 105032949949
+  },
+  "result": {
+    "wave100_regression": "39/39 PASS",
+    "wave101_normal_python": "27/27 PASS",
+    "wave101_optimized_python": "27/27 PASS",
+    "reproduced_old_failure": "Wave 100 still grants modeled 2-of-3 authority after two raw remote appends move retained authority epochs 1 -> 2 -> 1 under an unchanged registry.",
+    "wave101_repair": "Retained remote authority epochs must start at 1 and advance exactly +1; exact current remote heads are cross-bound to the local predecessor authority and predecessor checkpoint; invalid histories are quarantined and cannot count toward quorum.",
+    "positive_case": "One poisoned remote history is quarantined while two healthy exact witnesses still satisfy the existing 2-of-3 authority contract.",
+    "negative_case": "Two poisoned remote histories lose quorum and HOLD. Equal-epoch sibling and skipped-epoch raw appends are also rejected by retained-history validation."
+  },
+  "synthetic_scaling": {
+    "label": "SYNTHETIC single-process remote-history/quorum bookkeeping only; not OS-process, provider, network, energy, monolith-compute, retained, incremental, or dormant-compute evidence",
+    "normal_python_median_cpu_us": {
+      "depth_1": 63479.154,
+      "depth_4": 68546.903,
+      "depth_8": 70849.449
+    },
+    "optimized_python_median_cpu_us": {
+      "depth_1": 68415.568,
+      "depth_4": 70568.232,
+      "depth_8": 73892.324
+    }
+  },
+  "counterexamples_preserved": [
+    "All three remote witnesses are still modeled Python objects in one process.",
+    "Rolling local runtime plus all modeled remote stores and supporting stores back together remains internally self-consistent.",
+    "Two current symmetric append credentials can poison two remote histories and force authority HOLD, even though the rewind no longer regains authority.",
+    "A poisoned witness with invalid retained authority chronology is quarantined; Wave 101 does not silently rewrite its history to rehabilitate it.",
+    "Remote credentials remain symmetric test tokens rather than independent service public-key attestations.",
+    "Enough current local signer compromise plus a valid remote quorum can still create a competing structurally valid forward world.",
+    "Mechanical chronology/quorum evidence does not prove moral/root judgment correctness, consent, evaluator legitimacy, or canonical AXM authority."
+  ],
+  "truth_boundary": [
+    "Wave 101 addresses verifier PR #25 before process-level separation because moving the defective protocol into more processes would not repair the rollback path.",
+    "No fresh AXM/monolith workload was read in this wave because the newest independent verifier exposed a protocol authority defect first.",
+    "The CPU timings are synthetic bookkeeping measurements only and are not a compute-efficiency, energy, network, retained-state, incremental-state, dormant-state, or physical-failure-domain result.",
+    "No merge or CANON promotion is authorized by this evidence."
+  ],
+  "next_gate": "Wave 102: place the repaired registry + authority chronology + quorum contract across at least three real OS processes with separate durable stores and separately held credentials; test kill/restart, partition/reconnect, stale store restoration, credential rotation, one poisoned process quarantine, two-process compromise, and whether a separately durable maximum catches process-local rollback. Do not call OS-process separation physical/provider independence."
+}

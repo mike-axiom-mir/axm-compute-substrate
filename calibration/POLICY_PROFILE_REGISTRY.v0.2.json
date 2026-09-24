@@ -1,0 +1,62 @@
+{
+  "schema": "axm.flowing-compute-policy-registry/v0.2",
+  "profiles": [
+    {
+      "contract_id": "axm.execution-graph.component-propagated-signatures/v0.1",
+      "profile_id": "execution-graph-signature-propagation-2026-09-15",
+      "profile_path": "calibration/execution-graph-signature-propagation.policy-profile.v0.1.json",
+      "evaluator_kind": "linear_cpu_models_v1",
+      "domain": {
+        "kind": "nearest_observed_surface_v1",
+        "feature_order": ["affected_components", "mutated_source_components"],
+        "points": [
+          {"affected_components": 22, "mutated_source_components": 1},
+          {"affected_components": 32, "mutated_source_components": 2},
+          {"affected_components": 45, "mutated_source_components": 4},
+          {"affected_components": 58, "mutated_source_components": 13},
+          {"affected_components": 70, "mutated_source_components": 25},
+          {"affected_components": 82, "mutated_source_components": 37},
+          {"affected_components": 94, "mutated_source_components": 49},
+          {"affected_components": 105, "mutated_source_components": 60},
+          {"affected_components": 114, "mutated_source_components": 69},
+          {"affected_components": 121, "mutated_source_components": 76},
+          {"affected_components": 127, "mutated_source_components": 82}
+        ],
+        "max_abs_delta": {"affected_components": 7, "mutated_source_components": 6}
+      }
+    },
+    {
+      "contract_id": "axm.monolith.totality-test-matrix/v0.1",
+      "profile_id": "totality-matrix-derived-state-2026-09-15",
+      "profile_path": "calibration/totality-matrix-derived-state.policy-profile.v0.1.json",
+      "evaluator_kind": "linear_cpu_models_v1",
+      "domain": {
+        "kind": "range_v1",
+        "features": {"affected_modules": {"min": 1, "max": 38}}
+      }
+    },
+    {
+      "contract_id": "axm.framestate.frame-manifest/v0.1",
+      "profile_id": "framestate-frame-manifest-v0.1",
+      "profile_path": "calibration/framestate-frame-manifest.v0.1.json",
+      "evaluator_kind": "retained_work_fraction_v1",
+      "domain": {
+        "kind": "allowed_totals_v1",
+        "total_feature": "total_work_units",
+        "allowed_totals": [24, 48]
+      }
+    }
+  ],
+  "selection_rule": "exact contract_id match only; evaluator_kind chooses the contract-specific policy ABI; duplicate, unknown, or incompatible feature shape refuses routing; fitted/extrapolated policies must also pass their measured-domain guard",
+  "legacy_registries_preserved": [
+    "calibration/POLICY_PROFILE_REGISTRY.v0.1.json",
+    "calibration/policy-registry.v0.1.json"
+  ],
+  "truth": {
+    "nearest_profile_fallback_allowed": false,
+    "unknown_contract_is_hold": true,
+    "one_model_family_for_all_contracts": false,
+    "legacy_evidence_rewritten": false,
+    "profile_selection_is_not_execution_authority": true
+  }
+}

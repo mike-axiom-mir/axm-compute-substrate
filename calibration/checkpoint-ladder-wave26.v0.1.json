@@ -1,0 +1,23 @@
+{
+  "schema": "axm.flowing-compute-checkpoint-ladder-calibration/v0.1",
+  "date": "2026-09-16",
+  "checkpoint_interval_generations": 1024,
+  "creation": [
+    {"history_generations":5000,"target":4096,"parent":3072,"full_checkpoint_cpu_ms":21.908,"child_checkpoint_cpu_ms":4.000,"cpu_saved_percent":81.74,"yield_multiplier":5.48},
+    {"history_generations":10000,"target":9216,"parent":8192,"full_checkpoint_cpu_ms":47.123,"child_checkpoint_cpu_ms":3.964,"cpu_saved_percent":91.59,"yield_multiplier":11.89},
+    {"history_generations":20000,"target":19456,"parent":18432,"full_checkpoint_cpu_ms":94.819,"child_checkpoint_cpu_ms":3.866,"cpu_saved_percent":95.92,"yield_multiplier":24.53}
+  ],
+  "recovery": [
+    {"case":"current_20000","full_cpu_ms":93.490084,"carried_cpu_ms":3.873610,"audited_cpu_ms":7.826473,"checkpoint_sequence":19456,"carried_saved_percent":95.8567,"audited_saved_percent":91.6286},
+    {"case":"rollback_5000","full_cpu_ms":2939.772912,"carried_cpu_ms":4.939648,"audited_cpu_ms":9.166800,"checkpoint_sequence":4096,"carried_saved_percent":99.8320,"audited_saved_percent":99.6882,"semantic_note":"fast committed-state recovery does not enumerate/re-audit all later unpointed generations"}
+  ],
+  "truth": {
+    "checkpoint_ladder_not_authority": true,
+    "pointer_commit_remains_authority": true,
+    "rollback_fast_path_does_not_full_audit_later_history": true,
+    "carried_and_audited_are_distinct_trust_modes": true,
+    "single_host": true,
+    "cpu_time_is_not_energy": true,
+    "synthetic_long_history": true
+  }
+}

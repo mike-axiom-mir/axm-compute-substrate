@@ -1,0 +1,104 @@
+{
+  "schema": "axm.flowing_compute.wave102.evidence/v1",
+  "wave": 102,
+  "date": "2026-09-17",
+  "status": "experimental-unmerged-no-canon",
+  "provenance": {
+    "repository": "mike-axiom-mir/axm-compute-substrate",
+    "branch": "chatgpt/lane-001-platform-extract",
+    "predecessor_wave101_builder_head": "08bed3007e118fdcc2499c873da85ed9355c96d2",
+    "wave101_tool_blob": "9283b748aefcc1914eb763748674ee83a5ec3b15",
+    "wave101_selftest_blob": "4bddbd849319b7475ac399dd96cd72ceb498545a",
+    "independent_verifier_pr": 26,
+    "independent_verifier_head": "c0c5b718b1ad77f4685045e290d6c7021f4786ca",
+    "independent_verifier_evidence_blob": "4ce07288e73d9a288c026a771f598585c698c090",
+    "independent_verifier_repro_blob": "2d5fc38bd07ebe3c172f02496b41b7c7a469a6f0",
+    "wave102_protocol_commit": "ffb77dd75501b941fcce8fe81ee842927a35ecca",
+    "wave102_protocol_blob": "8bd23cf3db02ba90161f4a7c38f36dca3f3b2733",
+    "wave102_initial_selftest_commit": "013d3d9dd681df014b2cd292159833a3db3247b9",
+    "wave102_ci_commit": "bf01ad24113c8419034b7841eb01106920a72f41",
+    "wave102_selftest_repair_commit": "8760b37bdd0a554f87d6f7f8eaaecc7be8ad11f5",
+    "wave102_final_selftest_blob": "cc53bd23732acc31e8b85f0998187fba979c8a89"
+  },
+  "independent_verifier_defect": {
+    "name": "previously-authoritative quorum has no remembered global maximum",
+    "reproduction": "Epoch 2 reached 2-of-3 authority on A+B while C lagged at epoch 1. Restoring only local current state and B to epoch 1 left A intact at epochs [1,2], yet Wave 101 counted stale B plus lagging C and accepted epoch 1 again.",
+    "wave101_result": "AUTHORITATIVE_QUORUM_2_OF_3_MODELED",
+    "wave102_result": "HOLD_QUORUM_GLOBAL_MAXIMUM_AHEAD"
+  },
+  "repair": {
+    "mechanism": "append-only content-addressed quorum-certificate maximum",
+    "rule": "The global maximum advances only after the exact current local authority is observed on the registered 2-of-3 remote quorum and an explicit predecessor-linked certificate is appended.",
+    "important_distinction": "A newer record observed on only one witness is not global finality. A newer authority that actually reached quorum and was certified cannot later be forgotten by two stale/lagging matching heads.",
+    "certificate_binds": [
+      "authority epoch",
+      "authority SHA",
+      "checkpoint SHA",
+      "registry SHA",
+      "exact sealed quorum-support records",
+      "previous certificate SHA",
+      "certificate sequence"
+    ]
+  },
+  "verification": {
+    "initial_ci": {
+      "run_id": 35172092642,
+      "head": "bf01ad24113c8419034b7841eb01106920a72f41",
+      "wave101_regression": "27/27 PASS",
+      "wave102": "32/33 PASS",
+      "failed_control": "same_sequence_sibling_certificate_rejected",
+      "classification": "negative-test construction failure, preserved in history",
+      "cause": "The first crafted sibling changed authority_sha, so support-binding verification rejected it before the intended duplicate-sequence store check.",
+      "repair": "A later append-only commit crafted an individually valid resealed sibling by changing previous_certificate_sha, allowing the duplicate sequence gate itself to be exercised."
+    },
+    "final_ci": {
+      "run_id": 35172195500,
+      "tested_head": "8760b37bdd0a554f87d6f7f8eaaecc7be8ad11f5",
+      "conclusion": "success",
+      "normal_job_id": 105046046275,
+      "normal_wave101_regression": "27/27 PASS",
+      "normal_wave102": "33/33 PASS",
+      "optimized_job_id": 105046046416,
+      "optimized_wave101_regression": "27/27 PASS",
+      "optimized_wave102": "33/33 PASS"
+    },
+    "selected_negative_controls": [
+      "exact PR #26 stale-remote plus laggard rollback reproduction is blocked",
+      "a previously certified newer maximum still blocks the old world when the intact newer witness is offline",
+      "mutable certificate-head rewind is rejected",
+      "missing certificate predecessor is rejected",
+      "certificate body tamper is rejected",
+      "embedded quorum-support tamper is rejected",
+      "same-sequence sibling certificate is rejected",
+      "uncertified one-witness newer state does not become global finality"
+    ]
+  },
+  "synthetic_scaling": {
+    "label": "SYNTHETIC single-process quorum-certificate/remote-history bookkeeping only; runs occurred on separate GitHub-hosted runners and are not a normal-vs-optimized performance comparison. Not OS-process/provider/network/energy/AXM-monolith/retained/incremental/dormant-compute evidence.",
+    "normal_authority_median_cpu_us": [
+      {"depth": 1, "rounds": 3, "value": 59185.196},
+      {"depth": 4, "rounds": 3, "value": 62496.747},
+      {"depth": 8, "rounds": 3, "value": 62834.994}
+    ],
+    "python_O_authority_median_cpu_us": [
+      {"depth": 1, "rounds": 3, "value": 107054.334},
+      {"depth": 4, "rounds": 3, "value": 114369.02},
+      {"depth": 8, "rounds": 3, "value": 118476.423}
+    ]
+  },
+  "counterexamples_preserved": [
+    "The three remote witnesses and quorum-certificate store are still modeled Python state inside one process.",
+    "Rolling local runtime, the certificate store, and enough modeled remote stores back together can still recreate an internally valid old world.",
+    "The certificate store is not independently authenticated: content hashes detect retained-body mutation and broken lineage, but malicious replacement of the whole modeled store is not independently detectable in this wave.",
+    "Certificate support records are content-addressed integrity evidence, not independent public-key remote attestations; remote credentials remain symmetric test tokens.",
+    "Two compromised current remote credentials can still participate in the modeled 2-of-3 acceptance surface or poison availability; this is not a production Byzantine-consensus claim.",
+    "A newer record visible on only one witness is intentionally not promoted to global finality.",
+    "Mechanical quorum chronology does not prove moral/root judgment correctness, consent, evaluator legitimacy, or canonical AXM authority."
+  ],
+  "truth_boundary": [
+    "No fresh AXM/monolith workload was used because the newest independent verifier exposed a protocol rollback defect that had to be repaired before stronger deployment claims.",
+    "No merge or CANON promotion was performed.",
+    "No physical/provider independence, network, energy, retained-compute, incremental-compute, or dormant-compute win is claimed."
+  ],
+  "next_gate": "Wave 103: move the quorum-certified maximum plus repaired registry/authority chronology across at least three real OS processes with separate durable stores and separately held credentials. Test kill/restart, stale durable-store restoration, partition/reconnect, partial publication before versus after quorum certification, certificate-store rollback, credential rotation, one-process quarantine, two-process compromise, and recovery with one certificate witness unavailable. Treat success as process-level evidence only, not physical/provider independence."
+}

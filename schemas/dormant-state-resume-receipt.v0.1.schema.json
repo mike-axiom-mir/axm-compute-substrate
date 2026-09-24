@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://axiom-mir.example/schemas/dormant-state-resume-receipt.v0.1.schema.json",
+  "title": "AXM Dormant State Resume Receipt v0.1",
+  "type": "object",
+  "required":["schema","semantic_contract","source_sha256","validation_mode","identity_strength","source_bytes_rehashed","state_payload_sha256","state_payload_bytes","resume_allowed","truth","receipt_sha256"],
+  "properties": {
+    "schema":{"const":"axm.flowing-compute-dormant-resume-receipt/v0.1"},
+    "validation_mode":{"enum":["trusted_content_id","stat_token","rehash"]},
+    "source_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+    "source_bytes_rehashed":{"type":"integer","minimum":0},
+    "state_payload_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+    "state_payload_bytes":{"type":"integer","minimum":0},
+    "resume_allowed":{"const":true},
+    "truth":{"type":"object"},
+    "receipt_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"}
+  }
+}

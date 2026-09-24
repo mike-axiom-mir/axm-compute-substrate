@@ -1,0 +1,84 @@
+{
+  "schema": "axm.flowing_compute.wave108.exact_source_receipt/v1",
+  "wave": 108,
+  "status": "EXPERIMENTAL_TESTED_PASS_NO_MERGE_NO_CANON",
+  "repository": "mike-axiom-mir/axm-compute-substrate",
+  "lane": "chatgpt/lane-001-platform-extract",
+  "tested_source": {
+    "commit": "7b9ec8548bde69df1d8971567aaf04abd0fa2e5c",
+    "tool": {
+      "path": "tools/AXM_FLOWING_COMPUTE_COMMITTED_HISTORY_MANIFEST.py",
+      "blob_sha": "629318c9645649a29d7a4d4c97f106a0ba958f6d"
+    },
+    "selftest": {
+      "path": "tools/AXM_FLOWING_COMPUTE_COMMITTED_HISTORY_MANIFEST_SELFTEST.py",
+      "blob_sha": "aeac803084fc05e82c626bb830cee48146c710e2"
+    },
+    "workflow": {
+      "path": ".github/workflows/wave108-committed-history-manifest.yml",
+      "blob_sha": "506b816be3877bfdd45290b8705893a597139837"
+    }
+  },
+  "predecessor": {
+    "wave107_builder_head": "22289521483fe8e171f6c9016f0bd0b10e54a235",
+    "wave107_tested_source_commit": "9e4edc8c484d32f9210804dc25ca61fadf7aa835",
+    "wave107_tool_blob": "7aeb0e6f6018d1708b5fe89a4fdbf8e024398deb",
+    "wave107_selftest_blob": "66d676685b23fd5cbcc5ac8f06a0ec5e383fd295"
+  },
+  "independent_verifier": {
+    "pr": 32,
+    "head": "3573711a726b527d43dd056ca2bfdbdd5be81c0a",
+    "verdict": "FAIL_MULTIEPOCH_AUTHORITY_LINK_LOSS_CLASSIFIED_VALID",
+    "evidence_blob": "154cdc9cbc197d75a814a2b29e945d02e9d9f454",
+    "reproducer_blob": "010c59d1de7f8ce3dac8029bf620b789b134ecf2",
+    "ci_run": 35193912823,
+    "bounded_severity": "guard/history-completeness failure; verifier did not obtain stale authority"
+  },
+  "successful_ci": {
+    "run": 35196565048,
+    "job": 105121078833,
+    "head_sha": "7b9ec8548bde69df1d8971567aaf04abd0fa2e5c",
+    "wave107_regression": {"passed": 22, "total": 22},
+    "wave108_normal": {"passed": 27, "total": 27, "exit": 0},
+    "wave108_python_O": {"passed": 27, "total": 27, "exit": 0},
+    "artifact": {
+      "id": 10485899375,
+      "name": "wave108-exact-source-reports",
+      "digest": "sha256:76ea4bec6a68e47df60ba918bc67891253e9c16056455d489626b1cd895bbd88"
+    }
+  },
+  "preserved_failed_ci": [
+    {
+      "run": 35196179603,
+      "job": 105119827019,
+      "reason": "self-test attempted deepcopy of a Wave-104 credential-bound certificate-witness endpoint; the previous contract intentionally rejects credential cloning"
+    },
+    {
+      "run": 35196248449,
+      "job": 105120059399,
+      "reason": "same test-harness violation reproduced with diagnostics preserved",
+      "artifact_id": 10485644319,
+      "artifact_digest": "sha256:3f177c54e2bb06b6e41d8cdd10459bae0df8adbd667d694d20692b56958559a8"
+    }
+  ],
+  "tested_repair": {
+    "wave107_pr32_mutation_guard": "VALID",
+    "wave108_same_mutation_guard": "INCOMPLETE_OR_CORRUPT",
+    "wave108_same_mutation_authority": "HOLD_COMMITTED_HISTORY_INCOMPLETE",
+    "synthetic_retained_depths": [8, 16],
+    "synthetic_scaling_label": "correctness-only; no performance claim"
+  },
+  "evidence": {
+    "path": "evidence/WAVE108_COMMITTED_HISTORY_MANIFEST_2026-09-17.md",
+    "commit": "29877281d7a360f11ec169377dbff612dc16ce22",
+    "blob_sha": "086cf525f563a06ea9233d32166f8f67a7f1dc25"
+  },
+  "truth_boundary": [
+    "Both Wave-108 marker chains remain in the same modeled Python failure domain.",
+    "Coordinated whole-world rollback to an older genuine prefix remains a preserved counterexample.",
+    "The lower-commit to Wave-108-marker persistence window fails closed but is not atomically recoverable.",
+    "Pre-Wave-108 histories require an explicit separately verified migration; no silent retroactive marker synthesis is allowed.",
+    "No fresh AXM/monolith workload, performance, energy, network, retained-compute, incremental-compute, dormant-compute, OS-process, device, or provider-independence result is claimed."
+  ],
+  "next_gate": "Wave 109: durable OS-process separation and restart/rollback testing using the Wave-108 committed-history manifest contract; migration remains a separate explicit gate."
+}

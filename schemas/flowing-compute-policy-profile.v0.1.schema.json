@@ -1,0 +1,11 @@
+{
+ "$schema":"https://json-schema.org/draft/2020-12/schema",
+ "$id":"https://axiom-mir.example/schemas/flowing-compute-policy-profile.v0.1.schema.json",
+ "title":"AXM Flowing Compute Policy Profile v0.1","type":"object",
+ "required":["schema","profile_id","state_contract","model_kind","features","uncertainty_band_percent","truth"],
+ "properties":{
+  "schema":{"const":"axm.flowing-compute-policy-profile/v0.1"},"profile_id":{"type":"string","minLength":1},"state_contract":{"type":"string","minLength":1},
+  "model_kind":{"enum":["retained_work_fraction","linear_component_cost"]},"features":{"type":"array","items":{"type":"string"},"minItems":1},
+  "uncertainty_band_percent":{"type":"number","minimum":0},"truth":{"type":"object"}
+ }
+}

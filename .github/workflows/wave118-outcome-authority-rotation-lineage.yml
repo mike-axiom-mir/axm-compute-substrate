@@ -1,0 +1,43 @@
+name: wave118-outcome-authority-rotation-lineage
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - 'tools/AXM_FLOWING_COMPUTE_OUTCOME_AUTHORITY_ROTATION_LINEAGE.py'
+      - 'tools/AXM_FLOWING_COMPUTE_OUTCOME_AUTHORITY_ROTATION_LINEAGE_SELFTEST.py'
+      - '.github/workflows/wave118-outcome-authority-rotation-lineage.yml'
+      - 'evidence/FLOWING_COMPUTE_WAVE118_OUTCOME_AUTHORITY_ROTATION_LINEAGE_2026-09-17.md'
+      - 'evidence/WAVE118_EXACT_SOURCE_RECEIPT_2026-09-17.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Wave 117 regression
+        working-directory: tools
+        run: python AXM_FLOWING_COMPUTE_OUTCOME_AUTHORITY_ROOT_ANCHOR_SELFTEST.py
+      - name: Wave 117 optimized regression
+        working-directory: tools
+        run: python -O AXM_FLOWING_COMPUTE_OUTCOME_AUTHORITY_ROOT_ANCHOR_SELFTEST.py
+      - name: Wave 118 exact-source self-test
+        working-directory: tools
+        run: python AXM_FLOWING_COMPUTE_OUTCOME_AUTHORITY_ROTATION_LINEAGE_SELFTEST.py --json-out /tmp/wave118-report.json
+      - name: Wave 118 optimized-mode self-test
+        working-directory: tools
+        run: python -O AXM_FLOWING_COMPUTE_OUTCOME_AUTHORITY_ROTATION_LINEAGE_SELFTEST.py
+      - name: Upload machine-readable run report
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave118-report
+          path: /tmp/wave118-report.json
+          if-no-files-found: error

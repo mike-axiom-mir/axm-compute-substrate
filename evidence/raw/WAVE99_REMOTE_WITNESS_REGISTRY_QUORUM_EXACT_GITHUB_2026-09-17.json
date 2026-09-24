@@ -1,0 +1,53 @@
+{
+  "schema": "axm.flowing_compute.wave99.exact-github-evidence/v1",
+  "date": "2026-09-17",
+  "wave": 99,
+  "reason": "Append-only correction: the first Wave 99 report named the local pre-upload protocol blob with one extra final newline. GitHub stored the same source without that final newline. Both test modes were rerun against bytes exactly matching the committed GitHub tool.",
+  "source": {
+    "wave98_head": "56bb92218f9af62aceacee1ee625755b8ef54789",
+    "wave98_tool_blob": "bc4347a75f04f6d9ff97e58128d2f5f0a16c85a1",
+    "wave98_report_blob": "397e1023f1ec1e233e3b0a6943d4b6e62854512b",
+    "verifier_pr": 23,
+    "verifier_head": "ac4929e3404a14b6fe6d902f4c923b16a31427b5",
+    "verifier_evidence_blob": "5933c0c720507e4a760b2166eedfe07973942632"
+  },
+  "tools": [
+    {
+      "path": "tools/AXM_FLOWING_COMPUTE_REMOTE_WITNESS_REGISTRY_QUORUM.py",
+      "bytes": 20495,
+      "git_blob_sha1": "c4c0a6bcabeafcf19502303857d1fc4da6fe8ea5",
+      "sha256": "ba58a3bd7207c5e48a43043ba1a85564be7e1000b04a41b86a2db280621fe00d"
+    },
+    {
+      "path": "tools/AXM_FLOWING_COMPUTE_REMOTE_WITNESS_REGISTRY_QUORUM_SELFTEST.py",
+      "bytes": 12814,
+      "git_blob_sha1": "6efa792265c4fd3b54e7cfb192f5e1440402010a",
+      "sha256": "bef0d855ae2849242701107af16bf60b44e4a5910e830dfa887ce9058f6a8e45"
+    }
+  ],
+  "runs": [
+    {
+      "mode": "python",
+      "benchmark_rounds": 5,
+      "controls_passed": 41,
+      "controls_total": 41,
+      "synthetic_authority_median_cpu_us": {"depth_1": 14168.474, "depth_4": 15878.621, "depth_8": 15012.471}
+    },
+    {
+      "mode": "python -O",
+      "benchmark_rounds": 5,
+      "controls_passed": 41,
+      "controls_total": 41,
+      "synthetic_authority_median_cpu_us": {"depth_1": 14213.892, "depth_4": 14847.025, "depth_8": 19282.408}
+    }
+  ],
+  "controls_defined_in": "tools/AXM_FLOWING_COMPUTE_REMOTE_WITNESS_REGISTRY_QUORUM_SELFTEST.py",
+  "original_report_preserved": "evidence/raw/WAVE99_REMOTE_WITNESS_REGISTRY_QUORUM_2026-09-17.json",
+  "truth_boundary": [
+    "All three remote witnesses are still modeled in one Python process; physical independence is not demonstrated.",
+    "Whole-modeled-domain rollback remains self-consistent if local runtime, all remote stores, and registry state rewind together.",
+    "Enough local signer compromise plus a remote quorum can still construct a competing structurally valid world.",
+    "Timings are synthetic protocol bookkeeping only, not network, energy, monolith compute-efficiency, retained, incremental, or dormant-compute evidence."
+  ],
+  "next_gate": "Wave 100: run the exact registry/record/quorum contract across three genuinely separate processes/providers or devices with independent credentials; test real partition/reconnect, credential rotation, poisoned-witness recovery, stale-store restoration, two-provider compromise, and durable maximal-head anti-rollback."
+}

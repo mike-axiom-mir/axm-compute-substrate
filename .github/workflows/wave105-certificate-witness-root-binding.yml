@@ -1,0 +1,38 @@
+name: wave105-certificate-witness-root-binding
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - 'tools/AXM_FLOWING_COMPUTE_CERTIFICATE_WITNESS_ROOT_BINDING.py'
+      - 'tools/AXM_FLOWING_COMPUTE_CERTIFICATE_WITNESS_ROOT_BINDING_SELFTEST.py'
+      - '.github/workflows/wave105-certificate-witness-root-binding.yml'
+      - 'evidence/WAVE105_CERTIFICATE_WITNESS_ROOT_BINDING_2026-09-17.md'
+      - 'evidence/wave105_certificate_witness_root_binding_report.json'
+      - 'evidence/receipts/wave105_final_source_ci_2026-09-17.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Wave 104 regression
+        run: python tools/AXM_FLOWING_COMPUTE_CERTIFICATE_WITNESS_REGISTRY_SELFTEST.py
+      - name: Wave 105 exact-source self-test
+        run: python tools/AXM_FLOWING_COMPUTE_CERTIFICATE_WITNESS_ROOT_BINDING_SELFTEST.py --json-out /tmp/wave105-report.json
+      - name: Wave 105 optimized-mode self-test
+        run: python -O tools/AXM_FLOWING_COMPUTE_CERTIFICATE_WITNESS_ROOT_BINDING_SELFTEST.py
+      - name: Upload machine-readable run report
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave105-report
+          path: /tmp/wave105-report.json
+          if-no-files-found: error

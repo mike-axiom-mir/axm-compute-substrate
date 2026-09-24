@@ -1,0 +1,15 @@
+{
+  "schema": "axm.flowing-compute-policy-profile/v0.1",
+  "profile_id": "execution-graph-signature-propagation-2026-09-15",
+  "contract_id": "axm.execution-graph.component-propagated-signatures/v0.1",
+  "state_contract": "component propagated signatures over retained local edge hashes",
+  "features": ["affected_components", "mutated_source_components"],
+  "models": {
+    "global_cpu_ns": {"intercept": 858328.5239105483, "affected_components": 0.0, "mutated_source_components": 35750.370318275556},
+    "incremental_cpu_ns": {"intercept": 366882.43517502304, "affected_components": 2119.2445766059245, "mutated_source_components": 38944.83137155884}
+  },
+  "uncertainty_band_percent": 1.0,
+  "evaluation": {"observed_decisions": 22, "correct_decisions": 21, "accuracy": 0.9545454545454546, "holdout_decisions": 10, "holdout_correct": 9, "holdout_accuracy": 0.9, "max_regret_percent": 1.4214636490335888},
+  "source_identity": {"source": "EXECUTION_GRAPH.json", "source_bytes": 1282158, "active_edges": 3618, "active_nodes": 160, "scc_components": 127},
+  "truth": {"contract_specific": true, "policy_can_choose_wrong": true, "timing_noise_near_crossover_visible": true, "output_correctness_independent_of_route": true}
+}

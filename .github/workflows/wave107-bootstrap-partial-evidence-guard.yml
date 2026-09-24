@@ -1,0 +1,35 @@
+name: wave107-bootstrap-partial-evidence-guard
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - 'tools/AXM_FLOWING_COMPUTE_BOOTSTRAP_PARTIAL_EVIDENCE_GUARD.py'
+      - 'tools/AXM_FLOWING_COMPUTE_BOOTSTRAP_PARTIAL_EVIDENCE_GUARD_SELFTEST.py'
+      - '.github/workflows/wave107-bootstrap-partial-evidence-guard.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Wave 106 regression
+        run: python tools/AXM_FLOWING_COMPUTE_BOOTSTRAP_LINEAGE_CLOSURE_SELFTEST.py
+      - name: Wave 107 exact-source self-test
+        run: python tools/AXM_FLOWING_COMPUTE_BOOTSTRAP_PARTIAL_EVIDENCE_GUARD_SELFTEST.py --json-out /tmp/wave107-report.json
+      - name: Wave 107 optimized-mode self-test
+        run: python -O tools/AXM_FLOWING_COMPUTE_BOOTSTRAP_PARTIAL_EVIDENCE_GUARD_SELFTEST.py
+      - name: Upload machine-readable run report
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave107-report
+          path: /tmp/wave107-report.json
+          if-no-files-found: error

@@ -1,0 +1,37 @@
+name: wave103-certificate-maximum-witness
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - 'tools/AXM_FLOWING_COMPUTE_CERTIFICATE_MAXIMUM_WITNESS.py'
+      - 'tools/AXM_FLOWING_COMPUTE_CERTIFICATE_MAXIMUM_WITNESS_SELFTEST.py'
+      - '.github/workflows/wave103-certificate-maximum-witness.yml'
+      - 'evidence/WAVE103_CERTIFICATE_MAXIMUM_WITNESS_2026-09-17.md'
+      - 'evidence/wave103_certificate_maximum_witness_report.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Wave 102 regression
+        run: python tools/AXM_FLOWING_COMPUTE_QUORUM_GLOBAL_MAXIMUM_SELFTEST.py --benchmark-rounds 1
+      - name: Wave 103 exact-source self-test
+        run: python tools/AXM_FLOWING_COMPUTE_CERTIFICATE_MAXIMUM_WITNESS_SELFTEST.py --report /tmp/wave103-report.json
+      - name: Wave 103 optimized-mode self-test
+        run: python -O tools/AXM_FLOWING_COMPUTE_CERTIFICATE_MAXIMUM_WITNESS_SELFTEST.py
+      - name: Upload machine-readable run report
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave103-report
+          path: /tmp/wave103-report.json
+          if-no-files-found: error

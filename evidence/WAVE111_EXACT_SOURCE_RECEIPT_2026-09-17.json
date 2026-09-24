@@ -1,0 +1,87 @@
+{
+  "schema": "axm.flowing-compute.wave111.exact-source-receipt/v1",
+  "date": "2026-09-17",
+  "lane": "chatgpt/lane-001-platform-extract",
+  "pull_request": 2,
+  "status": "experimental-unmerged-not-canon",
+  "trigger": {
+    "verifier_pr": 35,
+    "verifier_head": "eb8b2d21b63d280cd84f53f98769bc70c4939cf2",
+    "verifier_evidence_blob": "3a035e1cb20a5e0159ca6dc9e5501f3cb669841e",
+    "verifier_reproducer_blob": "62beb82f18517ee887bbc508b161db214bea477f",
+    "verifier_ci_run": 35209627758,
+    "verifier_ci_normal_job": 105163740894,
+    "verifier_ci_optimized_job": 105163741071,
+    "verifier_primary_verdict": "FAIL_COMMITTED_TRANSITION_IDENTITY_IS_SUBSTITUTABLE",
+    "verifier_secondary_verdict": "FAIL_TRANSITION_ONLY_EVIDENCE_IS_IGNORED_WHEN_WAVE109_REPORTS_NONE"
+  },
+  "tested_source": {
+    "commit": "8b3c7e727fb1110259da15a9e9e62b720c520045",
+    "tool": {
+      "path": "tools/AXM_FLOWING_COMPUTE_TRANSITION_PROVENANCE_LEDGER.py",
+      "blob": "638294762fc84245e265bfad138869f83c621fd6"
+    },
+    "selftest": {
+      "path": "tools/AXM_FLOWING_COMPUTE_TRANSITION_PROVENANCE_LEDGER_SELFTEST.py",
+      "blob": "d48f09c80900ad3a8ab1667f524832ca3a2892db"
+    },
+    "workflow": {
+      "path": ".github/workflows/wave111-transition-provenance-ledger.yml",
+      "blob": "b1153d27b738867906df0228e8afe1f0379c3e87"
+    }
+  },
+  "ci": {
+    "run": 35212162444,
+    "job": 105171986067,
+    "conclusion": "success",
+    "wave110_regression": "20/20",
+    "wave111_normal": "27/27",
+    "wave111_python_optimized": "27/27",
+    "artifact_id": 10492447950,
+    "artifact_name": "wave111-transition-provenance-reports",
+    "artifact_digest": "sha256:1b2938418059419e59d9278ec4055e4318b7ee2c32ae113c3e09392677295e8e"
+  },
+  "evidence": {
+    "written_report": {
+      "commit": "8f93ad6b86cef40498c30ebf07ba86bbcd3326fe",
+      "path": "evidence/WAVE111_TRANSITION_PROVENANCE_LEDGER_2026-09-17.md",
+      "blob": "761edb2e055dda098d86b5806565d57429bfc223"
+    },
+    "machine_report": {
+      "commit": "268ae1a79a96b4e5fdaedf13e9e171c669b3fe62",
+      "path": "evidence/wave111_transition_provenance_report.json",
+      "blob": "4896f41601ce5ae4b83a565e6b869f81f52f5125"
+    },
+    "evidence_commits_modify_tested_source": false
+  },
+  "observed_result": {
+    "primary_wave110_state": "VALID",
+    "primary_wave110_authority": "AUTHORITATIVE_QUORUM_3_OF_3_MODELED",
+    "primary_wave111_state": "INCOMPLETE_OR_CORRUPT",
+    "primary_wave111_authority": "HOLD_COMMITTED_HISTORY_INCOMPLETE",
+    "secondary_wave110_state": "NONE",
+    "secondary_wave110_authority": "AUTHORITATIVE_GENESIS_MODELED",
+    "secondary_wave111_state": "UNRESOLVED_COMMIT_STATUS",
+    "secondary_wave111_authority": "HOLD_COMMIT_STATUS_UNRESOLVED",
+    "commit_to_provenance_crash_boundary": "HOLD_COMMITTED_HISTORY_INCOMPLETE",
+    "whole_modeled_domain_rollback_counterexample": "AUTHORITATIVE_QUORUM_3_OF_3_MODELED"
+  },
+  "truth_boundary": {
+    "fresh_monolith_result": false,
+    "performance_claim": false,
+    "energy_claim": false,
+    "network_claim": false,
+    "retained_compute_claim": false,
+    "incremental_compute_claim": false,
+    "dormant_compute_claim": false,
+    "os_process_durability_claim": false,
+    "device_independence_claim": false,
+    "physical_monotonicity_claim": false,
+    "provider_independence_claim": false,
+    "synthetic_depth6": "correctness-only",
+    "same_modeled_failure_domain": true
+  },
+  "preserved_counterexample": "If the entire modeled authority world, including the Wave-111 provenance ledger and all modeled witnesses, is rolled back together to a genuine older prefix, that old prefix can still be authoritative because no independently surviving newer fact remains.",
+  "next_gate": "Wave 112: independently durable commit-decision/provenance witness in a separate OS process and durable store, attacked at prepare/lower-commit/decision/local-persistence crash boundaries and against full local rollback, stale or cloned disks, witness outage or staleness, saved-genesis restart, partitions/reconnects, and simultaneous old/new views.",
+  "merge_or_canon_action": false
+}

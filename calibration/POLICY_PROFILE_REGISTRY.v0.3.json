@@ -1,0 +1,25 @@
+{
+  "schema": "axm.flowing-compute-policy-registry/v0.3",
+  "profiles": [
+    {
+      "contract_id": "axm.framestate.dormant-mesh/v0.1",
+      "profile_id": "framestate-dormant-mesh-2026-09-16",
+      "profile_path": "calibration/framestate-dormant-mesh.setup-amortization.v0.1.json",
+      "evaluator_kind": "setup_amortization_v1"
+    },
+    {
+      "contract_id": "axm.execution-fabric.capability-index/v0.1",
+      "profile_id": "execution-fabric-capability-index-2026-09-16",
+      "profile_path": "calibration/execution-fabric-capability-index.setup-amortization.v0.1.json",
+      "evaluator_kind": "setup_amortization_v1"
+    }
+  ],
+  "legacy_registry": "calibration/POLICY_PROFILE_REGISTRY.v0.2.json",
+  "selection_rule": "exact v0.3 contract match first; otherwise delegate to the preserved v0.2 registry and its measured-domain guards; no nearest-profile fallback",
+  "truth": {
+    "legacy_profiles_preserved": true,
+    "unknown_contract_is_hold": true,
+    "expected_future_use_is_input_not_fact": true,
+    "one_model_family_for_all_contracts": false
+  }
+}

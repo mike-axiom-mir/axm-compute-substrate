@@ -1,0 +1,87 @@
+{
+  "schema": "axm.flowing-compute.wave114.exact-source-receipt/v1",
+  "wave": 114,
+  "date": "2026-09-17",
+  "lane": "chatgpt/lane-001-platform-extract",
+  "tested_source_commit": "cd946978f2c01ce719307c5bc025beccbcb1ec4f",
+  "implementation_commit": "9fd40ae53c2fcd376922d3ab4f1c60df20c015ea",
+  "source_blobs": {
+    "tool": {
+      "path": "tools/AXM_FLOWING_COMPUTE_EXACT_TRANSITION_DECISION.py",
+      "sha": "2520a80b17624ac198d1e02999ef8ea906f246c5"
+    },
+    "selftest": {
+      "path": "tools/AXM_FLOWING_COMPUTE_EXACT_TRANSITION_DECISION_SELFTEST.py",
+      "sha": "98afe1f6725f4c69f54639b1fd9c773d076bc976"
+    },
+    "ci_harness_runner": {
+      "path": "tools/AXM_FLOWING_COMPUTE_EXACT_TRANSITION_DECISION_SELFTEST_RUNNER.py",
+      "sha": "7538888c32e818dbd93503dcec39d2393bf5f75e"
+    },
+    "workflow": {
+      "path": ".github/workflows/wave114-exact-transition-decision.yml",
+      "sha": "e6cbddfa18a8d413526dd0dcaa2daf837b1bdc5d"
+    }
+  },
+  "verifier_input": {
+    "pr": 38,
+    "head": "ec9dbc94cb495e2d9530c5f222f4056cd033a10b",
+    "reproducer_blob": "29b487de23d6717912add0a4617988f677732690",
+    "verdict": "FAIL_RECOVERY_BINDS_SUBSTITUTED_TRANSITION_IDENTITY"
+  },
+  "successful_ci": {
+    "run": 35229822814,
+    "job": 105230686122,
+    "head": "cd946978f2c01ce719307c5bc025beccbcb1ec4f",
+    "wave113_regression": {"passed": 25, "total": 25},
+    "wave114_normal": {"passed": 20, "total": 20},
+    "wave114_optimized": {"passed": 20, "total": 20},
+    "artifact": {
+      "id": 10500408246,
+      "name": "wave114-exact-transition-decision-reports",
+      "sha256": "3afedbb0b7ca906c5cdd7f097f9849e8be9b79e61339d5d230d3ecd92b549bfd"
+    }
+  },
+  "preserved_failed_ci": {
+    "run": 35229354618,
+    "job": 105229070310,
+    "head": "9fd40ae53c2fcd376922d3ab4f1c60df20c015ea",
+    "wave113_regression": "PASS",
+    "failure_scope": "test harness referenced w.PROVENANCE_STORE before exercising Wave114 implementation",
+    "artifact": {
+      "id": 10500836778,
+      "sha256": "a513f08a5e7643d7636780f3f1757b4670d0b7472daceb1b9087bfccc4c192c9"
+    }
+  },
+  "observed_result": {
+    "wave113_attack_reproduced": true,
+    "wave114_replacement_transition_rejected": true,
+    "wave114_rejection": "recovery-transition-does-not-match-durable-commit-decision",
+    "unknown_extension_field_rejected": true,
+    "unknown_extension_field_rejection": "transition-field-set-mismatch",
+    "missing_decision_fails_closed": true,
+    "tampered_decision_fails_closed": true,
+    "clean_exact_recovery": "COMMITTED_RECOVERED_EXACT_DECISION",
+    "normal_two_epoch_history": "VALID",
+    "normal_two_epoch_authority": "AUTHORITATIVE_QUORUM_3_OF_3_MODELED"
+  },
+  "preserved_counterexample": {
+    "whole_modeled_failure_domain_rollback": "AUTHORITATIVE_QUORUM_3_OF_3_MODELED",
+    "meaning": "rolling back the decision ledger together with every other modeled newer fact still leaves a self-consistent older prefix"
+  },
+  "truth_boundary": {
+    "same_modeled_python_failure_domain": true,
+    "decision_witness_separate_os_process": false,
+    "power_loss_atomicity_claim": false,
+    "physical_monotonicity_claim": false,
+    "provider_independence_claim": false,
+    "real_axm_or_monolith_workload_run": false,
+    "synthetic_scaling_run": false,
+    "performance_claim": false,
+    "energy_claim": false,
+    "retained_incremental_dormant_compute_claim": false,
+    "merge_performed": false,
+    "canon_promotion_performed": false
+  },
+  "next_gate": "Move the exact commit-decision witness into a separate OS process and durable store with its own credential, then attack crash/publication boundaries, complete local rollback with newer witness, restart, clone/stale disks, witness outage/truncation/corruption, credential substitution, partitions, and simultaneous old/new views."
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://axiom-mir.example/schemas/flowing-compute-routing-calibration.v0.1.schema.json",
+  "title": "AXM Flowing Compute Routing Calibration v0.1",
+  "type": "object",
+  "required": ["schema", "calibration_id", "source_identity", "state_contract", "features", "incremental_cost_model", "global_cost_model", "uncertainty_band_percent", "evaluation", "truth", "calibration_sha256"],
+  "properties": {
+    "schema": {"const": "axm.flowing-compute-routing-calibration/v0.1"},
+    "calibration_id": {"type": "string", "minLength": 1},
+    "source_identity": {"type": "object"},
+    "state_contract": {"type": "string", "minLength": 1},
+    "features": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "incremental_cost_model": {
+      "type": "object",
+      "required": ["intercept", "per_affected_component", "per_mutated_source"]
+    },
+    "global_cost_model": {
+      "type": "object",
+      "required": ["intercept", "per_mutated_source"]
+    },
+    "uncertainty_band_percent": {"type": "number", "minimum": 0},
+    "evaluation": {"type": "object"},
+    "truth": {"type": "object"},
+    "calibration_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

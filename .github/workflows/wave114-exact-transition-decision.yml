@@ -1,0 +1,40 @@
+name: Wave 114 exact transition decision
+
+on:
+  push:
+    branches:
+      - chatgpt/lane-001-platform-extract
+    paths:
+      - 'tools/AXM_FLOWING_COMPUTE_EXACT_TRANSITION_DECISION.py'
+      - 'tools/AXM_FLOWING_COMPUTE_EXACT_TRANSITION_DECISION_SELFTEST.py'
+      - 'tools/AXM_FLOWING_COMPUTE_EXACT_TRANSITION_DECISION_SELFTEST_RUNNER.py'
+      - '.github/workflows/wave114-exact-transition-decision.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wave114:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Wave 113 regression
+        run: python tools/AXM_FLOWING_COMPUTE_RECOVERY_ATOMICITY_SELFTEST.py --json-out evidence/wave114_wave113_regression.json
+      - name: Wave 114 normal Python
+        run: python tools/AXM_FLOWING_COMPUTE_EXACT_TRANSITION_DECISION_SELFTEST_RUNNER.py --json-out evidence/wave114_normal.json
+      - name: Wave 114 optimized Python
+        run: python -O tools/AXM_FLOWING_COMPUTE_EXACT_TRANSITION_DECISION_SELFTEST_RUNNER.py --json-out evidence/wave114_optimized.json
+      - name: Upload exact-run reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wave114-exact-transition-decision-reports
+          path: |
+            evidence/wave114_wave113_regression.json
+            evidence/wave114_normal.json
+            evidence/wave114_optimized.json
+          if-no-files-found: warn
