@@ -234,3 +234,7 @@ Neutral Compute v0.1 currently has:
 3. Universal Creation's independent Python runtime.
 
 MorphTile and UC pin the vector data but do not import this runtime implementation. See `evidence/CONFORMANCE_V01.md` and `evidence/UC_CONSUMER_V01.md`.
+
+## Reusable simulation method
+
+[Simulation experience and reuse](SIMULATION_EXPERIENCE_REUSE.md) connects the shared method to this repository, with existing machinery, proposed experiments and explicit evidence limits.
