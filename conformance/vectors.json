@@ -1,0 +1,568 @@
+{
+  "format": "axm-neutral-compute-conformance",
+  "version": "0.1",
+  "note": "Plain JSON behavioral vectors. Expected HOLD/refusal states are successful conformance outcomes when named by the vector.",
+  "hash_primitives": {
+    "canonical_json": {
+      "value": {
+        "b": 2,
+        "a": 1
+      },
+      "canonical_utf8": "{\"a\":1,\"b\":2}",
+      "sha256": "43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777"
+    },
+    "bytes_base64": {
+      "value": "AQID",
+      "sha256": "039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81"
+    }
+  },
+  "default_setup": {
+    "contracts": [
+      {
+        "id": "graph",
+        "depends_on": [
+          "source:graph/**"
+        ],
+        "allowed_routes": [
+          "incremental",
+          "rebuild"
+        ]
+      },
+      {
+        "id": "snapshot",
+        "depends_on": [
+          "source:**"
+        ],
+        "allowed_routes": [
+          "merkle",
+          "full-audit"
+        ]
+      },
+      {
+        "id": "mesh",
+        "depends_on": [
+          "source:mesh/**"
+        ],
+        "allowed_routes": [
+          "compile",
+          "reuse-parser"
+        ]
+      }
+    ],
+    "artifacts": {
+      "graph": {
+        "kind": "json",
+        "value": {
+          "graph": 0
+        }
+      },
+      "snapshot": {
+        "kind": "json",
+        "value": {
+          "snapshot": 0
+        }
+      },
+      "mesh": {
+        "kind": "bytes-base64",
+        "value": "bWVzaC12MA=="
+      }
+    }
+  },
+  "cases": [
+    {
+      "id": "selective-update-atomic-commit",
+      "steps": [
+        {
+          "op": "plan",
+          "save_as": "p1",
+          "selectors": [
+            "source:graph/node-7"
+          ],
+          "expect": {
+            "status": "PLANNED",
+            "actions": {
+              "graph": "UPDATE_REQUIRED",
+              "snapshot": "UPDATE_REQUIRED",
+              "mesh": "REUSE_EXACT"
+            },
+            "current_sequence": 0
+          }
+        },
+        {
+          "op": "stage",
+          "plan": "p1",
+          "save_as": "s1",
+          "updates": {
+            "graph": {
+              "body": {
+                "kind": "json",
+                "value": {
+                  "graph": 1
+                }
+              },
+              "route": "incremental"
+            },
+            "snapshot": {
+              "body": {
+                "kind": "json",
+                "value": {
+                  "snapshot": 1
+                }
+              },
+              "route": "merkle"
+            }
+          },
+          "expect": {
+            "status": "STAGED",
+            "current_sequence": 0,
+            "staged_sequence": 1,
+            "decisions": {
+              "graph": "UPDATED",
+              "snapshot": "UPDATED",
+              "mesh": "REUSED_EXACT"
+            }
+          }
+        },
+        {
+          "op": "commit",
+          "stage": "s1",
+          "save_generation": "g1",
+          "expect": {
+            "status": "COMMITTED",
+            "current_sequence": 1,
+            "decisions": {
+              "graph": "UPDATED",
+              "snapshot": "UPDATED",
+              "mesh": "REUSED_EXACT"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "unknown-selector-holds",
+      "steps": [
+        {
+          "op": "plan",
+          "selectors": [
+            "unknown:outside-map"
+          ],
+          "expect": {
+            "status": "HOLD_UNKNOWN_SELECTOR",
+            "unknown_selectors": [
+              "unknown:outside-map"
+            ],
+            "current_sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "route-boundaries-hold",
+      "steps": [
+        {
+          "op": "plan",
+          "save_as": "p1",
+          "selectors": [
+            "source:graph/node-1"
+          ],
+          "expect": {
+            "status": "PLANNED"
+          }
+        },
+        {
+          "op": "stage",
+          "plan": "p1",
+          "updates": {
+            "graph": {
+              "body": {
+                "kind": "json",
+                "value": {
+                  "graph": 1
+                }
+              }
+            },
+            "snapshot": {
+              "body": {
+                "kind": "json",
+                "value": {
+                  "snapshot": 1
+                }
+              },
+              "route": "merkle"
+            }
+          },
+          "expect": {
+            "status": "HOLD_ROUTE_REQUIRED",
+            "contract": "graph",
+            "current_sequence": 0
+          }
+        },
+        {
+          "op": "stage",
+          "plan": "p1",
+          "updates": {
+            "graph": {
+              "body": {
+                "kind": "json",
+                "value": {
+                  "graph": 1
+                }
+              },
+              "route": "universal-magic"
+            },
+            "snapshot": {
+              "body": {
+                "kind": "json",
+                "value": {
+                  "snapshot": 1
+                }
+              },
+              "route": "merkle"
+            }
+          },
+          "expect": {
+            "status": "HOLD_ROUTE_NOT_ALLOWED",
+            "contract": "graph",
+            "current_sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "stale-plan-holds",
+      "steps": [
+        {
+          "op": "plan",
+          "save_as": "pa",
+          "selectors": [
+            "source:graph/a"
+          ],
+          "expect": {
+            "status": "PLANNED"
+          }
+        },
+        {
+          "op": "plan",
+          "save_as": "pb",
+          "selectors": [
+            "source:graph/b"
+          ],
+          "expect": {
+            "status": "PLANNED"
+          }
+        },
+        {
+          "op": "stage",
+          "plan": "pa",
+          "save_as": "sa",
+          "updates": {
+            "graph": {
+              "body": {
+                "kind": "json",
+                "value": {
+                  "graph": "a"
+                }
+              },
+              "route": "incremental"
+            },
+            "snapshot": {
+              "body": {
+                "kind": "json",
+                "value": {
+                  "snapshot": "a"
+                }
+              },
+              "route": "merkle"
+            }
+          },
+          "expect": {
+            "status": "STAGED",
+            "current_sequence": 0
+          }
+        },
+        {
+          "op": "commit",
+          "stage": "sa",
+          "expect": {
+            "status": "COMMITTED",
+            "current_sequence": 1
+          }
+        },
+        {
+          "op": "stage",
+          "plan": "pb",
+          "updates": {},
+          "expect": {
+            "status": "HOLD_STALE_BASE",
+            "current_sequence": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "hot-state-is-noncanonical",
+      "steps": [
+        {
+          "op": "wake",
+          "contract": "mesh",
+          "body": {
+            "kind": "bytes-base64",
+            "value": "bWVzaC12MA=="
+          },
+          "expect": {
+            "status": "AWAKE_VERIFIED",
+            "current_sequence": 0,
+            "hot_contracts": [
+              "mesh"
+            ]
+          }
+        },
+        {
+          "op": "restart",
+          "expect": {
+            "status": "RESTARTED",
+            "current_sequence": 0,
+            "hot_contracts": []
+          }
+        },
+        {
+          "op": "wake",
+          "contract": "mesh",
+          "body": {
+            "kind": "bytes-base64",
+            "value": "d3Jvbmc="
+          },
+          "expect": {
+            "status": "HOLD_ARTIFACT_HASH_MISMATCH",
+            "current_sequence": 0,
+            "hot_contracts": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "lineage-rollback-reactivation",
+      "steps": [
+        {
+          "op": "remember_current",
+          "save_generation": "g0",
+          "expect": {
+            "status": "REMEMBERED",
+            "current_sequence": 0
+          }
+        },
+        {
+          "op": "plan",
+          "save_as": "pa",
+          "selectors": [
+            "source:graph/a"
+          ],
+          "expect": {
+            "status": "PLANNED"
+          }
+        },
+        {
+          "op": "stage",
+          "plan": "pa",
+          "save_as": "sa",
+          "updates": {
+            "graph": {
+              "body": {
+                "kind": "json",
+                "value": {
+                  "graph": "a"
+                }
+              },
+              "route": "incremental"
+            },
+            "snapshot": {
+              "body": {
+                "kind": "json",
+                "value": {
+                  "snapshot": "a"
+                }
+              },
+              "route": "merkle"
+            }
+          },
+          "expect": {
+            "status": "STAGED"
+          }
+        },
+        {
+          "op": "commit",
+          "stage": "sa",
+          "save_generation": "ga",
+          "expect": {
+            "status": "COMMITTED",
+            "current_sequence": 1
+          }
+        },
+        {
+          "op": "rollback",
+          "target": "g0",
+          "expect": {
+            "status": "ROLLED_BACK",
+            "current_sequence": 0
+          }
+        },
+        {
+          "op": "plan",
+          "save_as": "pb",
+          "selectors": [
+            "source:graph/b"
+          ],
+          "expect": {
+            "status": "PLANNED"
+          }
+        },
+        {
+          "op": "stage",
+          "plan": "pb",
+          "save_as": "sb",
+          "updates": {
+            "graph": {
+              "body": {
+                "kind": "json",
+                "value": {
+                  "graph": "b"
+                }
+              },
+              "route": "incremental"
+            },
+            "snapshot": {
+              "body": {
+                "kind": "json",
+                "value": {
+                  "snapshot": "b"
+                }
+              },
+              "route": "merkle"
+            }
+          },
+          "expect": {
+            "status": "STAGED"
+          }
+        },
+        {
+          "op": "commit",
+          "stage": "sb",
+          "save_generation": "gb",
+          "expect": {
+            "status": "COMMITTED",
+            "current_sequence": 1
+          }
+        },
+        {
+          "op": "rollback",
+          "target": "ga",
+          "expect": {
+            "status": "HOLD_TARGET_NOT_ANCESTOR",
+            "current_sequence": 1
+          }
+        },
+        {
+          "op": "rollback",
+          "target": "g0",
+          "expect": {
+            "status": "ROLLED_BACK",
+            "current_sequence": 0
+          }
+        },
+        {
+          "op": "reactivate",
+          "target": "ga",
+          "expect": {
+            "status": "REACTIVATED",
+            "current_sequence": 1
+          }
+        },
+        {
+          "op": "rollback",
+          "target": "g0",
+          "expect": {
+            "status": "ROLLED_BACK",
+            "current_sequence": 0
+          }
+        },
+        {
+          "op": "reactivate",
+          "target": "gb",
+          "expect": {
+            "status": "REACTIVATED",
+            "current_sequence": 1
+          }
+        },
+        {
+          "op": "reactivate",
+          "target": "ga",
+          "expect": {
+            "status": "HOLD_TARGET_NOT_DESCENDANT",
+            "current_sequence": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "recompute-same-output-is-still-update",
+      "steps": [
+        {
+          "op": "plan",
+          "save_as": "p1",
+          "selectors": [
+            "source:graph/no-semantic-change"
+          ],
+          "expect": {
+            "status": "PLANNED"
+          }
+        },
+        {
+          "op": "stage_from_current",
+          "plan": "p1",
+          "save_as": "s1",
+          "routes": {
+            "graph": "rebuild",
+            "snapshot": "full-audit"
+          },
+          "expect": {
+            "status": "STAGED",
+            "decisions": {
+              "graph": "UPDATED",
+              "snapshot": "UPDATED",
+              "mesh": "REUSED_EXACT"
+            }
+          }
+        },
+        {
+          "op": "commit",
+          "stage": "s1",
+          "expect": {
+            "status": "COMMITTED",
+            "current_sequence": 1,
+            "decisions": {
+              "graph": "UPDATED",
+              "snapshot": "UPDATED",
+              "mesh": "REUSED_EXACT"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "tampered-export-refused",
+      "steps": [
+        {
+          "op": "tamper_import",
+          "contract": "graph",
+          "field": "representation",
+          "value": "tampered",
+          "expect": {
+            "status": "REFUSED_TAMPERED_RUNTIME",
+            "current_sequence": 0
+          }
+        }
+      ]
+    }
+  ]
+}

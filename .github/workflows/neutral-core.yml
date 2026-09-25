@@ -1,0 +1,25 @@
+name: neutral-core
+
+on:
+  push:
+    branches:
+      - chatgpt/neutral-core-v01
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+      - run: npm run crash-matrix
+      - run: npm run spine-crash-matrix
+      - run: npm run conformance
+      - run: npm run storage-probe
+      - run: npm run storage-compare

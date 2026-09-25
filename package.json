@@ -1,0 +1,16 @@
+{
+  "name": "@axm/compute-substrate",
+  "version": "0.1.0",
+  "description": "Neutral deterministic retained-state runtime core",
+  "license": "MPL-2.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "conformance": "node tools/conformance.js --check",
+    "crash-matrix": "node tools/fs-host-crash-matrix.js",
+    "storage-probe": "node tools/fs-host-storage-probe.js 256",
+    "spine-crash-matrix": "node tools/fs-spine-host-crash-matrix.js",
+    "storage-compare": "node tools/fs-host-storage-compare.js 256"
+  }
+}
